@@ -141,6 +141,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/emergencies/{emergencyId}/needs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a need for an emergency (public — citizen self-registration) */
+        post: operations["NeedsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/emergencies/{emergencyId}/public/needs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List validated needs for an emergency (public) */
+        get: operations["NeedsController_listPublic"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/emergencies/{emergencyId}/needs/queue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get pending needs queue for an emergency (coordinator only) */
+        get: operations["NeedsController_listQueue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/needs/{needId}/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Validate a need (coordinator only) */
+        post: operations["NeedsController_validate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -244,6 +312,72 @@ export interface components {
             country: string;
             /** @example active */
             status: string;
+        };
+        CreateNeedDto: {
+            /** @example Alimentos para 50 familias */
+            title: string;
+            /**
+             * @example food
+             * @enum {string}
+             */
+            category: "hygiene" | "water" | "food" | "medical" | "shelter" | "tools" | "other";
+            /**
+             * @example high
+             * @enum {string}
+             */
+            priority: "low" | "medium" | "high" | "urgent";
+            /**
+             * @description Quantity requested (optional)
+             * @example 50
+             */
+            requestedQuantity?: number;
+            /**
+             * @description Unit of measurement (optional)
+             * @example boxes
+             */
+            unit?: string;
+        };
+        CreateNeedResponseDto: {
+            /**
+             * Format: uuid
+             * @example 3fa85f64-5717-4562-b3fc-2c963f66afa6
+             */
+            id: string;
+        };
+        NeedViewDto: {
+            /**
+             * Format: uuid
+             * @example 3fa85f64-5717-4562-b3fc-2c963f66afa6
+             */
+            id: string;
+            /**
+             * Format: uuid
+             * @example 11111111-1111-4111-8111-111111111111
+             */
+            emergencyId: string;
+            /** @example Alimentos para 50 familias */
+            title: string;
+            /**
+             * @example food
+             * @enum {string}
+             */
+            category: "hygiene" | "water" | "food" | "medical" | "shelter" | "tools" | "other";
+            /**
+             * @example high
+             * @enum {string}
+             */
+            priority: "low" | "medium" | "high" | "urgent";
+            /** @example 50 */
+            requestedQuantity?: Record<string, never> | null;
+            /** @example boxes */
+            unit?: Record<string, never> | null;
+            /**
+             * @example pending
+             * @enum {string}
+             */
+            status: "pending" | "validated" | "rejected" | "fulfilled";
+            /** @example 2024-01-01T00:00:00.000Z */
+            createdAt: string;
         };
     };
     responses: never;
@@ -595,6 +729,149 @@ export interface operations {
                 };
             };
             /** @description Emergency not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    NeedsController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Emergency UUID */
+                emergencyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateNeedDto"];
+            };
+        };
+        responses: {
+            /** @description Need created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateNeedResponseDto"];
+                };
+            };
+            /** @description Invalid request body or UUID */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    NeedsController_listPublic: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Emergency UUID */
+                emergencyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of validated needs */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NeedViewDto"][];
+                };
+            };
+        };
+    };
+    NeedsController_listQueue: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Emergency UUID */
+                emergencyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of pending needs */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NeedViewDto"][];
+                };
+            };
+            /** @description Missing or invalid token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Coordinator role required for this emergency */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    NeedsController_validate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Need UUID */
+                needId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Need validated */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Need is not in pending status */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Missing or invalid token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Coordinator role required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Need not found */
             404: {
                 headers: {
                     [name: string]: unknown;
