@@ -12,6 +12,7 @@ especificacion_plataforma_ayuda_solidaria.md
 node_modules/
 dist/
 packages/*/dist/
+.next/
 
 # Generated artifacts
 apps/api/openapi.json
