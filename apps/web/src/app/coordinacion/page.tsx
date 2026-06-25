@@ -4,6 +4,10 @@ import { api } from '@/lib/api';
 import { DEMO_EMERGENCY_ID } from '@/lib/config';
 import { ResourceCard } from './resource-card';
 
+// The coordination queue must reflect live backend state on every request,
+// not a build-time snapshot.
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Panel de coordinación — ReliefHub',
   description: 'Revisa, verifica y publica los recursos pendientes.',
