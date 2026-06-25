@@ -261,6 +261,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/geocode": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Geocode a free-text address query (Nominatim / OpenStreetMap) */
+        get: operations["GeocodingController_search"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -466,6 +483,20 @@ export interface components {
             /** @enum {string} */
             type: "ngo" | "company" | "public_admin" | "association" | "other";
             verificationLevel: string;
+        };
+        GeocodeResultDto: {
+            /** @example Madrid, Community of Madrid, Spain */
+            address: string;
+            /**
+             * @description Decimal degrees latitude
+             * @example 40.4165
+             */
+            latitude: number;
+            /**
+             * @description Decimal degrees longitude
+             * @example -3.70256
+             */
+            longitude: number;
         };
     };
     responses: never;
@@ -1081,6 +1112,29 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    GeocodingController_search: {
+        parameters: {
+            query: {
+                /** @description Address or place name to search */
+                q: unknown;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Geocoding results (empty array when query is shorter than 3 characters) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeocodeResultDto"][];
+                };
             };
         };
     };
