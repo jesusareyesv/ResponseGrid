@@ -167,7 +167,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create a need for an emergency (public — citizen self-registration) */
+        /** Create a need for an emergency (authenticated requester) */
         post: operations["NeedsController_create"];
         delete?: never;
         options?: never;
@@ -220,6 +220,23 @@ export interface paths {
         put?: never;
         /** Validate a need (coordinator only) */
         post: operations["NeedsController_validate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/needs/{needId}/assign-manager": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Assign a managing organization to a need (coordinator only) */
+        post: operations["NeedsController_assignManager"];
         delete?: never;
         options?: never;
         head?: never;
@@ -394,29 +411,61 @@ export interface components {
             /** @example active */
             status: string;
         };
-        CreateNeedDto: {
-            /** @example Alimentos para 50 familias */
-            title: string;
+        NeedLocationDto: {
+            /** @example 123 Main Street, Caracas, Venezuela */
+            address: string;
             /**
-             * @example food
+             * @description Latitude (-90 to 90)
+             * @example 10.4806
+             */
+            latitude: number;
+            /**
+             * @description Longitude (-180 to 180)
+             * @example -66.9036
+             */
+            longitude: number;
+        };
+        NeedItemDto: {
+            /**
+             * @description Name of the item needed
+             * @example Water bottles
+             */
+            name: string;
+            /**
+             * @description Quantity needed (positive integer)
+             * @example 100
+             */
+            quantity: number;
+            /**
+             * @description Unit of measurement (optional)
+             * @example liters
+             */
+            unit?: string;
+            /**
+             * @example water
              * @enum {string}
              */
             category: "hygiene" | "water" | "food" | "medical" | "shelter" | "tools" | "other";
+        };
+        CreateNeedDto: {
+            /** @example Alimentos para 50 familias */
+            title: string;
+            /** @example Descripción detallada de la necesidad */
+            description?: string;
+            location: components["schemas"]["NeedLocationDto"];
             /**
              * @example high
              * @enum {string}
              */
             priority: "low" | "medium" | "high" | "urgent";
             /**
-             * @description Quantity requested (optional)
-             * @example 50
+             * Format: uuid
+             * @description Organization on whose behalf the request is made (optional)
+             * @example 3fa85f64-5717-4562-b3fc-2c963f66afa6
              */
-            requestedQuantity?: number;
-            /**
-             * @description Unit of measurement (optional)
-             * @example boxes
-             */
-            unit?: string;
+            requesterOrganizationId?: string;
+            /** @description List of items needed (minimum 1) */
+            items: components["schemas"]["NeedItemDto"][];
         };
         CreateNeedResponseDto: {
             /**
@@ -424,6 +473,27 @@ export interface components {
              * @example 3fa85f64-5717-4562-b3fc-2c963f66afa6
              */
             id: string;
+        };
+        NeedLocationResponseDto: {
+            /** @example 123 Main Street, Caracas */
+            address: string;
+            /** @example 10.4806 */
+            latitude: number;
+            /** @example -66.9036 */
+            longitude: number;
+        };
+        NeedItemResponseDto: {
+            /** @example Water bottles */
+            name: string;
+            /** @example 100 */
+            quantity: number;
+            /** @example liters */
+            unit?: Record<string, never> | null;
+            /**
+             * @example water
+             * @enum {string}
+             */
+            category: "hygiene" | "water" | "food" | "medical" | "shelter" | "tools" | "other";
         };
         NeedViewDto: {
             /**
@@ -438,20 +508,19 @@ export interface components {
             emergencyId: string;
             /** @example Alimentos para 50 familias */
             title: string;
-            /**
-             * @example food
-             * @enum {string}
-             */
-            category: "hygiene" | "water" | "food" | "medical" | "shelter" | "tools" | "other";
+            /** @example Descripción detallada */
+            description?: Record<string, never> | null;
+            location: components["schemas"]["NeedLocationResponseDto"];
             /**
              * @example high
              * @enum {string}
              */
             priority: "low" | "medium" | "high" | "urgent";
-            /** @example 50 */
-            requestedQuantity?: Record<string, never> | null;
-            /** @example boxes */
-            unit?: Record<string, never> | null;
+            /** Format: uuid */
+            requesterOrganizationId?: Record<string, never> | null;
+            /** Format: uuid */
+            managingOrganizationId?: Record<string, never> | null;
+            items: components["schemas"]["NeedItemResponseDto"][];
             /**
              * @example pending
              * @enum {string}
@@ -459,6 +528,14 @@ export interface components {
             status: "pending" | "validated" | "rejected" | "fulfilled";
             /** @example 2024-01-01T00:00:00.000Z */
             createdAt: string;
+        };
+        AssignNeedManagerDto: {
+            /**
+             * Format: uuid
+             * @description ID of the organization that will manage this need
+             * @example 3fa85f64-5717-4562-b3fc-2c963f66afa6
+             */
+            organizationId: string;
         };
         CreateOrganizationDto: {
             /** @example Red Cross Spain */
@@ -926,6 +1003,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Missing or invalid token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
     };
     NeedsController_listPublic: {
@@ -1009,6 +1093,52 @@ export interface operations {
             };
             /** @description Need is not in pending status */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Missing or invalid token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Coordinator role required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Need not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    NeedsController_assignManager: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Need UUID */
+                needId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignNeedManagerDto"];
+            };
+        };
+        responses: {
+            /** @description Manager assigned */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };

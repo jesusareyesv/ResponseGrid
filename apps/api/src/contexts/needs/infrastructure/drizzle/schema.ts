@@ -1,13 +1,33 @@
-import { pgTable, uuid, text, integer, timestamp } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  uuid,
+  text,
+  timestamp,
+  integer,
+  doublePrecision,
+} from 'drizzle-orm/pg-core';
 
 export const needsTable = pgTable('needs', {
   id: uuid('id').primaryKey(),
   emergencyId: uuid('emergency_id').notNull(),
   title: text('title').notNull(),
-  category: text('category').notNull(),
+  description: text('description'),
+  address: text('address').notNull(),
+  latitude: doublePrecision('latitude').notNull(),
+  longitude: doublePrecision('longitude').notNull(),
   priority: text('priority').notNull(),
-  requestedQuantity: integer('requested_quantity'),
-  unit: text('unit'),
+  requesterUserId: uuid('requester_user_id').notNull(),
+  requesterOrganizationId: uuid('requester_organization_id'),
+  managingOrganizationId: uuid('managing_organization_id'),
   status: text('status').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+});
+
+export const needItemsTable = pgTable('need_items', {
+  id: uuid('id').primaryKey(),
+  needId: uuid('need_id').notNull(),
+  name: text('name').notNull(),
+  quantity: integer('quantity').notNull(),
+  unit: text('unit'),
+  category: text('category').notNull(),
 });

@@ -6,6 +6,16 @@ import { FakeEventBus } from '../infrastructure/fake-event-bus';
 import { NeedCategory, Priority, NeedStatus } from '../domain/need-enums';
 
 const EM = '11111111-1111-4111-8111-111111111111';
+const USER_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+
+const baseCmd = {
+  emergencyId: EM,
+  requesterUserId: USER_ID,
+  requesterOrganizationId: null,
+  description: null,
+  location: { address: 'Caracas', latitude: 10.4806, longitude: -66.9036 },
+  items: [{ name: 'Food', quantity: 10, unit: null, category: NeedCategory.Food }],
+};
 
 describe('GetNeedsQueue', () => {
   let repo: InMemoryNeedRepository;
@@ -23,22 +33,8 @@ describe('GetNeedsQueue', () => {
   });
 
   it('returns only pending needs', async () => {
-    const { id: id1 } = await createNeed.execute({
-      emergencyId: EM,
-      title: 'Pending need',
-      category: NeedCategory.Food,
-      priority: Priority.High,
-      requestedQuantity: null,
-      unit: null,
-    });
-    const { id: id2 } = await createNeed.execute({
-      emergencyId: EM,
-      title: 'Will be validated',
-      category: NeedCategory.Water,
-      priority: Priority.Urgent,
-      requestedQuantity: null,
-      unit: null,
-    });
+    const { id: id1 } = await createNeed.execute({ ...baseCmd, title: 'Pending need', priority: Priority.High });
+    const { id: id2 } = await createNeed.execute({ ...baseCmd, title: 'Will be validated', priority: Priority.Urgent });
 
     await validateNeed.execute({ needId: id2 });
 
@@ -48,15 +44,24 @@ describe('GetNeedsQueue', () => {
     expect(result[0].status).toBe(NeedStatus.Pending);
   });
 
-  it('returns empty when all needs validated', async () => {
+  it('includes items and location in pending view', async () => {
     const { id } = await createNeed.execute({
-      emergencyId: EM,
-      title: 'Need',
-      category: NeedCategory.Medical,
+      ...baseCmd,
+      title: 'Queue check',
       priority: Priority.Medium,
-      requestedQuantity: null,
-      unit: null,
+      items: [
+        { name: 'Blankets', quantity: 30, unit: null, category: NeedCategory.Shelter },
+      ],
     });
+
+    const result = await getNeedsQueue.execute({ emergencyId: EM });
+    expect(result[0].id).toBe(id);
+    expect(result[0].items).toHaveLength(1);
+    expect(result[0].items[0].name).toBe('Blankets');
+  });
+
+  it('returns empty when all needs validated', async () => {
+    const { id } = await createNeed.execute({ ...baseCmd, title: 'Need', priority: Priority.Medium });
     await validateNeed.execute({ needId: id });
 
     const result = await getNeedsQueue.execute({ emergencyId: EM });

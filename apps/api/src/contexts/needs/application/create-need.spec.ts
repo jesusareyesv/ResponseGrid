@@ -1,9 +1,34 @@
-import { CreateNeed } from './create-need';
+import { CreateNeed, CreateNeedCommand } from './create-need';
 import { InMemoryNeedRepository } from '../infrastructure/in-memory-need.repository';
 import { FakeEventBus } from '../infrastructure/fake-event-bus';
 import { NeedCategory, Priority, NeedStatus } from '../domain/need-enums';
 
 const EM = '11111111-1111-4111-8111-111111111111';
+const USER_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+
+const defaultLocation = {
+  address: '123 Aid Street, Caracas',
+  latitude: 10.4806,
+  longitude: -66.9036,
+};
+
+const defaultItems = [
+  { name: 'Water bottles', quantity: 100, unit: 'units', category: NeedCategory.Water },
+];
+
+function makeCmd(overrides?: Partial<CreateNeedCommand>): CreateNeedCommand {
+  return {
+    emergencyId: EM,
+    requesterUserId: USER_ID,
+    requesterOrganizationId: null,
+    title: 'Food supplies',
+    description: null,
+    location: defaultLocation,
+    priority: Priority.High,
+    items: defaultItems,
+    ...overrides,
+  };
+}
 
 describe('CreateNeed', () => {
   let repo: InMemoryNeedRepository;
@@ -17,14 +42,7 @@ describe('CreateNeed', () => {
   });
 
   it('creates a need with Pending status and returns its id', async () => {
-    const result = await useCase.execute({
-      emergencyId: EM,
-      title: 'Food supplies',
-      category: NeedCategory.Food,
-      priority: Priority.High,
-      requestedQuantity: 50,
-      unit: 'boxes',
-    });
+    const result = await useCase.execute(makeCmd());
 
     expect(result.id).toBeDefined();
     const saved = await repo.findById({ value: result.id } as never);
@@ -32,29 +50,63 @@ describe('CreateNeed', () => {
     expect(saved!.status).toBe(NeedStatus.Pending);
   });
 
-  it('publishes need.created event', async () => {
-    await useCase.execute({
-      emergencyId: EM,
-      title: 'Water',
-      category: NeedCategory.Water,
-      priority: Priority.Urgent,
-      requestedQuantity: null,
-      unit: null,
-    });
+  it('stores items on the created need', async () => {
+    const result = await useCase.execute(
+      makeCmd({
+        items: [
+          { name: 'Food boxes', quantity: 50, unit: 'boxes', category: NeedCategory.Food },
+          { name: 'Blankets', quantity: 20, unit: null, category: NeedCategory.Shelter },
+        ],
+      }),
+    );
+    const saved = await repo.findById({ value: result.id } as never);
+    expect(saved!.items).toHaveLength(2);
+    expect(saved!.items[0].name).toBe('Food boxes');
+    expect(saved!.items[1].name).toBe('Blankets');
+  });
 
+  it('stores location on the created need', async () => {
+    const result = await useCase.execute(makeCmd());
+    const saved = await repo.findById({ value: result.id } as never);
+    expect(saved!.location.address).toBe('123 Aid Street, Caracas');
+    expect(saved!.location.latitude).toBe(10.4806);
+    expect(saved!.location.longitude).toBe(-66.9036);
+  });
+
+  it('stores requesterUserId on the created need', async () => {
+    const result = await useCase.execute(makeCmd());
+    const saved = await repo.findById({ value: result.id } as never);
+    expect(saved!.requesterUserId).toBe(USER_ID);
+    expect(saved!.managingOrganizationId).toBeNull();
+  });
+
+  it('stores optional requesterOrganizationId', async () => {
+    const orgId = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+    const result = await useCase.execute(makeCmd({ requesterOrganizationId: orgId }));
+    const saved = await repo.findById({ value: result.id } as never);
+    expect(saved!.requesterOrganizationId).toBe(orgId);
+  });
+
+  it('publishes need.created event', async () => {
+    await useCase.execute(makeCmd());
     expect(bus.published.map((e) => e.eventName)).toEqual(['need.created']);
   });
 
-  it('handles null optional fields', async () => {
-    const result = await useCase.execute({
-      emergencyId: EM,
-      title: 'General need',
-      category: NeedCategory.Other,
-      priority: Priority.Low,
-      requestedQuantity: null,
-      unit: null,
-    });
+  it('rejects empty items array at domain level', async () => {
+    await expect(useCase.execute(makeCmd({ items: [] }))).rejects.toThrow(
+      'A need must have at least one item',
+    );
+  });
 
-    expect(result.id).toBeDefined();
+  it('handles null description', async () => {
+    const result = await useCase.execute(makeCmd({ description: null }));
+    const saved = await repo.findById({ value: result.id } as never);
+    expect(saved!.description).toBeNull();
+  });
+
+  it('stores description when provided', async () => {
+    const result = await useCase.execute(makeCmd({ description: 'Critical need near hospital' }));
+    const saved = await repo.findById({ value: result.id } as never);
+    expect(saved!.description).toBe('Critical need near hospital');
   });
 });

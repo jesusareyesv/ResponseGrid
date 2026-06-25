@@ -6,6 +6,7 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  Request,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -25,12 +26,17 @@ import { CreateNeed } from '../../application/create-need';
 import { ValidateNeed } from '../../application/validate-need';
 import { GetPublicNeeds } from '../../application/get-public-needs';
 import { GetNeedsQueue } from '../../application/get-needs-queue';
+import { AssignNeedManager } from '../../application/assign-need-manager';
 import { NeedView } from '../../application/need-view';
-import { CreateNeedDto } from './dto';
+import { CreateNeedDto, AssignNeedManagerDto } from './dto';
 import { CreateNeedResponseDto, NeedViewDto } from './response.dto';
 import { JwtAuthGuard } from '../../../identity/infrastructure/http/jwt-auth.guard';
 import { RequireCoordinatorGuard } from '../../../identity/infrastructure/http/require-coordinator.guard';
 import { RequireAnyCoordinatorGuard } from '../../../identity/infrastructure/http/require-any-coordinator.guard';
+
+interface AuthenticatedRequest extends Express.Request {
+  user: { id: string; email: string; isAdmin: boolean };
+}
 
 @ApiTags('needs')
 @Controller()
@@ -40,25 +46,41 @@ export class NeedsController {
     private readonly validateNeed: ValidateNeed,
     private readonly getPublicNeeds: GetPublicNeeds,
     private readonly getNeedsQueue: GetNeedsQueue,
+    private readonly assignNeedManager: AssignNeedManager,
   ) {}
 
   @Post('emergencies/:emergencyId/needs')
   @HttpCode(201)
-  @ApiOperation({ summary: 'Create a need for an emergency (public — citizen self-registration)' })
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create a need for an emergency (authenticated requester)' })
   @ApiParam({ name: 'emergencyId', description: 'Emergency UUID', format: 'uuid' })
   @ApiCreatedResponse({ description: 'Need created', type: CreateNeedResponseDto })
   @ApiBadRequestResponse({ description: 'Invalid request body or UUID' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
   async create(
     @Param('emergencyId', ParseUUIDPipe) emergencyId: string,
     @Body() dto: CreateNeedDto,
+    @Request() req: AuthenticatedRequest,
   ): Promise<CreateNeedResponseDto> {
     return this.createNeed.execute({
       emergencyId,
+      requesterUserId: req.user.id,
+      requesterOrganizationId: dto.requesterOrganizationId ?? null,
       title: dto.title,
-      category: dto.category,
+      description: dto.description ?? null,
+      location: {
+        address: dto.location.address,
+        latitude: dto.location.latitude,
+        longitude: dto.location.longitude,
+      },
       priority: dto.priority,
-      requestedQuantity: dto.requestedQuantity ?? null,
-      unit: dto.unit ?? null,
+      items: dto.items.map((i) => ({
+        name: i.name,
+        quantity: i.quantity,
+        unit: i.unit ?? null,
+        category: i.category,
+      })),
     });
   }
 
@@ -99,5 +121,25 @@ export class NeedsController {
   @ApiForbiddenResponse({ description: 'Coordinator role required' })
   async validate(@Param('needId', ParseUUIDPipe) needId: string): Promise<void> {
     await this.validateNeed.execute({ needId });
+  }
+
+  @Post('needs/:needId/assign-manager')
+  @HttpCode(204)
+  @UseGuards(JwtAuthGuard, RequireAnyCoordinatorGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Assign a managing organization to a need (coordinator only)' })
+  @ApiParam({ name: 'needId', description: 'Need UUID', format: 'uuid' })
+  @ApiNoContentResponse({ description: 'Manager assigned' })
+  @ApiNotFoundResponse({ description: 'Need not found' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
+  @ApiForbiddenResponse({ description: 'Coordinator role required' })
+  async assignManager(
+    @Param('needId', ParseUUIDPipe) needId: string,
+    @Body() dto: AssignNeedManagerDto,
+  ): Promise<void> {
+    await this.assignNeedManager.execute({
+      needId,
+      organizationId: dto.organizationId,
+    });
   }
 }

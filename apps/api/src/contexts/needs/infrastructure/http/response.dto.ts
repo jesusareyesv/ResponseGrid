@@ -1,9 +1,34 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { NeedCategory, Priority, NeedStatus } from '../../domain/need-enums';
+import { Priority, NeedCategory, NeedStatus } from '../../domain/need-enums';
 
 export class CreateNeedResponseDto {
   @ApiProperty({ format: 'uuid', example: '3fa85f64-5717-4562-b3fc-2c963f66afa6' })
   id!: string;
+}
+
+export class NeedLocationResponseDto {
+  @ApiProperty({ example: '123 Main Street, Caracas' })
+  address!: string;
+
+  @ApiProperty({ example: 10.4806 })
+  latitude!: number;
+
+  @ApiProperty({ example: -66.9036 })
+  longitude!: number;
+}
+
+export class NeedItemResponseDto {
+  @ApiProperty({ example: 'Water bottles' })
+  name!: string;
+
+  @ApiProperty({ example: 100 })
+  quantity!: number;
+
+  @ApiPropertyOptional({ example: 'liters', nullable: true })
+  unit!: string | null;
+
+  @ApiProperty({ enum: NeedCategory, example: NeedCategory.Water })
+  category!: NeedCategory;
 }
 
 export class NeedViewDto {
@@ -16,17 +41,23 @@ export class NeedViewDto {
   @ApiProperty({ example: 'Alimentos para 50 familias' })
   title!: string;
 
-  @ApiProperty({ enum: NeedCategory, example: NeedCategory.Food })
-  category!: NeedCategory;
+  @ApiPropertyOptional({ example: 'Descripción detallada', nullable: true })
+  description!: string | null;
+
+  @ApiProperty({ type: NeedLocationResponseDto })
+  location!: NeedLocationResponseDto;
 
   @ApiProperty({ enum: Priority, example: Priority.High })
   priority!: Priority;
 
-  @ApiPropertyOptional({ example: 50, nullable: true })
-  requestedQuantity!: number | null;
+  @ApiPropertyOptional({ format: 'uuid', nullable: true })
+  requesterOrganizationId!: string | null;
 
-  @ApiPropertyOptional({ example: 'boxes', nullable: true })
-  unit!: string | null;
+  @ApiPropertyOptional({ format: 'uuid', nullable: true })
+  managingOrganizationId!: string | null;
+
+  @ApiProperty({ type: [NeedItemResponseDto] })
+  items!: NeedItemResponseDto[];
 
   @ApiProperty({ enum: NeedStatus, example: NeedStatus.Pending })
   status!: NeedStatus;

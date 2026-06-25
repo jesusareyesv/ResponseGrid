@@ -8,6 +8,7 @@ import { CreateNeed } from '../application/create-need';
 import { ValidateNeed } from '../application/validate-need';
 import { GetPublicNeeds } from '../application/get-public-needs';
 import { GetNeedsQueue } from '../application/get-needs-queue';
+import { AssignNeedManager } from '../application/assign-need-manager';
 import { NEED_REPOSITORY, NeedRepository } from '../domain/ports/need.repository';
 import { EVENT_BUS, EventBus } from '../domain/ports/event-bus';
 import { DrizzleNeedRepository } from './drizzle/drizzle-need.repository';
@@ -83,6 +84,12 @@ const getNeedsQueueProvider = {
   useFactory: (repo: NeedRepository) => new GetNeedsQueue(repo),
 };
 
+const assignNeedManagerProvider = {
+  provide: AssignNeedManager,
+  inject: [NEED_REPOSITORY],
+  useFactory: (repo: NeedRepository) => new AssignNeedManager(repo),
+};
+
 @Module({
   imports: [IdentityModule],
   controllers: [NeedsController],
@@ -95,6 +102,7 @@ const getNeedsQueueProvider = {
     validateNeedProvider,
     getPublicNeedsProvider,
     getNeedsQueueProvider,
+    assignNeedManagerProvider,
   ],
 })
 export class NeedsModule implements OnModuleDestroy {

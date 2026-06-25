@@ -1,11 +1,11 @@
 import { NeedRepository } from '../domain/ports/need.repository';
-import { Need } from '../domain/need';
+import { Need, NeedSnapshot } from '../domain/need';
 import { NeedId } from '../domain/need-id';
 import { EmergencyId } from '../domain/emergency-id';
 import { NeedStatus } from '../domain/need-enums';
 
 export class InMemoryNeedRepository implements NeedRepository {
-  private store = new Map<string, ReturnType<Need['toSnapshot']>>();
+  private store = new Map<string, NeedSnapshot>();
 
   async save(need: Need): Promise<void> {
     this.store.set(need.id.value, need.toSnapshot());

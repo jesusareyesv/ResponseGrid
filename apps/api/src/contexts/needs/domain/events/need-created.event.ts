@@ -8,7 +8,6 @@ export class NeedCreated implements DomainEvent {
     readonly aggregateId: string,
     readonly payload: {
       emergencyId: string;
-      category: string;
       priority: string;
     },
   ) {}

@@ -6,6 +6,7 @@ import { NeedCategory, Priority, NeedStatus } from '../domain/need-enums';
 import { NeedNotFoundError } from './need-not-found.error';
 
 const EM = '11111111-1111-4111-8111-111111111111';
+const USER_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 
 describe('ValidateNeed', () => {
   let repo: InMemoryNeedRepository;
@@ -23,13 +24,15 @@ describe('ValidateNeed', () => {
   it('transitions need to Validated status', async () => {
     const { id } = await createNeed.execute({
       emergencyId: EM,
+      requesterUserId: USER_ID,
+      requesterOrganizationId: null,
       title: 'Medical supplies',
-      category: NeedCategory.Medical,
+      description: null,
+      location: { address: 'Caracas', latitude: 10.4806, longitude: -66.9036 },
       priority: Priority.Urgent,
-      requestedQuantity: 10,
-      unit: 'kits',
+      items: [{ name: 'Kits', quantity: 10, unit: 'kits', category: NeedCategory.Medical }],
     });
-    bus.published = []; // reset
+    bus.published = [];
 
     await validateNeed.execute({ needId: id });
 

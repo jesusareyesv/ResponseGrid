@@ -1,13 +1,17 @@
 import { Need } from '../domain/need';
+import { LocationProps } from '../domain/location';
+import { NeedItemSnapshot } from '../domain/need-item';
 
 export interface NeedView {
   id: string;
   emergencyId: string;
   title: string;
-  category: string;
+  description: string | null;
+  location: LocationProps;
   priority: string;
-  requestedQuantity: number | null;
-  unit: string | null;
+  requesterOrganizationId: string | null;
+  managingOrganizationId: string | null;
+  items: NeedItemSnapshot[];
   status: string;
   createdAt: string;
 }
@@ -17,10 +21,12 @@ export function toNeedView(n: Need): NeedView {
     id: n.id.value,
     emergencyId: n.emergencyId.value,
     title: n.title,
-    category: n.category,
+    description: n.description,
+    location: n.location.toPlain(),
     priority: n.priority,
-    requestedQuantity: n.requestedQuantity,
-    unit: n.unit,
+    requesterOrganizationId: n.requesterOrganizationId,
+    managingOrganizationId: n.managingOrganizationId,
+    items: n.items.map((i) => i.toSnapshot()),
     status: n.status,
     createdAt: n.createdAt.toISOString(),
   };
