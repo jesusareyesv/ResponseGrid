@@ -2,19 +2,23 @@ import { InMemoryResourceRepository } from './in-memory-resource.repository';
 import { Resource } from '../domain/resource';
 import { ResourceId } from '../domain/resource-id';
 import { EmergencyId } from '../domain/emergency-id';
-import { ResourceType, ResourceSide, VerificationLevel } from '../domain/resource-enums';
+import { ResourceType, ResourceStage, VerificationLevel } from '../domain/resource-enums';
 import { PublicStatus } from '../domain/resource-enums';
+import { Location } from '../domain/location';
 
 const EM_A = '11111111-1111-4111-8111-111111111111';
 const EM_B = '22222222-2222-4222-8222-222222222222';
+const baseLocation = Location.create({ address: 'Calle Test 1, Madrid', latitude: 40.4168, longitude: -3.7038 });
 
 const make = (emergencyId: string, name: string) =>
   Resource.register({
     id: ResourceId.create(),
     emergencyId: EmergencyId.fromString(emergencyId),
     type: ResourceType.CollectionPoint,
-    side: ResourceSide.Origin,
+    stage: ResourceStage.Origin,
     name,
+    location: baseLocation,
+    ownerUserId: 'user-test-inmem',
   });
 
 describe('InMemoryResourceRepository', () => {

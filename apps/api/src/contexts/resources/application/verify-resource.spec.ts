@@ -4,16 +4,22 @@ import { ResourceNotFoundError } from './resource-not-found.error';
 import { InMemoryResourceRepository } from '../infrastructure/in-memory-resource.repository';
 import { FakeEventBus } from '../infrastructure/fake-event-bus';
 import { ResourceId } from '../domain/resource-id';
-import { ResourceType, ResourceSide, VerificationLevel } from '../domain/resource-enums';
+import { ResourceType, ResourceStage, VerificationLevel } from '../domain/resource-enums';
 
 const EM = '11111111-1111-4111-8111-111111111111';
+const baseLocation = { address: 'Av. Diagonal 123, Barcelona', latitude: 41.3851, longitude: 2.1734 };
 
 describe('VerifyResource', () => {
   it('sets the level and publishes ResourceVerified', async () => {
     const repo = new InMemoryResourceRepository();
     const bus = new FakeEventBus();
     const { id } = await new RegisterResource(repo, bus).execute({
-      emergencyId: EM, type: ResourceType.Warehouse, side: ResourceSide.Origin, name: 'Almacén',
+      emergencyId: EM,
+      type: ResourceType.Warehouse,
+      stage: ResourceStage.Origin,
+      name: 'Almacén',
+      location: baseLocation,
+      ownerUserId: 'user-verify-test',
     });
     bus.published = [];
 

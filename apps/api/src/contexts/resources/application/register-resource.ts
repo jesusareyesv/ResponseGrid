@@ -3,13 +3,18 @@ import { EventBus } from '../domain/ports/event-bus';
 import { Resource } from '../domain/resource';
 import { ResourceId } from '../domain/resource-id';
 import { EmergencyId } from '../domain/emergency-id';
-import { ResourceType, ResourceSide } from '../domain/resource-enums';
+import { ResourceType, ResourceStage } from '../domain/resource-enums';
+import { Location, LocationProps } from '../domain/location';
 
 export interface RegisterResourceCommand {
   emergencyId: string;
   type: ResourceType;
-  side: ResourceSide;
+  stage: ResourceStage;
   name: string;
+  description?: string | null;
+  location: LocationProps;
+  ownerUserId: string;
+  ownerOrganizationId?: string | null;
 }
 
 export class RegisterResource {
@@ -23,8 +28,12 @@ export class RegisterResource {
       id: ResourceId.create(),
       emergencyId: EmergencyId.fromString(cmd.emergencyId),
       type: cmd.type,
-      side: cmd.side,
+      stage: cmd.stage,
       name: cmd.name,
+      description: cmd.description ?? null,
+      location: Location.create(cmd.location),
+      ownerUserId: cmd.ownerUserId,
+      ownerOrganizationId: cmd.ownerOrganizationId ?? null,
     });
     await this.repo.save(resource);
     await this.bus.publish(resource.pullDomainEvents());

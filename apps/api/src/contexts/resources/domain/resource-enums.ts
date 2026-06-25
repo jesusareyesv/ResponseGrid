@@ -1,20 +1,25 @@
 export enum ResourceType {
   CollectionPoint = 'collection_point',
   DeliveryPoint = 'delivery_point',
+  CollectionAndDelivery = 'collection_and_delivery',
   Warehouse = 'warehouse',
   Transport = 'transport',
   Supplier = 'supplier',
   Venue = 'venue',
 }
-export enum ResourceSide {
+
+export enum ResourceStage {
   Origin = 'origin',
+  Intermediate = 'intermediate',
   Destination = 'destination',
 }
+
 export enum VerificationLevel {
   Unverified = 'unverified',
   Verified = 'verified',
   Official = 'official',
 }
+
 export enum PublicStatus {
   Hidden = 'hidden',
   Active = 'active',

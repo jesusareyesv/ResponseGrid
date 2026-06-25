@@ -15,6 +15,8 @@ const ADMIN_ID = 'aa000000-0000-4000-8000-000000000001';
 const COORD_ID = 'bb000000-0000-4000-8000-000000000002';
 const MEMBERSHIP_ID = 'cc000000-0000-4000-8000-000000000003';
 
+const baseLocation = { address: 'Calle Mayor 1, Valencia', latitude: 39.4699, longitude: -0.3763 };
+
 describe('Auth flow (e2e)', () => {
   let app: INestApplication;
   let adminToken: string;
@@ -159,10 +161,11 @@ describe('Auth flow (e2e)', () => {
     let resourceId: string;
 
     beforeAll(async () => {
-      // Register a resource first (public endpoint)
+      // Register a resource (now requires auth — use coordinator token)
       const res = await request(app.getHttpServer())
         .post(`/emergencies/${EM_ID}/resources`)
-        .send({ type: 'warehouse', side: 'origin', name: 'Test Resource' })
+        .set('Authorization', `Bearer ${coordToken}`)
+        .send({ type: 'warehouse', stage: 'origin', name: 'Test Resource', location: baseLocation })
         .expect(201);
       resourceId = res.body.id as string;
     });
@@ -183,6 +186,23 @@ describe('Auth flow (e2e)', () => {
     });
   });
 
+  describe('POST /emergencies/:id/resources requires authentication', () => {
+    it('returns 401 without token', async () => {
+      await request(app.getHttpServer())
+        .post(`/emergencies/${EM_ID}/resources`)
+        .send({ type: 'venue', stage: 'destination', name: 'Anonymous Resource', location: baseLocation })
+        .expect(401);
+    });
+
+    it('returns 201 with coordinator token (authenticated registration)', async () => {
+      await request(app.getHttpServer())
+        .post(`/emergencies/${EM_ID}/resources`)
+        .set('Authorization', `Bearer ${coordToken}`)
+        .send({ type: 'venue', stage: 'destination', name: 'Authenticated Resource', location: baseLocation })
+        .expect(201);
+    });
+  });
+
   describe('Public endpoints remain accessible', () => {
     it('GET /emergencies returns 200 without token', async () => {
       await request(app.getHttpServer()).get('/emergencies').expect(200);
@@ -192,11 +212,10 @@ describe('Auth flow (e2e)', () => {
       await request(app.getHttpServer()).get('/emergencies/by-slug/venezuela').expect(200);
     });
 
-    it('POST /emergencies/:id/resources (citizen registration) is public', async () => {
+    it('GET /emergencies/:id/public/resources returns 200 without token', async () => {
       await request(app.getHttpServer())
-        .post(`/emergencies/${EM_ID}/resources`)
-        .send({ type: 'venue', side: 'destination', name: 'Citizen Resource' })
-        .expect(201);
+        .get(`/emergencies/${EM_ID}/public/resources`)
+        .expect(200);
     });
   });
 });

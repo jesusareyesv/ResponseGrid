@@ -18,9 +18,8 @@ import { VerifyResource } from '../../application/verify-resource';
 import { PublishResource } from '../../application/publish-resource';
 import { RegisterResourceDto, VerifyResourceDto } from './dto';
 import { RegisterResourceResponseDto } from './response.dto';
-import { JwtAuthGuard } from '../../../identity/infrastructure/http/jwt-auth.guard';
+import { JwtAuthGuard, AuthenticatedUser } from '../../../identity/infrastructure/http/jwt-auth.guard';
 import { RequireAnyCoordinatorGuard } from '../../../identity/infrastructure/http/require-any-coordinator.guard';
-import { AuthenticatedUser } from '../../../identity/infrastructure/http/jwt-auth.guard';
 
 @ApiTags('resources')
 @Controller()
@@ -33,15 +32,29 @@ export class ResourcesController {
 
   @Post('emergencies/:emergencyId/resources')
   @HttpCode(201)
-  @ApiOperation({ summary: 'Register a resource for an emergency (public — citizen self-registration)' })
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Register a resource for an emergency (requires authentication)' })
   @ApiParam({ name: 'emergencyId', description: 'Emergency UUID', format: 'uuid' })
   @ApiCreatedResponse({ description: 'Resource registered', type: RegisterResourceResponseDto })
   @ApiBadRequestResponse({ description: 'Invalid request body or UUID' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
   async create(
     @Param('emergencyId', ParseUUIDPipe) emergencyId: string,
     @Body() dto: RegisterResourceDto,
+    @Req() req: Request & { user?: AuthenticatedUser },
   ): Promise<RegisterResourceResponseDto> {
-    return this.register.execute({ emergencyId, type: dto.type, side: dto.side, name: dto.name });
+    const ownerUserId = req.user!.id;
+    return this.register.execute({
+      emergencyId,
+      type: dto.type,
+      stage: dto.stage,
+      name: dto.name,
+      description: dto.description ?? null,
+      location: dto.location,
+      ownerUserId,
+      ownerOrganizationId: dto.ownerOrganizationId ?? null,
+    });
   }
 
   @Post('resources/:resourceId/verify')

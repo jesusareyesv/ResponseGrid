@@ -13,6 +13,8 @@ const EM = '11111111-1111-4111-8111-111111111111';
 const COORD_ID = 'dd000000-0000-4000-8000-000000000004';
 const MEMBERSHIP_ID = 'ee000000-0000-4000-8000-000000000005';
 
+const baseLocation = { address: 'Plaza España, Valencia', latitude: 39.4699, longitude: -0.3763 };
+
 describe('Resource flow (e2e)', () => {
   let app: INestApplication;
   let coordToken: string;
@@ -58,20 +60,47 @@ describe('Resource flow (e2e)', () => {
 
   afterAll(async () => { await app.close(); });
 
-  it('registers → appears in queue → verifies → publishes', async () => {
+  it('POST /emergencies/:id/resources without token returns 401', async () => {
+    await request(app.getHttpServer())
+      .post(`/emergencies/${EM}/resources`)
+      .send({
+        type: 'warehouse',
+        stage: 'origin',
+        name: 'Almacén Sin Auth',
+        location: baseLocation,
+      })
+      .expect(401);
+  });
+
+  it('registers with token → appears in queue → verifies → publishes → appears in public', async () => {
     const server = app.getHttpServer();
 
     const created = await request(server)
       .post(`/emergencies/${EM}/resources`)
-      .send({ type: 'warehouse', side: 'origin', name: 'Almacén E2E' })
+      .set('Authorization', `Bearer ${coordToken}`)
+      .send({
+        type: 'warehouse',
+        stage: 'intermediate',
+        name: 'Almacén E2E',
+        location: baseLocation,
+      })
       .expect(201);
     const id = created.body.id;
+    expect(typeof id).toBe('string');
 
     const queue = await request(server)
       .get(`/emergencies/${EM}/coordination/queue`)
       .set('Authorization', `Bearer ${coordToken}`)
       .expect(200);
-    expect(queue.body).toEqual([expect.objectContaining({ id, verificationLevel: 'unverified', publicStatus: 'hidden' })]);
+    expect(queue.body).toEqual([
+      expect.objectContaining({
+        id,
+        stage: 'intermediate',
+        verificationLevel: 'unverified',
+        publicStatus: 'hidden',
+        location: expect.objectContaining({ address: baseLocation.address }),
+      }),
+    ]);
 
     await request(server)
       .post(`/resources/${id}/verify`)
@@ -90,7 +119,29 @@ describe('Resource flow (e2e)', () => {
     expect(afterPublish.body).toEqual([]); // no longer pending
 
     const publicResources = await request(server).get(`/emergencies/${EM}/public/resources`).expect(200);
-    expect(publicResources.body).toEqual([expect.objectContaining({ id, publicStatus: 'active' })]);
+    expect(publicResources.body).toEqual([
+      expect.objectContaining({
+        id,
+        stage: 'intermediate',
+        publicStatus: 'active',
+        location: expect.objectContaining({ address: baseLocation.address }),
+      }),
+    ]);
+  });
+
+  it('registers with collection_and_delivery type → 201', async () => {
+    const server = app.getHttpServer();
+    const res = await request(server)
+      .post(`/emergencies/${EM}/resources`)
+      .set('Authorization', `Bearer ${coordToken}`)
+      .send({
+        type: 'collection_and_delivery',
+        stage: 'destination',
+        name: 'Punto Mixto E2E',
+        location: baseLocation,
+      })
+      .expect(201);
+    expect(typeof res.body.id).toBe('string');
   });
 
   it('verify on non-existent resource returns 404', async () => {
@@ -109,7 +160,13 @@ describe('Resource flow (e2e)', () => {
     // Register a resource but do NOT verify it
     const created = await request(server)
       .post(`/emergencies/${EM}/resources`)
-      .send({ type: 'venue', side: 'destination', name: 'Venue unverified' })
+      .set('Authorization', `Bearer ${coordToken}`)
+      .send({
+        type: 'venue',
+        stage: 'destination',
+        name: 'Venue unverified',
+        location: baseLocation,
+      })
       .expect(201);
     const id = created.body.id;
 

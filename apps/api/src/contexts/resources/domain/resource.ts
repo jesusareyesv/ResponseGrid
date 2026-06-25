@@ -1,6 +1,7 @@
 import { ResourceId } from './resource-id';
 import { EmergencyId } from './emergency-id';
-import { ResourceType, ResourceSide, VerificationLevel, PublicStatus } from './resource-enums';
+import { ResourceType, ResourceStage, VerificationLevel, PublicStatus } from './resource-enums';
+import { Location, LocationProps } from './location';
 import { InvalidVerificationLevelError, ResourceNotVerifiedError } from './resource-errors';
 import { DomainEvent } from './events/domain-event';
 import { ResourceRegistered } from './events/resource-registered';
@@ -11,8 +12,12 @@ export interface RegisterResourceProps {
   id: ResourceId;
   emergencyId: EmergencyId;
   type: ResourceType;
-  side: ResourceSide;
+  stage: ResourceStage;
   name: string;
+  description?: string | null;
+  location: Location;
+  ownerUserId: string;
+  ownerOrganizationId?: string | null;
 }
 
 // Snapshot used by repositories to rehydrate without going through register().
@@ -20,8 +25,12 @@ export interface ResourceSnapshot {
   id: string;
   emergencyId: string;
   type: ResourceType;
-  side: ResourceSide;
+  stage: ResourceStage;
   name: string;
+  description: string | null;
+  location: LocationProps;
+  ownerUserId: string;
+  ownerOrganizationId: string | null;
   verificationLevel: VerificationLevel;
   publicStatus: PublicStatus;
   createdAt: Date;
@@ -34,8 +43,12 @@ export class Resource {
     public readonly id: ResourceId,
     public readonly emergencyId: EmergencyId,
     public readonly type: ResourceType,
-    public readonly side: ResourceSide,
+    public readonly stage: ResourceStage,
     public readonly name: string,
+    public readonly description: string | null,
+    public readonly location: Location,
+    public readonly ownerUserId: string,
+    public readonly ownerOrganizationId: string | null,
     private _verificationLevel: VerificationLevel,
     private _publicStatus: PublicStatus,
     public readonly createdAt: Date,
@@ -46,8 +59,12 @@ export class Resource {
       props.id,
       props.emergencyId,
       props.type,
-      props.side,
+      props.stage,
       props.name,
+      props.description ?? null,
+      props.location,
+      props.ownerUserId,
+      props.ownerOrganizationId ?? null,
       VerificationLevel.Unverified,
       PublicStatus.Hidden,
       new Date(),
@@ -56,7 +73,7 @@ export class Resource {
       new ResourceRegistered(r.id.value, {
         emergencyId: r.emergencyId.value,
         type: r.type,
-        side: r.side,
+        stage: r.stage,
         name: r.name,
       }),
     );
@@ -68,8 +85,12 @@ export class Resource {
       ResourceId.fromString(s.id),
       EmergencyId.fromString(s.emergencyId),
       s.type,
-      s.side,
+      s.stage,
       s.name,
+      s.description,
+      Location.create(s.location),
+      s.ownerUserId,
+      s.ownerOrganizationId,
       s.verificationLevel,
       s.publicStatus,
       s.createdAt,
@@ -110,8 +131,12 @@ export class Resource {
       id: this.id.value,
       emergencyId: this.emergencyId.value,
       type: this.type,
-      side: this.side,
+      stage: this.stage,
       name: this.name,
+      description: this.description,
+      location: this.location.toPlain(),
+      ownerUserId: this.ownerUserId,
+      ownerOrganizationId: this.ownerOrganizationId,
       verificationLevel: this._verificationLevel,
       publicStatus: this._publicStatus,
       createdAt: this.createdAt,

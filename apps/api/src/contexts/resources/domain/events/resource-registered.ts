@@ -5,6 +5,6 @@ export class ResourceRegistered implements DomainEvent {
   readonly occurredOn = new Date();
   constructor(
     readonly aggregateId: string,
-    readonly payload: { emergencyId: string; type: string; side: string; name: string },
+    readonly payload: { emergencyId: string; type: string; stage: string; name: string },
   ) {}
 }

@@ -5,7 +5,7 @@ import { ResourceRepository } from '../../domain/ports/resource.repository';
 import { Resource, ResourceSnapshot } from '../../domain/resource';
 import { ResourceId } from '../../domain/resource-id';
 import { EmergencyId } from '../../domain/emergency-id';
-import { ResourceType, ResourceSide, VerificationLevel, PublicStatus } from '../../domain/resource-enums';
+import { ResourceType, ResourceStage, VerificationLevel, PublicStatus } from '../../domain/resource-enums';
 
 type Row = typeof resourcesTable.$inferSelect;
 
@@ -14,8 +14,16 @@ function rowToSnapshot(row: Row): ResourceSnapshot {
     id: row.id,
     emergencyId: row.emergencyId,
     type: row.type as ResourceType,
-    side: row.side as ResourceSide,
+    stage: row.stage as ResourceStage,
     name: row.name,
+    description: row.description ?? null,
+    location: {
+      address: row.address,
+      latitude: row.latitude,
+      longitude: row.longitude,
+    },
+    ownerUserId: row.ownerUserId,
+    ownerOrganizationId: row.ownerOrganizationId ?? null,
     verificationLevel: row.verificationLevel as VerificationLevel,
     publicStatus: row.publicStatus as PublicStatus,
     createdAt: row.createdAt,
@@ -29,10 +37,29 @@ export class DrizzleResourceRepository implements ResourceRepository {
     const s = resource.toSnapshot();
     await this.db
       .insert(resourcesTable)
-      .values(s)
+      .values({
+        id: s.id,
+        emergencyId: s.emergencyId,
+        type: s.type,
+        stage: s.stage,
+        name: s.name,
+        description: s.description,
+        address: s.location.address,
+        latitude: s.location.latitude,
+        longitude: s.location.longitude,
+        ownerUserId: s.ownerUserId,
+        ownerOrganizationId: s.ownerOrganizationId,
+        verificationLevel: s.verificationLevel,
+        publicStatus: s.publicStatus,
+        createdAt: s.createdAt,
+      })
       .onConflictDoUpdate({
         target: resourcesTable.id,
-        set: { verificationLevel: s.verificationLevel, publicStatus: s.publicStatus, name: s.name },
+        set: {
+          verificationLevel: s.verificationLevel,
+          publicStatus: s.publicStatus,
+          name: s.name,
+        },
       });
   }
 
