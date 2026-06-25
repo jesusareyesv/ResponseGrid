@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm';
+import { and, count, eq } from 'drizzle-orm';
 import { randomUUID } from 'node:crypto';
 import { Db } from '../../../../shared/db';
 import { needsTable, needItemsTable } from './schema';
@@ -104,6 +104,31 @@ export class DrizzleNeedRepository implements NeedRepository {
 
   async findPendingByEmergency(emergencyId: EmergencyId): Promise<Need[]> {
     return this._findByEmergencyAndStatus(emergencyId, NeedStatus.Pending);
+  }
+
+  async countByEmergencyGroupedByStatus(
+    emergencyId: EmergencyId,
+  ): Promise<Record<NeedStatus, number>> {
+    const rows = await this.db
+      .select({ status: needsTable.status, cnt: count() })
+      .from(needsTable)
+      .where(eq(needsTable.emergencyId, emergencyId.value))
+      .groupBy(needsTable.status);
+
+    // Initialise every status to 0
+    const result: Record<NeedStatus, number> = {
+      [NeedStatus.Pending]: 0,
+      [NeedStatus.Validated]: 0,
+      [NeedStatus.Rejected]: 0,
+      [NeedStatus.Fulfilled]: 0,
+    };
+    for (const row of rows) {
+      const status = row.status as NeedStatus;
+      if (status in result) {
+        result[status] = Number(row.cnt);
+      }
+    }
+    return result;
   }
 
   private async _findByEmergencyAndStatus(

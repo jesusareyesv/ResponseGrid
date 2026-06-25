@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm';
+import { and, count, eq } from 'drizzle-orm';
 import { Db } from '../../../../shared/db';
 import { resourcesTable } from './schema';
 import { ResourceRepository } from '../../domain/ports/resource.repository';
@@ -92,5 +92,30 @@ export class DrizzleResourceRepository implements ResourceRepository {
         ),
       );
     return rows.map((r) => Resource.fromSnapshot(rowToSnapshot(r)));
+  }
+
+  async countByEmergencyGroupedByPublicStatus(
+    emergencyId: EmergencyId,
+  ): Promise<Record<PublicStatus, number>> {
+    const rows = await this.db
+      .select({ publicStatus: resourcesTable.publicStatus, cnt: count() })
+      .from(resourcesTable)
+      .where(eq(resourcesTable.emergencyId, emergencyId.value))
+      .groupBy(resourcesTable.publicStatus);
+
+    const result: Record<PublicStatus, number> = {
+      [PublicStatus.Hidden]: 0,
+      [PublicStatus.Active]: 0,
+      [PublicStatus.Saturated]: 0,
+      [PublicStatus.Paused]: 0,
+      [PublicStatus.Closed]: 0,
+    };
+    for (const row of rows) {
+      const status = row.publicStatus as PublicStatus;
+      if (status in result) {
+        result[status] = Number(row.cnt);
+      }
+    }
+    return result;
   }
 }

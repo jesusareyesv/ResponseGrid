@@ -47,7 +47,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Register a resource for an emergency (public — citizen self-registration) */
+        /** Register a resource for an emergency (requires authentication) */
         post: operations["ResourcesController_create"];
         delete?: never;
         options?: never;
@@ -295,6 +295,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/emergencies/{emergencyId}/metrics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get aggregated metrics for an emergency (public) */
+        get: operations["MetricsController_metrics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -321,19 +338,44 @@ export interface components {
             /** @description JWT access token (auto-login after registration) */
             accessToken: string;
         };
+        LocationDto: {
+            /** @example Calle Mayor 1, Valencia */
+            address: string;
+            /**
+             * @description Latitude between -90 and 90
+             * @example 39.4699
+             */
+            latitude: number;
+            /**
+             * @description Longitude between -180 and 180
+             * @example -0.3763
+             */
+            longitude: number;
+        };
         RegisterResourceDto: {
             /**
              * @example collection_point
              * @enum {string}
              */
-            type: "collection_point" | "delivery_point" | "warehouse" | "transport" | "supplier" | "venue";
+            type: "collection_point" | "delivery_point" | "collection_and_delivery" | "warehouse" | "transport" | "supplier" | "venue";
             /**
+             * @description Stage of the resource in the emergency supply chain
              * @example origin
              * @enum {string}
              */
-            side: "origin" | "destination";
+            stage: "origin" | "intermediate" | "destination";
             /** @example Cruz Roja Madrid */
             name: string;
+            /** @example Centro de acopio principal */
+            description?: string;
+            /** @description Physical location of the resource */
+            location: components["schemas"]["LocationDto"];
+            /**
+             * Format: uuid
+             * @description Organization offering this resource (optional)
+             * @example 3fa85f64-5717-4562-b3fc-2c963f66afa6
+             */
+            ownerOrganizationId?: string;
         };
         RegisterResourceResponseDto: {
             /**
@@ -350,6 +392,14 @@ export interface components {
              */
             level: "unverified" | "verified" | "official";
         };
+        LocationViewDto: {
+            /** @example Calle Mayor 1, Valencia */
+            address: string;
+            /** @example 39.4699 */
+            latitude: number;
+            /** @example -0.3763 */
+            longitude: number;
+        };
         ResourceViewDto: {
             /**
              * Format: uuid
@@ -360,14 +410,17 @@ export interface components {
              * @example collection_point
              * @enum {string}
              */
-            type: "collection_point" | "delivery_point" | "warehouse" | "transport" | "supplier" | "venue";
+            type: "collection_point" | "delivery_point" | "collection_and_delivery" | "warehouse" | "transport" | "supplier" | "venue";
             /**
              * @example origin
              * @enum {string}
              */
-            side: "origin" | "destination";
+            stage: "origin" | "intermediate" | "destination";
             /** @example Cruz Roja Madrid */
             name: string;
+            /** @example Centro de acopio principal */
+            description?: Record<string, never> | null;
+            location: components["schemas"]["LocationViewDto"];
             /**
              * @example verified
              * @enum {string}
@@ -378,6 +431,8 @@ export interface components {
              * @enum {string}
              */
             publicStatus: "hidden" | "active" | "saturated" | "paused" | "closed";
+            /** Format: uuid */
+            ownerOrganizationId?: Record<string, never> | null;
         };
         CreateEmergencyDto: {
             /** @example Emergencia sísmica — Venezuela */
@@ -575,6 +630,44 @@ export interface components {
              */
             longitude: number;
         };
+        NeedsMetricsDto: {
+            /**
+             * @description Total needs registered for this emergency
+             * @example 10
+             */
+            total: number;
+            /**
+             * @description Open needs: pending + validated
+             * @example 7
+             */
+            open: number;
+            /**
+             * @description Closed needs: fulfilled
+             * @example 2
+             */
+            closed: number;
+        };
+        ResourcesMetricsDto: {
+            /**
+             * @description Total resources registered for this emergency
+             * @example 5
+             */
+            total: number;
+            /**
+             * @description Active logistic points (publicStatus = Active)
+             * @example 3
+             */
+            active: number;
+            /**
+             * @description Resources pending publication (publicStatus = Hidden)
+             * @example 2
+             */
+            pending: number;
+        };
+        EmergencyMetricsDto: {
+            needs: components["schemas"]["NeedsMetricsDto"];
+            resources: components["schemas"]["ResourcesMetricsDto"];
+        };
     };
     responses: never;
     parameters: never;
@@ -687,6 +780,13 @@ export interface operations {
             };
             /** @description Invalid request body or UUID */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Missing or invalid token */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1264,6 +1364,29 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GeocodeResultDto"][];
+                };
+            };
+        };
+    };
+    MetricsController_metrics: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Emergency UUID */
+                emergencyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Emergency metrics summary */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmergencyMetricsDto"];
                 };
             };
         };

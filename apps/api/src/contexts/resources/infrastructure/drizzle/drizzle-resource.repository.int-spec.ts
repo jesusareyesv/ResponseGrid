@@ -8,6 +8,8 @@ import { ResourceType, ResourceStage, VerificationLevel, PublicStatus } from '..
 import { Location } from '../../domain/location';
 import type { Pool } from 'pg';
 
+const OWNER_ID = 'ffffffff-ffff-4fff-8fff-ffffffffffff';
+
 const URL = process.env.DATABASE_URL ?? 'postgres://reliefhub:reliefhub@localhost:5433/reliefhub';
 const EM = '11111111-1111-4111-8111-111111111111';
 const baseLocation = Location.create({ address: 'Calle Test 1, Sevilla', latitude: 37.3886, longitude: -5.9823 });
@@ -119,5 +121,72 @@ describe('DrizzleResourceRepository (integration)', () => {
 
     const pendingResult = await repo.findPendingByEmergency(EmergencyId.fromString(EM));
     expect(pendingResult.map((x) => x.name)).toEqual(['Pending']);
+  });
+
+  it('countByEmergencyGroupedByPublicStatus returns zero map when no resources', async () => {
+    const counts = await repo.countByEmergencyGroupedByPublicStatus(EmergencyId.fromString(EM));
+    expect(counts[PublicStatus.Hidden]).toBe(0);
+    expect(counts[PublicStatus.Active]).toBe(0);
+    expect(counts[PublicStatus.Saturated]).toBe(0);
+    expect(counts[PublicStatus.Paused]).toBe(0);
+    expect(counts[PublicStatus.Closed]).toBe(0);
+  });
+
+  it('countByEmergencyGroupedByPublicStatus counts Hidden and Active correctly', async () => {
+    const hidden = Resource.register({
+      id: ResourceId.create(),
+      emergencyId: EmergencyId.fromString(EM),
+      type: ResourceType.CollectionPoint,
+      stage: ResourceStage.Origin,
+      name: 'Hidden',
+      location: baseLocation,
+      ownerUserId: OWNER_ID,
+    });
+    const active = Resource.register({
+      id: ResourceId.create(),
+      emergencyId: EmergencyId.fromString(EM),
+      type: ResourceType.CollectionPoint,
+      stage: ResourceStage.Origin,
+      name: 'Active',
+      location: baseLocation,
+      ownerUserId: OWNER_ID,
+    });
+    active.verify(VerificationLevel.Verified, 'c1');
+    active.publish();
+
+    await repo.save(hidden);
+    await repo.save(active);
+
+    const counts = await repo.countByEmergencyGroupedByPublicStatus(EmergencyId.fromString(EM));
+    expect(counts[PublicStatus.Hidden]).toBe(1);
+    expect(counts[PublicStatus.Active]).toBe(1);
+    expect(counts[PublicStatus.Saturated]).toBe(0);
+  });
+
+  it('countByEmergencyGroupedByPublicStatus ignores other emergencies', async () => {
+    const OTHER_EM = '44444444-4444-4444-8444-444444444444';
+    const mine = Resource.register({
+      id: ResourceId.create(),
+      emergencyId: EmergencyId.fromString(EM),
+      type: ResourceType.CollectionPoint,
+      stage: ResourceStage.Origin,
+      name: 'Mine',
+      location: baseLocation,
+      ownerUserId: OWNER_ID,
+    });
+    const other = Resource.register({
+      id: ResourceId.create(),
+      emergencyId: EmergencyId.fromString(OTHER_EM),
+      type: ResourceType.CollectionPoint,
+      stage: ResourceStage.Origin,
+      name: 'Other',
+      location: baseLocation,
+      ownerUserId: OWNER_ID,
+    });
+    await repo.save(mine);
+    await repo.save(other);
+
+    const counts = await repo.countByEmergencyGroupedByPublicStatus(EmergencyId.fromString(EM));
+    expect(counts[PublicStatus.Hidden]).toBe(1);
   });
 });

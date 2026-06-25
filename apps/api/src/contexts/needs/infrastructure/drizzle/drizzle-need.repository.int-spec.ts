@@ -179,4 +179,56 @@ describe('DrizzleNeedRepository (integration)', () => {
     const found = await repo.findById(need.id);
     expect(found!.requesterOrganizationId).toBe(orgId);
   });
+
+  it('countByEmergencyGroupedByStatus returns zero map when no needs', async () => {
+    const counts = await repo.countByEmergencyGroupedByStatus(EmergencyId.fromString(EM));
+    expect(counts[NeedStatus.Pending]).toBe(0);
+    expect(counts[NeedStatus.Validated]).toBe(0);
+    expect(counts[NeedStatus.Rejected]).toBe(0);
+    expect(counts[NeedStatus.Fulfilled]).toBe(0);
+  });
+
+  it('countByEmergencyGroupedByStatus counts each status correctly', async () => {
+    const pending = makeNeed({ title: 'P' });
+    const validated = makeNeed({ title: 'V' });
+    const rejected = makeNeed({ title: 'R' });
+    const fulfilled = makeNeed({ title: 'F' });
+
+    validated.validate();
+    rejected.reject();
+    fulfilled.validate();
+    fulfilled.close();
+
+    await repo.save(pending);
+    await repo.save(validated);
+    await repo.save(rejected);
+    await repo.save(fulfilled);
+
+    const counts = await repo.countByEmergencyGroupedByStatus(EmergencyId.fromString(EM));
+    expect(counts[NeedStatus.Pending]).toBe(1);
+    expect(counts[NeedStatus.Validated]).toBe(1);
+    expect(counts[NeedStatus.Rejected]).toBe(1);
+    expect(counts[NeedStatus.Fulfilled]).toBe(1);
+  });
+
+  it('countByEmergencyGroupedByStatus ignores other emergencies', async () => {
+    const OTHER_EM = '33333333-3333-4333-8333-333333333333';
+    const myNeed = makeNeed({ title: 'Mine' });
+    const otherNeed = Need.create({
+      id: NeedId.create(),
+      emergencyId: EmergencyId.fromString(OTHER_EM),
+      title: 'Other',
+      description: null,
+      location: makeLocation(),
+      priority: Priority.Low,
+      requesterUserId: USER_ID,
+      requesterOrganizationId: null,
+      items: makeItems(),
+    });
+    await repo.save(myNeed);
+    await repo.save(otherNeed);
+
+    const counts = await repo.countByEmergencyGroupedByStatus(EmergencyId.fromString(EM));
+    expect(counts[NeedStatus.Pending]).toBe(1);
+  });
 });

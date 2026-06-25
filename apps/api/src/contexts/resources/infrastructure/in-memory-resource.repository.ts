@@ -28,4 +28,25 @@ export class InMemoryResourceRepository implements ResourceRepository {
       )
       .map((s) => Resource.fromSnapshot(s));
   }
+
+  async countByEmergencyGroupedByPublicStatus(
+    emergencyId: EmergencyId,
+  ): Promise<Record<PublicStatus, number>> {
+    const result: Record<PublicStatus, number> = {
+      [PublicStatus.Hidden]: 0,
+      [PublicStatus.Active]: 0,
+      [PublicStatus.Saturated]: 0,
+      [PublicStatus.Paused]: 0,
+      [PublicStatus.Closed]: 0,
+    };
+    for (const snap of this.store.values()) {
+      if (snap.emergencyId === emergencyId.value) {
+        const status = snap.publicStatus as PublicStatus;
+        if (status in result) {
+          result[status]++;
+        }
+      }
+    }
+    return result;
+  }
 }

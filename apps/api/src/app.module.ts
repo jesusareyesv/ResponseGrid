@@ -5,6 +5,7 @@ import { IdentityModule } from './contexts/identity/infrastructure/identity.modu
 import { NeedsModule } from './contexts/needs/infrastructure/needs.module';
 import { OrganizationsModule } from './contexts/organizations/infrastructure/organizations.module';
 import { GeocodingModule } from './contexts/geocoding/infrastructure/geocoding.module';
+import { MetricsModule } from './contexts/metrics/infrastructure/metrics.module';
 
-@Module({ imports: [IdentityModule, ResourcesModule, EmergenciesModule, NeedsModule, OrganizationsModule, GeocodingModule] })
+@Module({ imports: [IdentityModule, ResourcesModule, EmergenciesModule, NeedsModule, OrganizationsModule, GeocodingModule, MetricsModule] })
 export class AppModule {}

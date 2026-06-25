@@ -27,4 +27,24 @@ export class InMemoryNeedRepository implements NeedRepository {
       .filter((s) => s.emergencyId === emergencyId.value && s.status === NeedStatus.Pending)
       .map((s) => Need.fromSnapshot(s));
   }
+
+  async countByEmergencyGroupedByStatus(
+    emergencyId: EmergencyId,
+  ): Promise<Record<NeedStatus, number>> {
+    const result: Record<NeedStatus, number> = {
+      [NeedStatus.Pending]: 0,
+      [NeedStatus.Validated]: 0,
+      [NeedStatus.Rejected]: 0,
+      [NeedStatus.Fulfilled]: 0,
+    };
+    for (const snap of this.store.values()) {
+      if (snap.emergencyId === emergencyId.value) {
+        const status = snap.status as NeedStatus;
+        if (status in result) {
+          result[status]++;
+        }
+      }
+    }
+    return result;
+  }
 }
