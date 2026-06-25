@@ -272,7 +272,7 @@ export default async function EmergencyPage({ params }: Props) {
         {/* ── 7. PIE ───────────────────────────────────────────────────── */}
         <footer className="border-t border-gray-200 pt-6 flex justify-end">
           <Link
-            href="/coordinacion"
+            href={`/e/${slug}/coordinacion`}
             className="text-sm text-gray-400 underline underline-offset-2 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 rounded"
           >
             Acceso de coordinación

@@ -34,20 +34,18 @@ const INITIAL_STATE: ActionResult = { status: 'idle' };
 
 interface ResourceCardProps {
   resource: ResourceView;
+  slug: string;
 }
 
-export function ResourceCard({ resource }: ResourceCardProps) {
+export function ResourceCard({ resource, slug }: ResourceCardProps) {
   const [state, formAction, pending] = useActionState<ActionResult, FormData>(
     async (_prev, formData) => {
       const level = formData.get('level') as VerificationLevel;
-      return verifyAndPublish(resource.id, level);
+      return verifyAndPublish(resource.id, slug, level);
     },
     INITIAL_STATE,
   );
 
-  // After success the parent page revalidates and removes this card from the
-  // list via server-side revalidation. We show nothing (card is gone).
-  // But if somehow it lingers, show nothing either.
   if (state.status === 'success') {
     return null;
   }
@@ -63,24 +61,16 @@ export function ResourceCard({ resource }: ResourceCardProps) {
           <h2 className="text-xl font-bold text-gray-900 leading-tight break-words">
             {resource.name}
           </h2>
-          {/* Unverified badge */}
           <span
             aria-label="Sin verificar"
             className="flex-shrink-0 inline-flex items-center gap-1.5 rounded-full border border-blue-300 bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-800"
           >
-            <span aria-hidden="true" className="text-base">
-              🔵
-            </span>
             Sin verificar
           </span>
         </div>
-
-        {/* Type + side */}
         <div className="flex flex-wrap gap-3 text-sm text-gray-600">
           <span className="font-medium">{TYPE_LABELS[resource.type]}</span>
-          <span aria-hidden="true" className="text-gray-300">
-            ·
-          </span>
+          <span aria-hidden="true" className="text-gray-300">·</span>
           <span>{SIDE_LABELS[resource.side]}</span>
         </div>
       </div>
@@ -98,7 +88,6 @@ export function ResourceCard({ resource }: ResourceCardProps) {
 
       {/* Action form */}
       <form action={formAction} className="flex flex-col gap-3">
-        {/* Level selector */}
         <div className="flex flex-col gap-1.5">
           <label
             htmlFor={`level-${resource.id}`}
@@ -120,7 +109,6 @@ export function ResourceCard({ resource }: ResourceCardProps) {
           </select>
         </div>
 
-        {/* Submit */}
         <button
           type="submit"
           disabled={pending}
