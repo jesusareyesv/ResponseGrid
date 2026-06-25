@@ -4,6 +4,8 @@ import { notFound } from 'next/navigation';
 import { api } from '@/lib/api';
 import { getEmergencyBySlug } from '@/lib/emergencies';
 import { PublicResourceCard } from '@/app/public-resource-card';
+import { EmergencyMapWrapper } from '@/components/emergency-map-wrapper';
+import type { MapPoint } from '@/components/emergency-map';
 
 export const dynamic = 'force-dynamic';
 
@@ -65,17 +67,58 @@ export default async function EmergencyPage({ params }: Props) {
 
   const emergencyId = emergency.id;
 
-  const [{ data: resources }, { data: needs }] = await Promise.all([
+  const [
+    { data: resources },
+    { data: needs },
+    { data: metrics },
+  ] = await Promise.all([
     api.GET('/emergencies/{emergencyId}/public/resources', {
       params: { path: { emergencyId } },
     }),
     api.GET('/emergencies/{emergencyId}/public/needs', {
       params: { path: { emergencyId } },
     }),
+    api.GET('/emergencies/{emergencyId}/metrics', {
+      params: { path: { emergencyId } },
+    }),
   ]);
 
   const activeResources = resources ?? [];
   const validatedNeeds = needs ?? [];
+
+  // Build map points from resources and needs that have valid coordinates
+  const mapPoints: MapPoint[] = [
+    ...activeResources
+      .filter(
+        (r) =>
+          r.location.latitude !== 0 &&
+          r.location.longitude !== 0,
+      )
+      .map(
+        (r): MapPoint => ({
+          id: r.id,
+          lat: r.location.latitude,
+          lng: r.location.longitude,
+          label: r.name,
+          kind: 'resource',
+        }),
+      ),
+    ...validatedNeeds
+      .filter(
+        (n) =>
+          n.location.latitude !== 0 &&
+          n.location.longitude !== 0,
+      )
+      .map(
+        (n): MapPoint => ({
+          id: n.id,
+          lat: n.location.latitude,
+          lng: n.location.longitude,
+          label: n.title,
+          kind: 'need',
+        }),
+      ),
+  ];
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-start bg-white px-4 py-10">
@@ -105,7 +148,53 @@ export default async function EmergencyPage({ params }: Props) {
           </p>
         </header>
 
-        {/* ── 2. DONACIÓN ECONÓMICA (bloque destacado) ─────────────────── */}
+        {/* ── 2. RESUMEN (métricas) ────────────────────────────────────── */}
+        {metrics !== undefined && (
+          <section aria-labelledby="metrics-heading" className="flex flex-col gap-3">
+            <h2
+              id="metrics-heading"
+              className="text-xl font-bold text-gray-900"
+            >
+              Resumen
+            </h2>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="flex flex-col items-center rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-5">
+                <span className="text-3xl font-extrabold text-gray-900 tabular-nums">
+                  {metrics.needs.open}
+                </span>
+                <span className="mt-1 text-xs font-medium text-gray-500 text-center leading-tight">
+                  Peticiones abiertas
+                </span>
+              </div>
+              <div className="flex flex-col items-center rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-5">
+                <span className="text-3xl font-extrabold text-gray-900 tabular-nums">
+                  {metrics.needs.closed}
+                </span>
+                <span className="mt-1 text-xs font-medium text-gray-500 text-center leading-tight">
+                  Peticiones cerradas
+                </span>
+              </div>
+              <div className="flex flex-col items-center rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-5">
+                <span className="text-3xl font-extrabold text-gray-900 tabular-nums">
+                  {metrics.resources.active}
+                </span>
+                <span className="mt-1 text-xs font-medium text-gray-500 text-center leading-tight">
+                  Puntos logísticos activos
+                </span>
+              </div>
+              <div className="flex flex-col items-center rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-5">
+                <span className="text-3xl font-extrabold text-gray-900 tabular-nums">
+                  {metrics.resources.pending}
+                </span>
+                <span className="mt-1 text-xs font-medium text-gray-500 text-center leading-tight">
+                  Pendientes de validar
+                </span>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ── 3. DONACIÓN ECONÓMICA (bloque destacado) ─────────────────── */}
         <section
           aria-labelledby="donate-heading"
           className="rounded-lg border-2 border-gray-900 bg-gray-900 p-6 flex flex-col gap-4"
@@ -271,7 +360,28 @@ export default async function EmergencyPage({ params }: Props) {
           )}
         </section>
 
-        {/* ── 7. PIE ───────────────────────────────────────────────────── */}
+        {/* ── 7. MAPA DE LA EMERGENCIA ─────────────────────────────────── */}
+        <section aria-labelledby="map-heading" className="flex flex-col gap-4">
+          <h2
+            id="map-heading"
+            className="text-xl font-bold text-gray-900"
+          >
+            Mapa de la emergencia
+          </h2>
+          <div className="flex gap-4 text-xs text-gray-500">
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block w-3 h-3 rounded-full bg-blue-500" aria-hidden="true" />
+              Recurso
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block w-3 h-3 rounded-full bg-red-500" aria-hidden="true" />
+              Petición
+            </span>
+          </div>
+          <EmergencyMapWrapper points={mapPoints} />
+        </section>
+
+        {/* ── 8. PIE ───────────────────────────────────────────────────── */}
         <footer className="border-t border-gray-200 pt-6 flex justify-end">
           <Link
             href={`/e/${slug}/coordinacion`}
