@@ -1,0 +1,11 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: reliefhub
+      POSTGRES_PASSWORD: reliefhub
+      POSTGRES_DB: reliefhub
+    ports: ["5433:5432"]
+  redis:
+    image: redis:7
+    ports: ["6380:6379"]

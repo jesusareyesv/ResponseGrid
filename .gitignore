@@ -7,3 +7,10 @@ especificacion_plataforma_ayuda_solidaria.md
 .env
 .env.*
 !.env.example
+
+# Dependencias / build
+node_modules/
+dist/
+
+# Scratch de orquestación (ledger SDD)
+.superpowers/

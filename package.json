@@ -1,0 +1,9 @@
+{
+  "name": "reliefhub",
+  "private": true,
+  "scripts": {
+    "dev:infra": "docker compose up -d",
+    "api:dev": "pnpm --filter api start:dev",
+    "api:test": "pnpm --filter api test"
+  }
+}
