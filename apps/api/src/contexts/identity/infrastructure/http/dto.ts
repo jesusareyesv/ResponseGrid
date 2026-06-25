@@ -16,3 +16,23 @@ export class LoginResponseDto {
   @ApiProperty({ description: 'JWT access token' })
   accessToken!: string;
 }
+
+export class RegisterDto {
+  @ApiProperty({ example: 'user@reliefhub.org' })
+  @IsEmail()
+  email!: string;
+
+  @ApiProperty({ example: 'password123', minLength: 8 })
+  @IsString()
+  @MinLength(8)
+  password!: string;
+
+  @ApiProperty({ example: 'Jane Doe' })
+  @IsString()
+  name!: string;
+}
+
+export class RegisterResponseDto {
+  @ApiProperty({ description: 'JWT access token (auto-login after registration)' })
+  accessToken!: string;
+}

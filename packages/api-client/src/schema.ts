@@ -21,6 +21,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/register": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Register a new user account (auto-login returns JWT) */
+        post: operations["AuthController_registerRoute"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/emergencies/{emergencyId}/resources": {
         parameters: {
             query?: never;
@@ -209,6 +226,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/organizations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List all organizations (public) */
+        get: operations["OrganizationsController_list"];
+        put?: never;
+        /** Create a new organization (authenticated users) */
+        post: operations["OrganizationsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List organizations the authenticated user belongs to */
+        get: operations["OrganizationsController_mine"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -221,6 +273,18 @@ export interface components {
         };
         LoginResponseDto: {
             /** @description JWT access token */
+            accessToken: string;
+        };
+        RegisterDto: {
+            /** @example user@reliefhub.org */
+            email: string;
+            /** @example password123 */
+            password: string;
+            /** @example Jane Doe */
+            name: string;
+        };
+        RegisterResponseDto: {
+            /** @description JWT access token (auto-login after registration) */
             accessToken: string;
         };
         RegisterResourceDto: {
@@ -379,6 +443,30 @@ export interface components {
             /** @example 2024-01-01T00:00:00.000Z */
             createdAt: string;
         };
+        CreateOrganizationDto: {
+            /** @example Red Cross Spain */
+            name: string;
+            /**
+             * @example ngo
+             * @enum {string}
+             */
+            type: "ngo" | "company" | "public_admin" | "association" | "other";
+            /** @example ES-12345678 */
+            taxId?: string;
+            /** @example contact@org.example */
+            contactEmail?: string;
+        };
+        CreateOrganizationResponseDto: {
+            /** @description New organization UUID */
+            id: string;
+        };
+        OrganizationViewDto: {
+            id: string;
+            name: string;
+            /** @enum {string} */
+            type: "ngo" | "company" | "public_admin" | "association" | "other";
+            verificationLevel: string;
+        };
     };
     responses: never;
     parameters: never;
@@ -419,6 +507,44 @@ export interface operations {
             };
             /** @description Invalid credentials */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AuthController_registerRoute: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegisterDto"];
+            };
+        };
+        responses: {
+            /** @description User registered successfully */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegisterResponseDto"];
+                };
+            };
+            /** @description Invalid request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Email already registered */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -873,6 +999,84 @@ export interface operations {
             };
             /** @description Need not found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    OrganizationsController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description All organizations */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganizationViewDto"][];
+                };
+            };
+        };
+    };
+    OrganizationsController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateOrganizationDto"];
+            };
+        };
+        responses: {
+            /** @description Organization created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateOrganizationResponseDto"];
+                };
+            };
+            /** @description Missing or invalid token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    OrganizationsController_mine: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description User organizations */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganizationViewDto"][];
+                };
+            };
+            /** @description Missing or invalid token */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };

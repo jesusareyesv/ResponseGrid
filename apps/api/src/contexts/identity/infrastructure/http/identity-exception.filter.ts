@@ -1,13 +1,16 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus } from '@nestjs/common';
 import { Response } from 'express';
 import { InvalidCredentialsError } from '../../domain/invalid-credentials.error';
+import { EmailAlreadyRegisteredError } from '../../domain/email-already-registered.error';
 
-@Catch(InvalidCredentialsError)
+@Catch(InvalidCredentialsError, EmailAlreadyRegisteredError)
 export class IdentityExceptionFilter implements ExceptionFilter {
-  catch(exception: InvalidCredentialsError, host: ArgumentsHost): void {
+  catch(exception: InvalidCredentialsError | EmailAlreadyRegisteredError, host: ArgumentsHost): void {
     const response = host.switchToHttp().getResponse<Response>();
-    response
-      .status(HttpStatus.UNAUTHORIZED)
-      .json({ statusCode: HttpStatus.UNAUTHORIZED, message: exception.message });
+    const status =
+      exception instanceof EmailAlreadyRegisteredError
+        ? HttpStatus.CONFLICT
+        : HttpStatus.UNAUTHORIZED;
+    response.status(status).json({ statusCode: status, message: exception.message });
   }
 }

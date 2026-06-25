@@ -29,6 +29,13 @@
       "when": 1782419256832,
       "tag": "0003_elite_nomad",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1782422516730,
+      "tag": "0004_aberrant_tombstone",
+      "breakpoints": true
     }
   ]
 }

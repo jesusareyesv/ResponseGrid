@@ -4,6 +4,7 @@ import { Pool } from 'pg';
 import { Db, createDb } from '../../../shared/db';
 import { AuthController } from './http/auth.controller';
 import { Login } from '../application/login';
+import { RegisterUser } from '../application/register-user';
 import { USER_REPOSITORY, UserRepository } from '../domain/ports/user.repository';
 import { MEMBERSHIP_REPOSITORY, MembershipRepository } from '../domain/ports/membership.repository';
 import { PASSWORD_HASHER } from '../domain/ports/password-hasher';
@@ -66,6 +67,16 @@ const loginProvider = {
   ) => new Login(userRepo, hasher, tokenService),
 };
 
+const registerUserProvider = {
+  provide: RegisterUser,
+  inject: [USER_REPOSITORY, PASSWORD_HASHER, TOKEN_SERVICE],
+  useFactory: (
+    userRepo: UserRepository,
+    hasher: BcryptPasswordHasher,
+    tokenService: JwtTokenService,
+  ) => new RegisterUser(userRepo, hasher, tokenService),
+};
+
 @Module({
   imports: [
     JwtModule.registerAsync({
@@ -84,6 +95,7 @@ const loginProvider = {
     passwordHasherProvider,
     tokenServiceProvider,
     loginProvider,
+    registerUserProvider,
     JwtAuthGuard,
     RequireAdminGuard,
     RequireCoordinatorGuard,
