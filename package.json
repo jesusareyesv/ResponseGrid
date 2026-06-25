@@ -5,5 +5,10 @@
     "dev:infra": "docker compose up -d",
     "api:dev": "pnpm --filter api start:dev",
     "api:test": "pnpm --filter api test"
+  },
+  "pnpm": {
+    "overrides": {
+      "ioredis": "5.10.1"
+    }
   }
 }
