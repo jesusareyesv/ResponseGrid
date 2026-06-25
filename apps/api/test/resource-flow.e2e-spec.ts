@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
+import { DomainExceptionFilter } from '../src/contexts/resources/infrastructure/http/domain-exception.filter';
 import { createDb } from '../src/shared/db';
 import { resourcesTable } from '../src/contexts/resources/infrastructure/drizzle/schema';
 
@@ -13,7 +14,8 @@ describe('Resource flow (e2e)', () => {
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
     app = moduleRef.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+    app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
+    app.useGlobalFilters(new DomainExceptionFilter());
     await app.init();
     const { db, pool } = createDb(process.env.DATABASE_URL ?? 'postgres://reliefhub:reliefhub@localhost:5433/reliefhub');
     await db.delete(resourcesTable);
@@ -38,5 +40,30 @@ describe('Resource flow (e2e)', () => {
 
     const afterPublish = await request(server).get(`/emergencies/${EM}/coordination/queue`).expect(200);
     expect(afterPublish.body).toEqual([]); // no longer pending
+  });
+
+  it('verify on non-existent resource returns 404', async () => {
+    const server = app.getHttpServer();
+    const nonExistentId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    await request(server)
+      .post(`/resources/${nonExistentId}/verify`)
+      .send({ level: 'verified' })
+      .expect(404);
+  });
+
+  it('publish without prior verification returns 409', async () => {
+    const server = app.getHttpServer();
+
+    // Register a resource but do NOT verify it
+    const created = await request(server)
+      .post(`/emergencies/${EM}/resources`)
+      .send({ type: 'venue', side: 'destination', name: 'Venue unverified' })
+      .expect(201);
+    const id = created.body.id;
+
+    // Attempt to publish without verifying → 409
+    await request(server)
+      .post(`/resources/${id}/publish`)
+      .expect(409);
   });
 });
