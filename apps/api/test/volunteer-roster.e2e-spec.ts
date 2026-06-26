@@ -308,9 +308,7 @@ describe('Volunteer roster (e2e)', () => {
     });
 
     it('returns 401 without token', async () => {
-      await request(server)
-        .get(`/emergencies/${EM_V}/volunteers`)
-        .expect(401);
+      await request(server).get(`/emergencies/${EM_V}/volunteers`).expect(401);
     });
   });
 

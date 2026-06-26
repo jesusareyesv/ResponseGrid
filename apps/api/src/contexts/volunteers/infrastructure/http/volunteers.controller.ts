@@ -136,14 +136,15 @@ export class VolunteersController {
       status?: VolunteerStatus;
     } = {};
     if (filters.skill !== undefined) rosterFilters.skill = filters.skill;
-    if (filters.availability !== undefined) rosterFilters.availability = filters.availability;
+    if (filters.availability !== undefined)
+      rosterFilters.availability = filters.availability;
     if (filters.vehicle !== undefined) rosterFilters.vehicle = filters.vehicle;
     if (filters.status !== undefined) rosterFilters.status = filters.status;
 
     return this.getRosterUc.execute({
       emergencyId,
       filters: rosterFilters,
-    }) as Promise<VolunteerViewDto[]>;
+    });
   }
 
   @Post('volunteers/:volunteerId/status')
@@ -201,6 +202,6 @@ export class VolunteersController {
         'Not registered as volunteer in this emergency',
       );
     }
-    return profile as VolunteerViewDto;
+    return profile;
   }
 }
