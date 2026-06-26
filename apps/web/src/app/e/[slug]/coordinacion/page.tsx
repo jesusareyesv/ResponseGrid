@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { getToken, clearToken, authHeaders } from '@/lib/auth';
 import { api } from '@/lib/api';
@@ -140,6 +141,15 @@ export default async function CoordinacionPage({ params, searchParams }: Props) 
               : null
           }
         />
+
+        {/* ── ENLACE A VOLUNTARIOS Y TAREAS ───────────────────────────── */}
+        <Link
+          href={`/e/${slug}/coordinacion/voluntarios`}
+          className="flex items-center justify-between gap-3 rounded-lg border-2 border-gray-900 bg-white px-5 py-4 font-semibold text-gray-900 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
+        >
+          <span>Voluntarios y tareas</span>
+          <span aria-hidden="true" className="text-lg">→</span>
+        </Link>
 
         <hr className="border-gray-200" />
 
