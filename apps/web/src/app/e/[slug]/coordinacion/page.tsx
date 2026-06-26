@@ -5,6 +5,7 @@ import { api } from '@/lib/api';
 import { getEmergencyBySlug } from '@/lib/emergencies';
 import { CoordinationResourceCard } from '@/components/organisms/coordination-resource-card';
 import { CoordinationNeedCard } from '@/components/organisms/coordination-need-card';
+import { CoordinationOfferCard } from '@/components/organisms/coordination-offer-card';
 import { EmergencyControls } from '@/components/organisms/emergency-controls';
 import { NeedsFilter } from '@/components/needs-filter';
 import { EmptyState } from '@/components/molecules/empty-state';
@@ -61,7 +62,7 @@ export default async function CoordinacionPage({ params, searchParams }: Props) 
   const priority = VALID_PRIORITIES.includes(rawPriority as Priority) ? rawPriority as Priority : undefined;
 
   // --- Fetch coordination queues ----------------------------------------
-  const [queueResult, needsResult] = await Promise.all([
+  const [queueResult, needsResult, offersQueueResult, validatedNeedsResult] = await Promise.all([
     api.GET('/emergencies/{emergencyId}/coordination/queue', {
       params: { path: { emergencyId } },
       headers,
@@ -76,12 +77,20 @@ export default async function CoordinacionPage({ params, searchParams }: Props) 
       },
       headers,
     }),
+    api.GET('/emergencies/{emergencyId}/offers/queue', {
+      params: { path: { emergencyId } },
+      headers,
+    }),
+    api.GET('/emergencies/{emergencyId}/public/needs', {
+      params: { path: { emergencyId } },
+    }),
   ]);
 
-  // Handle 401 (expired / invalid token) from either call
+  // Handle 401 (expired / invalid token) from either authed call
   if (
     queueResult.response.status === 401 ||
-    needsResult.response.status === 401
+    needsResult.response.status === 401 ||
+    offersQueueResult.response.status === 401
   ) {
     await clearToken();
     redirect(`/login?next=/e/${slug}/coordinacion`);
@@ -89,6 +98,8 @@ export default async function CoordinacionPage({ params, searchParams }: Props) 
 
   const resourceQueue = queueResult.data ?? [];
   const needsQueue = needsResult.data ?? [];
+  const offersQueue = offersQueueResult.data ?? [];
+  const validatedNeeds = validatedNeedsResult.data ?? [];
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-start px-4 py-10 bg-white">
@@ -123,7 +134,11 @@ export default async function CoordinacionPage({ params, searchParams }: Props) 
           emergencyId={emergency.id}
           slug={slug}
           status={emergency.status}
-          currentAnnouncement={emergency.announcement}
+          currentAnnouncement={
+            typeof emergency.announcement === 'string'
+              ? emergency.announcement
+              : null
+          }
         />
 
         <hr className="border-gray-200" />
@@ -174,6 +189,37 @@ export default async function CoordinacionPage({ params, searchParams }: Props) 
               {needsQueue.map((need) => (
                 <li key={need.id}>
                   <CoordinationNeedCard need={need} slug={slug} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <hr className="border-gray-200" />
+
+        {/* ── OFERTAS DE MATERIAL ─────────────────────────────────────── */}
+        <section aria-labelledby="offers-heading" className="flex flex-col gap-4">
+          <h2
+            id="offers-heading"
+            className="text-xl font-bold text-gray-900"
+          >
+            Ofertas de material
+          </h2>
+
+          {offersQueue.length === 0 ? (
+            <EmptyState
+              title="No hay ofertas de material pendientes."
+              description="Las ofertas de donantes aparecerán aquí para que puedas asignarlas a necesidades validadas."
+            />
+          ) : (
+            <ul className="flex flex-col gap-4" aria-label="Cola de ofertas de material">
+              {offersQueue.map((offer) => (
+                <li key={offer.id}>
+                  <CoordinationOfferCard
+                    offer={offer}
+                    validatedNeeds={validatedNeeds}
+                    slug={slug}
+                  />
                 </li>
               ))}
             </ul>

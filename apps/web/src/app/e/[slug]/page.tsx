@@ -177,7 +177,11 @@ export default async function EmergencyPage({ params, searchParams }: Props) {
 
         {/* ── 1c. COMUNICADO OFICIAL ───────────────────────────────────── */}
         <AnnouncementCard
-          announcement={emergency.announcement}
+          announcement={
+            typeof emergency.announcement === 'string'
+              ? emergency.announcement
+              : null
+          }
           updatedAt={emergency.updatedAt}
         />
 
@@ -251,6 +255,12 @@ export default async function EmergencyPage({ params, searchParams }: Props) {
               >
                 Poner una petición
               </Link>
+              <Link
+                href={`/e/${slug}/donar`}
+                className="flex items-center justify-center w-full py-4 px-6 text-lg font-semibold text-gray-900 bg-white rounded-lg border-2 border-gray-900 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 transition-colors"
+              >
+                Donar material
+              </Link>
             </div>
           ) : (
             <p className="rounded-lg border-2 border-gray-200 bg-gray-50 px-5 py-4 text-sm text-gray-500">
@@ -306,29 +316,39 @@ export default async function EmergencyPage({ params, searchParams }: Props) {
               {validatedNeeds.map((need) => (
                 <li
                   key={need.id}
-                  className="flex flex-col gap-1 rounded-lg border-2 border-gray-900 bg-white p-4"
+                  className="flex flex-col gap-3 rounded-lg border-2 border-gray-900 bg-white p-4"
                 >
-                  <h3 className="text-base font-bold text-gray-900 leading-tight">
-                    {need.title}
-                  </h3>
-                  <div className="flex flex-wrap gap-2 text-sm text-gray-600">
-                    {need.items[0] !== undefined && (
-                      <span className="font-medium">
-                        {CATEGORY_LABELS[need.items[0].category] ?? need.items[0].category}
-                      </span>
-                    )}
-                    <span aria-hidden="true" className="text-gray-300">·</span>
-                    <span>Prioridad: {PRIORITY_LABELS[need.priority] ?? need.priority}</span>
-                    {need.items.length > 0 && (
-                      <>
-                        <span aria-hidden="true" className="text-gray-300">·</span>
-                        <span>
-                          {String(need.items[0]?.quantity ?? '')}
-                          {need.items[0]?.unit != null ? ` ${String(need.items[0].unit)}` : ''}
+                  <div className="flex flex-col gap-1">
+                    <h3 className="text-base font-bold text-gray-900 leading-tight">
+                      {need.title}
+                    </h3>
+                    <div className="flex flex-wrap gap-2 text-sm text-gray-600">
+                      {need.items[0] !== undefined && (
+                        <span className="font-medium">
+                          {CATEGORY_LABELS[need.items[0].category] ?? need.items[0].category}
                         </span>
-                      </>
-                    )}
+                      )}
+                      <span aria-hidden="true" className="text-gray-300">·</span>
+                      <span>Prioridad: {PRIORITY_LABELS[need.priority] ?? need.priority}</span>
+                      {need.items.length > 0 && (
+                        <>
+                          <span aria-hidden="true" className="text-gray-300">·</span>
+                          <span>
+                            {String(need.items[0]?.quantity ?? '')}
+                            {need.items[0]?.unit != null ? ` ${String(need.items[0].unit)}` : ''}
+                          </span>
+                        </>
+                      )}
+                    </div>
                   </div>
+                  {emergency.status === 'active' && (
+                    <Link
+                      href={`/e/${slug}/donar?needId=${need.id}`}
+                      className="inline-flex items-center justify-center rounded-lg border-2 border-gray-900 px-4 py-2 text-sm font-semibold text-gray-900 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 transition-colors w-fit"
+                    >
+                      Ofrecer para esta necesidad
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>

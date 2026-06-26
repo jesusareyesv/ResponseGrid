@@ -5,6 +5,116 @@ import { redirect } from 'next/navigation';
 import { api } from '@/lib/api';
 import { getToken, clearToken, authHeaders } from '@/lib/auth';
 
+/**
+ * Matches an open offer to a need (coordinator only).
+ */
+export async function matchOffer(
+  offerId: string,
+  needId: string,
+  slug: string,
+): Promise<ActionResult> {
+  const token = await getToken();
+  if (token === null) {
+    redirect(`/login?next=/e/${slug}/coordinacion`);
+  }
+
+  const { error, response } = await api.POST('/offers/{offerId}/match', {
+    params: { path: { offerId } },
+    body: { needId },
+    headers: authHeaders(token),
+  });
+
+  if (error !== undefined) {
+    if (response.status === 401) {
+      await clearToken();
+      redirect(`/login?next=/e/${slug}/coordinacion`);
+    }
+    if (response.status === 403) {
+      return { status: 'error', message: 'No tienes permisos para asignar esta oferta.' };
+    }
+    if (response.status === 409) {
+      return { status: 'error', message: 'La oferta no está en estado abierto.' };
+    }
+    if (response.status === 404) {
+      return { status: 'error', message: 'Oferta o necesidad no encontrada.' };
+    }
+    return { status: 'error', message: 'No se pudo asignar la oferta. Inténtalo de nuevo.' };
+  }
+
+  revalidatePath(`/e/${slug}/coordinacion`);
+  return { status: 'success' };
+}
+
+/**
+ * Marks a matched offer as fulfilled (coordinator only).
+ */
+export async function fulfillOffer(
+  offerId: string,
+  slug: string,
+): Promise<ActionResult> {
+  const token = await getToken();
+  if (token === null) {
+    redirect(`/login?next=/e/${slug}/coordinacion`);
+  }
+
+  const { error, response } = await api.POST('/offers/{offerId}/fulfill', {
+    params: { path: { offerId } },
+    headers: authHeaders(token),
+  });
+
+  if (error !== undefined) {
+    if (response.status === 401) {
+      await clearToken();
+      redirect(`/login?next=/e/${slug}/coordinacion`);
+    }
+    if (response.status === 403) {
+      return { status: 'error', message: 'No tienes permisos para marcar esta oferta como entregada.' };
+    }
+    if (response.status === 409) {
+      return { status: 'error', message: 'La oferta no está en estado asignado.' };
+    }
+    return { status: 'error', message: 'No se pudo marcar la oferta como entregada.' };
+  }
+
+  revalidatePath(`/e/${slug}/coordinacion`);
+  return { status: 'success' };
+}
+
+/**
+ * Cancels an offer (coordinator only in this context).
+ */
+export async function cancelOffer(
+  offerId: string,
+  slug: string,
+): Promise<ActionResult> {
+  const token = await getToken();
+  if (token === null) {
+    redirect(`/login?next=/e/${slug}/coordinacion`);
+  }
+
+  const { error, response } = await api.POST('/offers/{offerId}/cancel', {
+    params: { path: { offerId } },
+    headers: authHeaders(token),
+  });
+
+  if (error !== undefined) {
+    if (response.status === 401) {
+      await clearToken();
+      redirect(`/login?next=/e/${slug}/coordinacion`);
+    }
+    if (response.status === 403) {
+      return { status: 'error', message: 'No tienes permisos para cancelar esta oferta.' };
+    }
+    if (response.status === 409) {
+      return { status: 'error', message: 'La oferta no puede cancelarse en su estado actual.' };
+    }
+    return { status: 'error', message: 'No se pudo cancelar la oferta.' };
+  }
+
+  revalidatePath(`/e/${slug}/coordinacion`);
+  return { status: 'success' };
+}
+
 export type ActionResult =
   | { status: 'idle' }
   | { status: 'success' }
@@ -132,8 +242,8 @@ export async function pauseEmergency(
     redirect(`/login?next=/e/${slug}/coordinacion`);
   }
 
-  const { error, response } = await api.POST('/emergencies/{id}/pause', {
-    params: { path: { id: emergencyId } },
+  const { error, response } = await api.POST('/emergencies/{emergencyId}/pause', {
+    params: { path: { emergencyId } },
     headers: authHeaders(token),
   });
 
@@ -168,8 +278,8 @@ export async function resumeEmergency(
     redirect(`/login?next=/e/${slug}/coordinacion`);
   }
 
-  const { error, response } = await api.POST('/emergencies/{id}/resume', {
-    params: { path: { id: emergencyId } },
+  const { error, response } = await api.POST('/emergencies/{emergencyId}/resume', {
+    params: { path: { emergencyId } },
     headers: authHeaders(token),
   });
 
@@ -205,8 +315,8 @@ export async function publishAnnouncement(
     redirect(`/login?next=/e/${slug}/coordinacion`);
   }
 
-  const { error, response } = await api.PUT('/emergencies/{id}/announcement', {
-    params: { path: { id: emergencyId } },
+  const { error, response } = await api.PUT('/emergencies/{emergencyId}/announcement', {
+    params: { path: { emergencyId } },
     body: { message },
     headers: authHeaders(token),
   });
