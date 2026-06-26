@@ -10,6 +10,8 @@ import { GeocodingModule } from './contexts/geocoding/infrastructure/geocoding.m
 import { MetricsModule } from './contexts/metrics/infrastructure/metrics.module';
 import { OffersModule } from './contexts/offers/infrastructure/offers.module';
 import { VolunteersModule } from './contexts/volunteers/infrastructure/volunteers.module';
+import { FilesModule } from './contexts/files/infrastructure/files.module';
+import { ReportsModule } from './contexts/reports/infrastructure/reports.module';
 
 @Module({
   imports: [
@@ -24,6 +26,8 @@ import { VolunteersModule } from './contexts/volunteers/infrastructure/volunteer
     MetricsModule,
     OffersModule,
     VolunteersModule,
+    FilesModule,
+    ReportsModule,
   ],
 })
 export class AppModule {}

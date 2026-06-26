@@ -17,6 +17,9 @@ packages/*/dist/
 # Generated artifacts
 apps/api/openapi.json
 
+# User-uploaded files (served by LocalDiskFileStorage; ignored in git)
+apps/api/uploads/
+
 # Stray dev server logs
 *.log
 *.err

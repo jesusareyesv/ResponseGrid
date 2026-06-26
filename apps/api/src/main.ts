@@ -5,6 +5,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { DomainExceptionFilter } from './contexts/resources/infrastructure/http/domain-exception.filter';
 import { NeedsDomainExceptionFilter } from './contexts/needs/infrastructure/http/domain-exception.filter';
+import { ReportExceptionFilter } from './contexts/reports/infrastructure/http/report-exception.filter';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
@@ -18,6 +19,7 @@ async function bootstrap(): Promise<void> {
   app.useGlobalFilters(
     new DomainExceptionFilter(),
     new NeedsDomainExceptionFilter(),
+    new ReportExceptionFilter(),
   );
   app.enableShutdownHooks();
 

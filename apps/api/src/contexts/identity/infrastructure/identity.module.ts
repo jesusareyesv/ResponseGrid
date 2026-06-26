@@ -60,6 +60,12 @@ import {
   TASK_EMERGENCY_LOOKUP,
   TaskEmergencyLookup,
 } from '../domain/ports/task-emergency-lookup';
+import { RequireReportCoordinatorGuard } from './http/require-report-coordinator.guard';
+import { DrizzleReportEmergencyLookup } from './drizzle/drizzle-report-emergency-lookup';
+import {
+  REPORT_EMERGENCY_LOOKUP,
+  ReportEmergencyLookup,
+} from '../domain/ports/report-emergency-lookup';
 import { GoogleStrategy } from './http/google.strategy';
 import { FacebookStrategy } from './http/facebook.strategy';
 
@@ -129,6 +135,13 @@ const taskEmergencyLookupProvider = {
     new DrizzleTaskEmergencyLookup(db),
 };
 
+const reportEmergencyLookupProvider = {
+  provide: REPORT_EMERGENCY_LOOKUP,
+  inject: [DB],
+  useFactory: (db: Db): ReportEmergencyLookup =>
+    new DrizzleReportEmergencyLookup(db),
+};
+
 const loginProvider = {
   provide: Login,
   inject: [USER_REPOSITORY, PASSWORD_HASHER, TOKEN_SERVICE],
@@ -186,6 +199,7 @@ const authenticateWithProviderProvider = {
     offerEmergencyLookupProvider,
     volunteerEmergencyLookupProvider,
     taskEmergencyLookupProvider,
+    reportEmergencyLookupProvider,
     JwtAuthGuard,
     RequireAdminGuard,
     RequireCoordinatorGuard,
@@ -194,6 +208,7 @@ const authenticateWithProviderProvider = {
     RequireOfferCoordinatorGuard,
     RequireVolunteerCoordinatorGuard,
     RequireTaskCoordinatorGuard,
+    RequireReportCoordinatorGuard,
     GoogleStrategy,
     FacebookStrategy,
   ],
@@ -206,6 +221,7 @@ const authenticateWithProviderProvider = {
     OFFER_EMERGENCY_LOOKUP,
     VOLUNTEER_EMERGENCY_LOOKUP,
     TASK_EMERGENCY_LOOKUP,
+    REPORT_EMERGENCY_LOOKUP,
     JwtAuthGuard,
     RequireAdminGuard,
     RequireCoordinatorGuard,
@@ -214,6 +230,7 @@ const authenticateWithProviderProvider = {
     RequireOfferCoordinatorGuard,
     RequireVolunteerCoordinatorGuard,
     RequireTaskCoordinatorGuard,
+    RequireReportCoordinatorGuard,
     JwtModule,
   ],
 })
