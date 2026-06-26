@@ -809,6 +809,92 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload an image file (max 5 MB) */
+        post: operations["FilesController_upload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/files/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download a stored file by key */
+        get: operations["FilesController_serve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/emergencies/{emergencyId}/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get coordination queue of reports */
+        get: operations["ReportsController_getQueue"];
+        put?: never;
+        /** Submit a field report */
+        post: operations["ReportsController_submit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reports/{reportId}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark a report as reviewed */
+        post: operations["ReportsController_review"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/emergencies/{emergencyId}/reports/mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get my field reports for an emergency */
+        get: operations["ReportsController_mine"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1482,6 +1568,19 @@ export interface components {
         AssignVolunteerDto: {
             /** Format: uuid */
             volunteerId: string;
+        };
+        SubmitReportDto: {
+            /** @enum {string} */
+            type: "incident" | "stock" | "status" | "other";
+            /** @example Road blocked near bridge */
+            note: string;
+            /** @enum {string} */
+            priority: "low" | "medium" | "high" | "urgent";
+            /** @description URLs from POST /files (e.g. /files/key.png) */
+            photoUrls?: string[];
+            /** @description Resource ID this report refers to */
+            resourceId?: string;
+            location?: components["schemas"]["LocationDto"];
         };
     };
     responses: never;
@@ -3671,6 +3770,146 @@ export interface operations {
             };
             /** @description Task already completed */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    FilesController_upload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description File stored successfully */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        key?: string;
+                        url?: string;
+                    };
+                };
+            };
+        };
+    };
+    FilesController_serve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Storage key returned by POST /files */
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description File content streamed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ReportsController_getQueue: {
+        parameters: {
+            query?: {
+                status?: "open" | "reviewed";
+                priority?: "low" | "medium" | "high" | "urgent";
+                /** @description Filter by resource ID */
+                resourceId?: string;
+            };
+            header?: never;
+            path: {
+                emergencyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of reports */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ReportsController_submit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                emergencyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubmitReportDto"];
+            };
+        };
+        responses: {
+            /** @description Report submitted */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ReportsController_review: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reportId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Report marked as reviewed */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ReportsController_mine: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                emergencyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of my reports */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
