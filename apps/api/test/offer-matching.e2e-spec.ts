@@ -248,9 +248,7 @@ describe('Offer matching flow (e2e)', () => {
       .set('Authorization', `Bearer ${coordToken}`)
       .expect(200);
     expect(
-      (queueAfter.body as Array<{ id: string }>).find(
-        (o) => o.id === offerId,
-      ),
+      (queueAfter.body as Array<{ id: string }>).find((o) => o.id === offerId),
     ).toBeUndefined();
 
     // 9. Offer appears in need's matched list
@@ -289,9 +287,15 @@ describe('Offer matching flow (e2e)', () => {
       .set('Authorization', `Bearer ${coordToken}`)
       .send({
         title: 'Water need',
-        location: { address: 'East Caracas', latitude: 10.49, longitude: -66.88 },
+        location: {
+          address: 'East Caracas',
+          latitude: 10.49,
+          longitude: -66.88,
+        },
         priority: 'medium',
-        items: [{ name: 'Water', quantity: 50, unit: 'liters', category: 'water' }],
+        items: [
+          { name: 'Water', quantity: 50, unit: 'liters', category: 'water' },
+        ],
       })
       .expect(201);
     const needId = bodyId(needRes);
@@ -308,9 +312,13 @@ describe('Offer matching flow (e2e)', () => {
       .set('Authorization', `Bearer ${coordToken}`)
       .expect(200);
 
-    const inQueue = (queue.body as Array<{ id: string; status: string; targetNeedId: string | null }>).find(
-      (o) => o.id === offerId,
-    );
+    const inQueue = (
+      queue.body as Array<{
+        id: string;
+        status: string;
+        targetNeedId: string | null;
+      }>
+    ).find((o) => o.id === offerId);
     expect(inQueue).toBeDefined();
     expect(inQueue?.status).toBe('open');
     expect(inQueue?.targetNeedId).toBe(needId);
@@ -323,7 +331,11 @@ describe('Offer matching flow (e2e)', () => {
       .set('Authorization', `Bearer ${coordToken}`)
       .send({
         title: 'Food need for suggest test',
-        location: { address: 'West Caracas', latitude: 10.47, longitude: -66.92 },
+        location: {
+          address: 'West Caracas',
+          latitude: 10.47,
+          longitude: -66.92,
+        },
         priority: 'high',
         items: [{ name: 'Rice', quantity: 20, unit: 'kg', category: 'food' }],
       })
@@ -334,14 +346,22 @@ describe('Offer matching flow (e2e)', () => {
     const foodOfferRes = await request(server)
       .post(`/emergencies/${EM}/offers`)
       .set('Authorization', `Bearer ${donorToken}`)
-      .send({ ...baseOfferBody, description: 'Food for suggest', category: 'food' })
+      .send({
+        ...baseOfferBody,
+        description: 'Food for suggest',
+        category: 'food',
+      })
       .expect(201);
     const foodOfferId = bodyId(foodOfferRes);
 
     await request(server)
       .post(`/emergencies/${EM}/offers`)
       .set('Authorization', `Bearer ${donorToken}`)
-      .send({ ...baseOfferBody, description: 'Water for suggest', category: 'water' })
+      .send({
+        ...baseOfferBody,
+        description: 'Water for suggest',
+        category: 'water',
+      })
       .expect(201);
 
     const suggestRes = await request(server)
@@ -349,7 +369,10 @@ describe('Offer matching flow (e2e)', () => {
       .set('Authorization', `Bearer ${coordToken}`)
       .expect(200);
 
-    const suggestions = suggestRes.body as Array<{ id: string; category: string }>;
+    const suggestions = suggestRes.body as Array<{
+      id: string;
+      category: string;
+    }>;
     expect(suggestions.find((o) => o.id === foodOfferId)).toBeDefined();
     expect(suggestions.every((o) => o.category === 'food')).toBe(true);
   });
@@ -382,7 +405,11 @@ describe('Offer matching flow (e2e)', () => {
       .set('Authorization', `Bearer ${coordToken}`)
       .send({
         title: 'Need for cancel test',
-        location: { address: 'Central Caracas', latitude: 10.48, longitude: -66.9 },
+        location: {
+          address: 'Central Caracas',
+          latitude: 10.48,
+          longitude: -66.9,
+        },
         priority: 'low',
         items: [{ name: 'Rice', quantity: 10, unit: 'kg', category: 'food' }],
       })
