@@ -4,7 +4,8 @@ import { Email } from './email';
 export interface CreateUserProps {
   id: UserId;
   email: Email;
-  passwordHash: string;
+  /** null for social-only accounts that have no password */
+  passwordHash: string | null;
   name: string;
   isAdmin: boolean;
 }
@@ -12,7 +13,8 @@ export interface CreateUserProps {
 export interface UserSnapshot {
   id: string;
   email: string;
-  passwordHash: string;
+  /** null for social-only accounts */
+  passwordHash: string | null;
   name: string;
   isAdmin: boolean;
 }
@@ -21,7 +23,8 @@ export class User {
   private constructor(
     public readonly id: UserId,
     public readonly email: Email,
-    public readonly passwordHash: string,
+    /** null for social-only accounts that have no password set */
+    public readonly passwordHash: string | null,
     public readonly name: string,
     public readonly isAdmin: boolean,
   ) {}

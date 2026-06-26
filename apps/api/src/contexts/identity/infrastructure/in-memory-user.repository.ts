@@ -19,4 +19,9 @@ export class InMemoryUserRepository implements UserRepository {
     const snap = this.store.get(id.value);
     return snap ? User.fromSnapshot(snap) : null;
   }
+
+  /** Test helper — returns the total number of stored users. */
+  async countAll(): Promise<number> {
+    return this.store.size;
+  }
 }
