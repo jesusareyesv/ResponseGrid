@@ -190,6 +190,93 @@ describe('DrizzleResourceRepository (integration)', () => {
     expect(counts[PublicStatus.Saturated]).toBe(0);
   });
 
+  it('findByOwnerAndEmergency returns only resources of the given owner', async () => {
+    const OTHER_OWNER = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbc';
+    const owner = Resource.register({
+      id: ResourceId.create(),
+      emergencyId: EmergencyId.fromString(EM),
+      type: ResourceType.CollectionPoint,
+      stage: ResourceStage.Origin,
+      name: 'Owner Resource',
+      location: baseLocation,
+      ownerUserId: OWNER_ID,
+    });
+    const other = Resource.register({
+      id: ResourceId.create(),
+      emergencyId: EmergencyId.fromString(EM),
+      type: ResourceType.CollectionPoint,
+      stage: ResourceStage.Origin,
+      name: 'Other Resource',
+      location: baseLocation,
+      ownerUserId: OTHER_OWNER,
+    });
+    await repo.save(owner);
+    await repo.save(other);
+
+    const result = await repo.findByOwnerAndEmergency(
+      OWNER_ID,
+      EmergencyId.fromString(EM),
+    );
+    expect(result.map((r) => r.name)).toEqual(['Owner Resource']);
+  });
+
+  it('findVisibleByEmergency returns Active, Saturated, Paused but not Hidden or Closed', async () => {
+    const active = Resource.register({
+      id: ResourceId.create(),
+      emergencyId: EmergencyId.fromString(EM),
+      type: ResourceType.CollectionPoint,
+      stage: ResourceStage.Origin,
+      name: 'Active',
+      location: baseLocation,
+      ownerUserId: OWNER_ID,
+    });
+    active.verify(VerificationLevel.Verified, 'c1');
+    active.publish();
+
+    const saturated = Resource.fromSnapshot({
+      ...active.toSnapshot(),
+      id: ResourceId.create().value,
+      name: 'Saturated',
+      publicStatus: PublicStatus.Saturated,
+    });
+
+    const paused = Resource.fromSnapshot({
+      ...active.toSnapshot(),
+      id: ResourceId.create().value,
+      name: 'Paused',
+      publicStatus: PublicStatus.Paused,
+    });
+
+    const hidden = Resource.register({
+      id: ResourceId.create(),
+      emergencyId: EmergencyId.fromString(EM),
+      type: ResourceType.CollectionPoint,
+      stage: ResourceStage.Origin,
+      name: 'Hidden',
+      location: baseLocation,
+      ownerUserId: OWNER_ID,
+    });
+
+    const closed = Resource.fromSnapshot({
+      ...active.toSnapshot(),
+      id: ResourceId.create().value,
+      name: 'Closed',
+      publicStatus: PublicStatus.Closed,
+    });
+
+    await repo.save(active);
+    await repo.save(saturated);
+    await repo.save(paused);
+    await repo.save(hidden);
+    await repo.save(closed);
+
+    const result = await repo.findVisibleByEmergency(
+      EmergencyId.fromString(EM),
+    );
+    const names = result.map((r) => r.name).sort();
+    expect(names).toEqual(['Active', 'Paused', 'Saturated']);
+  });
+
   it('countByEmergencyGroupedByPublicStatus ignores other emergencies', async () => {
     const OTHER_EM = '44444444-4444-4444-8444-444444444444';
     const mine = Resource.register({

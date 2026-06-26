@@ -81,3 +81,14 @@ export class RegisterResourceDto {
  * accreditation status. This DTO is intentionally empty.
  */
 export class VerifyResourceDto {}
+
+export class UpdateResourcePublicStatusDto {
+  @ApiProperty({
+    enum: ['active', 'saturated', 'paused', 'closed'],
+    example: 'saturated',
+    description:
+      'Target operational status. Hidden is not allowed; use close() to deactivate.',
+  })
+  @IsEnum(['active', 'saturated', 'paused', 'closed'])
+  status!: 'active' | 'saturated' | 'paused' | 'closed';
+}

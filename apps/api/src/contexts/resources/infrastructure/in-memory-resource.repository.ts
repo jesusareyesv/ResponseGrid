@@ -59,4 +59,32 @@ export class InMemoryResourceRepository implements ResourceRepository {
     }
     return Promise.resolve(result);
   }
+
+  findByOwnerAndEmergency(
+    ownerUserId: string,
+    emergencyId: EmergencyId,
+  ): Promise<Resource[]> {
+    const result = [...this.store.values()]
+      .filter(
+        (s) =>
+          s.emergencyId === emergencyId.value && s.ownerUserId === ownerUserId,
+      )
+      .map((s) => Resource.fromSnapshot(s));
+    return Promise.resolve(result);
+  }
+
+  findVisibleByEmergency(emergencyId: EmergencyId): Promise<Resource[]> {
+    const visible = new Set<PublicStatus>([
+      PublicStatus.Active,
+      PublicStatus.Saturated,
+      PublicStatus.Paused,
+    ]);
+    const result = [...this.store.values()]
+      .filter(
+        (s) =>
+          s.emergencyId === emergencyId.value && visible.has(s.publicStatus),
+      )
+      .map((s) => Resource.fromSnapshot(s));
+    return Promise.resolve(result);
+  }
 }

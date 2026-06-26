@@ -11,6 +11,8 @@ import { Location } from '../../../shared/domain/location';
 import {
   ResourceNotVerifiedError,
   InvalidVerificationLevelError,
+  InvalidPublicStatusTransitionError,
+  ResourceNotPublishedError,
 } from './resource-errors';
 
 const makeLocation = () =>
@@ -97,6 +99,62 @@ describe('Resource', () => {
     expect(r.pullDomainEvents().map((e) => e.eventName)).toEqual([
       'resource.published',
     ]);
+  });
+
+  describe('changePublicStatus', () => {
+    const makePublished = () => {
+      const r = make();
+      r.verify(VerificationLevel.Verified, 'c1');
+      r.publish();
+      r.pullDomainEvents();
+      return r;
+    };
+
+    it('transitions Active → Saturated', () => {
+      const r = makePublished();
+      r.changePublicStatus(PublicStatus.Saturated);
+      expect(r.publicStatus).toBe(PublicStatus.Saturated);
+    });
+
+    it('transitions Active → Paused', () => {
+      const r = makePublished();
+      r.changePublicStatus(PublicStatus.Paused);
+      expect(r.publicStatus).toBe(PublicStatus.Paused);
+    });
+
+    it('transitions Active → Closed', () => {
+      const r = makePublished();
+      r.changePublicStatus(PublicStatus.Closed);
+      expect(r.publicStatus).toBe(PublicStatus.Closed);
+    });
+
+    it('reopens: Closed → Active', () => {
+      const r = makePublished();
+      r.changePublicStatus(PublicStatus.Closed);
+      r.changePublicStatus(PublicStatus.Active);
+      expect(r.publicStatus).toBe(PublicStatus.Active);
+    });
+
+    it('transitions Saturated → Paused', () => {
+      const r = makePublished();
+      r.changePublicStatus(PublicStatus.Saturated);
+      r.changePublicStatus(PublicStatus.Paused);
+      expect(r.publicStatus).toBe(PublicStatus.Paused);
+    });
+
+    it('throws ResourceNotPublishedError when source is Hidden', () => {
+      const r = make();
+      expect(() => r.changePublicStatus(PublicStatus.Active)).toThrow(
+        ResourceNotPublishedError,
+      );
+    });
+
+    it('throws InvalidPublicStatusTransitionError when target is Hidden', () => {
+      const r = makePublished();
+      expect(() => r.changePublicStatus(PublicStatus.Hidden)).toThrow(
+        InvalidPublicStatusTransitionError,
+      );
+    });
   });
 
   it('toSnapshot / fromSnapshot round-trip preserves all fields', () => {

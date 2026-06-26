@@ -14,4 +14,11 @@ export interface ResourceRepository {
   countByEmergencyGroupedByPublicStatus(
     emergencyId: EmergencyId,
   ): Promise<Record<PublicStatus, number>>;
+  /** Resources owned by a specific user within an emergency (any status). */
+  findByOwnerAndEmergency(
+    ownerUserId: string,
+    emergencyId: EmergencyId,
+  ): Promise<Resource[]>;
+  /** Visible public resources: Active, Saturated, Paused (excludes Hidden and Closed). */
+  findVisibleByEmergency(emergencyId: EmergencyId): Promise<Resource[]>;
 }

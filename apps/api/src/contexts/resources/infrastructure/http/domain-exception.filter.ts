@@ -6,9 +6,12 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 import { ResourceNotFoundError } from '../../application/resource-not-found.error';
+import { UnauthorizedStatusChangeError } from '../../application/unauthorized-status-change.error';
 import {
   ResourceNotVerifiedError,
   InvalidVerificationLevelError,
+  InvalidPublicStatusTransitionError,
+  ResourceNotPublishedError,
 } from '../../domain/resource-errors';
 import { EmergencyNotAcceptingIntakeError } from '../../../emergencies/domain/emergency-not-accepting-intake.error';
 
@@ -16,7 +19,10 @@ type DomainError =
   | ResourceNotFoundError
   | ResourceNotVerifiedError
   | InvalidVerificationLevelError
-  | EmergencyNotAcceptingIntakeError;
+  | EmergencyNotAcceptingIntakeError
+  | UnauthorizedStatusChangeError
+  | InvalidPublicStatusTransitionError
+  | ResourceNotPublishedError;
 
 // Only catches domain errors; everything else (e.g. ValidationPipe's BadRequestException)
 // falls through to Nest's default handler, which already returns clean JSON.
@@ -25,6 +31,9 @@ type DomainError =
   ResourceNotVerifiedError,
   InvalidVerificationLevelError,
   EmergencyNotAcceptingIntakeError,
+  UnauthorizedStatusChangeError,
+  InvalidPublicStatusTransitionError,
+  ResourceNotPublishedError,
 )
 export class DomainExceptionFilter implements ExceptionFilter {
   catch(exception: DomainError, host: ArgumentsHost): void {
@@ -32,11 +41,13 @@ export class DomainExceptionFilter implements ExceptionFilter {
     const statusCode =
       exception instanceof ResourceNotFoundError
         ? HttpStatus.NOT_FOUND
-        : exception instanceof EmergencyNotAcceptingIntakeError
-          ? HttpStatus.CONFLICT
-          : exception instanceof ResourceNotVerifiedError
+        : exception instanceof UnauthorizedStatusChangeError
+          ? HttpStatus.FORBIDDEN
+          : exception instanceof EmergencyNotAcceptingIntakeError
             ? HttpStatus.CONFLICT
-            : HttpStatus.BAD_REQUEST;
+            : exception instanceof ResourceNotVerifiedError
+              ? HttpStatus.CONFLICT
+              : HttpStatus.BAD_REQUEST;
     response
       .status(statusCode)
       .json({ statusCode, message: exception.message });

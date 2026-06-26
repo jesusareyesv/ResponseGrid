@@ -10,3 +10,17 @@ export class ResourceNotVerifiedError extends Error {
     this.name = 'ResourceNotVerifiedError';
   }
 }
+export class InvalidPublicStatusTransitionError extends Error {
+  constructor(from: string, to: string) {
+    super(`Cannot transition public status from "${from}" to "${to}"`);
+    this.name = 'InvalidPublicStatusTransitionError';
+  }
+}
+export class ResourceNotPublishedError extends Error {
+  constructor() {
+    super(
+      'Resource must be published (Active/Saturated/Paused/Closed) before changing its status',
+    );
+    this.name = 'ResourceNotPublishedError';
+  }
+}

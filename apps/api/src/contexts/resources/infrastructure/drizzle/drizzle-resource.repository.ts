@@ -1,4 +1,4 @@
-import { and, count, eq } from 'drizzle-orm';
+import { and, count, eq, inArray } from 'drizzle-orm';
 import { Db } from '../../../../shared/db';
 import { resourcesTable } from './schema';
 import { ResourceRepository } from '../../domain/ports/resource.repository';
@@ -97,6 +97,39 @@ export class DrizzleResourceRepository implements ResourceRepository {
         and(
           eq(resourcesTable.emergencyId, emergencyId.value),
           eq(resourcesTable.publicStatus, PublicStatus.Active),
+        ),
+      );
+    return rows.map((r) => Resource.fromSnapshot(rowToSnapshot(r)));
+  }
+
+  async findByOwnerAndEmergency(
+    ownerUserId: string,
+    emergencyId: EmergencyId,
+  ): Promise<Resource[]> {
+    const rows = await this.db
+      .select()
+      .from(resourcesTable)
+      .where(
+        and(
+          eq(resourcesTable.emergencyId, emergencyId.value),
+          eq(resourcesTable.ownerUserId, ownerUserId),
+        ),
+      );
+    return rows.map((r) => Resource.fromSnapshot(rowToSnapshot(r)));
+  }
+
+  async findVisibleByEmergency(emergencyId: EmergencyId): Promise<Resource[]> {
+    const rows = await this.db
+      .select()
+      .from(resourcesTable)
+      .where(
+        and(
+          eq(resourcesTable.emergencyId, emergencyId.value),
+          inArray(resourcesTable.publicStatus, [
+            PublicStatus.Active,
+            PublicStatus.Saturated,
+            PublicStatus.Paused,
+          ]),
         ),
       );
     return rows.map((r) => Resource.fromSnapshot(rowToSnapshot(r)));

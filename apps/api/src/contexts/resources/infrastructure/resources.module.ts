@@ -9,8 +9,10 @@ import { PublicController } from './http/public.controller';
 import { RegisterResource } from '../application/register-resource';
 import { GetCoordinationQueue } from '../application/get-coordination-queue';
 import { GetPublicResources } from '../application/get-public-resources';
+import { GetMyResources } from '../application/get-my-resources';
 import { VerifyResource } from '../application/verify-resource';
 import { PublishResource } from '../application/publish-resource';
+import { UpdateResourcePublicStatus } from '../application/update-resource-public-status';
 import {
   RESOURCE_REPOSITORY,
   ResourceRepository,
@@ -29,6 +31,11 @@ import {
   ORGANIZATION_ACCREDITATION_READER,
   OrganizationAccreditationReader,
 } from '../domain/ports/organization-accreditation-reader';
+import {
+  RESOURCE_MEMBERSHIP_READER,
+  ResourceMembershipReader,
+} from '../domain/ports/membership-reader';
+import { DrizzleMembershipReader } from './drizzle/drizzle-membership-reader';
 
 export const EVENT_QUEUE = Symbol('ResourcesEventQueue');
 
@@ -110,6 +117,28 @@ const publicResourcesProvider = {
   useFactory: (repo: ResourceRepository) => new GetPublicResources(repo),
 };
 
+const membershipReaderProvider = {
+  provide: RESOURCE_MEMBERSHIP_READER,
+  inject: [DB],
+  useFactory: (db: Db): ResourceMembershipReader =>
+    new DrizzleMembershipReader(db),
+};
+
+const updateStatusProvider = {
+  provide: UpdateResourcePublicStatus,
+  inject: [RESOURCE_REPOSITORY, RESOURCE_MEMBERSHIP_READER],
+  useFactory: (
+    repo: ResourceRepository,
+    membershipReader: ResourceMembershipReader,
+  ) => new UpdateResourcePublicStatus(repo, membershipReader),
+};
+
+const getMyResourcesProvider = {
+  provide: GetMyResources,
+  inject: [RESOURCE_REPOSITORY],
+  useFactory: (repo: ResourceRepository) => new GetMyResources(repo),
+};
+
 @Module({
   imports: [DatabaseModule, IdentityModule],
   controllers: [ResourcesController, CoordinationController, PublicController],
@@ -118,12 +147,15 @@ const publicResourcesProvider = {
     resourceRepositoryProvider,
     emergencyStatusReaderProvider,
     organizationAccreditationReaderProvider,
+    membershipReaderProvider,
     busProvider,
     registerProvider,
     queueProvider,
     verifyProvider,
     publishProvider,
     publicResourcesProvider,
+    updateStatusProvider,
+    getMyResourcesProvider,
   ],
 })
 export class ResourcesModule implements OnModuleDestroy {

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   Param,
   ParseUUIDPipe,
@@ -20,18 +21,27 @@ import {
   ApiBearerAuth,
   ApiUnauthorizedResponse,
   ApiForbiddenResponse,
+  ApiOkResponse,
 } from '@nestjs/swagger';
 import { Request } from 'express';
 import { RegisterResource } from '../../application/register-resource';
 import { VerifyResource } from '../../application/verify-resource';
 import { PublishResource } from '../../application/publish-resource';
-import { RegisterResourceDto, VerifyResourceDto } from './dto';
-import { RegisterResourceResponseDto } from './response.dto';
+import { UpdateResourcePublicStatus } from '../../application/update-resource-public-status';
+import { GetMyResources } from '../../application/get-my-resources';
+import { PublicStatus } from '../../domain/resource-enums';
+import {
+  RegisterResourceDto,
+  VerifyResourceDto,
+  UpdateResourcePublicStatusDto,
+} from './dto';
+import { RegisterResourceResponseDto, ResourceViewDto } from './response.dto';
 import {
   JwtAuthGuard,
   AuthenticatedUser,
 } from '../../../identity/infrastructure/http/jwt-auth.guard';
 import { RequireResourceCoordinatorGuard } from '../../../identity/infrastructure/http/require-resource-coordinator.guard';
+import { ResourceView } from '../../application/resource-view';
 
 @ApiTags('resources')
 @Controller()
@@ -40,6 +50,8 @@ export class ResourcesController {
     private readonly register: RegisterResource,
     private readonly verify: VerifyResource,
     private readonly publish: PublishResource,
+    private readonly updateStatus: UpdateResourcePublicStatus,
+    private readonly getMyResources: GetMyResources,
   ) {}
 
   @Post('emergencies/:emergencyId/resources')
@@ -127,5 +139,70 @@ export class ResourcesController {
     @Param('resourceId', ParseUUIDPipe) resourceId: string,
   ): Promise<void> {
     await this.publish.execute({ resourceId });
+  }
+
+  @Post('resources/:resourceId/status')
+  @HttpCode(204)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary:
+      'Update the operational public status of a resource (owner or coordinator)',
+  })
+  @ApiParam({
+    name: 'resourceId',
+    description: 'Resource UUID',
+    format: 'uuid',
+  })
+  @ApiNoContentResponse({ description: 'Status updated' })
+  @ApiNotFoundResponse({ description: 'Resource not found' })
+  @ApiBadRequestResponse({ description: 'Invalid status transition or UUID' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
+  @ApiForbiddenResponse({
+    description: 'Not authorized to update this resource status',
+  })
+  async updateResourceStatus(
+    @Param('resourceId', ParseUUIDPipe) resourceId: string,
+    @Body() dto: UpdateResourcePublicStatusDto,
+    @Req() req: Request & { user?: AuthenticatedUser },
+  ): Promise<void> {
+    const statusMap: Record<string, PublicStatus> = {
+      active: PublicStatus.Active,
+      saturated: PublicStatus.Saturated,
+      paused: PublicStatus.Paused,
+      closed: PublicStatus.Closed,
+    };
+    await this.updateStatus.execute({
+      resourceId,
+      targetStatus: statusMap[dto.status],
+      requesterUserId: req.user!.id,
+    });
+  }
+
+  @Get('emergencies/:emergencyId/resources/mine')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'List resources owned by the authenticated user in an emergency',
+  })
+  @ApiParam({
+    name: 'emergencyId',
+    description: 'Emergency UUID',
+    format: 'uuid',
+  })
+  @ApiOkResponse({
+    description: 'List of own resources',
+    type: ResourceViewDto,
+    isArray: true,
+  })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
+  async listMyResources(
+    @Param('emergencyId', ParseUUIDPipe) emergencyId: string,
+    @Req() req: Request & { user?: AuthenticatedUser },
+  ): Promise<ResourceView[]> {
+    return this.getMyResources.execute({
+      emergencyId,
+      userId: req.user!.id,
+    });
   }
 }

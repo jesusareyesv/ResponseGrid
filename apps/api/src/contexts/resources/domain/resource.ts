@@ -9,6 +9,8 @@ import {
 import { Location, LocationProps } from '../../../shared/domain/location';
 import {
   InvalidVerificationLevelError,
+  InvalidPublicStatusTransitionError,
+  ResourceNotPublishedError,
   ResourceNotVerifiedError,
 } from './resource-errors';
 import { DomainEvent } from './events/domain-event';
@@ -136,6 +138,24 @@ export class Resource {
         emergencyId: this.emergencyId.value,
       }),
     );
+  }
+
+  /**
+   * Transition the public status to a new value.
+   *
+   * Valid source states: Active, Saturated, Paused, Closed (i.e. resource must
+   * be published). Hidden is not a valid source — call publish() first.
+   * Target cannot be Hidden (use-case invariant for the operational semaphore).
+   * Reopen = Closed → Active.
+   */
+  changePublicStatus(target: PublicStatus): void {
+    if (this._publicStatus === PublicStatus.Hidden) {
+      throw new ResourceNotPublishedError();
+    }
+    if (target === PublicStatus.Hidden) {
+      throw new InvalidPublicStatusTransitionError(this._publicStatus, target);
+    }
+    this._publicStatus = target;
   }
 
   toSnapshot(): ResourceSnapshot {
