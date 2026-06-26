@@ -27,6 +27,9 @@ export class Login {
     const user = await this.userRepo.findByEmail(email);
     if (!user) throw new InvalidCredentialsError();
 
+    // Social-only accounts have no password — disallow email/password login for them
+    if (user.passwordHash === null) throw new InvalidCredentialsError();
+
     const valid = await this.hasher.compare(cmd.password, user.passwordHash);
     if (!valid) throw new InvalidCredentialsError();
 
