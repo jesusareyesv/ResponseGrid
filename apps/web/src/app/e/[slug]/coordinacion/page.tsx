@@ -5,6 +5,7 @@ import { api } from '@/lib/api';
 import { getEmergencyBySlug } from '@/lib/emergencies';
 import { CoordinationResourceCard } from '@/components/organisms/coordination-resource-card';
 import { CoordinationNeedCard } from '@/components/organisms/coordination-need-card';
+import { EmergencyControls } from '@/components/organisms/emergency-controls';
 import { NeedsFilter } from '@/components/needs-filter';
 import { EmptyState } from '@/components/molecules/empty-state';
 import { logout } from './actions';
@@ -116,6 +117,16 @@ export default async function CoordinacionPage({ params, searchParams }: Props) 
             </form>
           </div>
         </header>
+
+        {/* ── CONTROLES DE LA EMERGENCIA ──────────────────────────────── */}
+        <EmergencyControls
+          emergencyId={emergency.id}
+          slug={slug}
+          status={emergency.status}
+          currentAnnouncement={emergency.announcement}
+        />
+
+        <hr className="border-gray-200" />
 
         {/* ── RECURSOS PENDIENTES ─────────────────────────────────────── */}
         <section aria-labelledby="resources-heading" className="flex flex-col gap-4">

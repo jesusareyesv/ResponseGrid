@@ -163,6 +163,13 @@ export async function submitPeticion(
     redirect('/login');
   }
 
+  if (response.status === 409) {
+    return {
+      status: 'error',
+      message: 'El alta está en pausa en esta emergencia. Inténtalo más tarde.',
+    };
+  }
+
   if (error !== undefined || data === undefined) {
     const msg =
       typeof error === 'object' &&

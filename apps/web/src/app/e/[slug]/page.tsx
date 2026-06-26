@@ -9,6 +9,8 @@ import { NeedsFilter } from '@/components/needs-filter';
 import { Badge } from '@/components/atoms/badge';
 import { EmptyState } from '@/components/molecules/empty-state';
 import { MetricCard } from '@/components/molecules/metric-card';
+import { StatusBanner } from '@/components/molecules/status-banner';
+import { AnnouncementCard } from '@/components/molecules/announcement-card';
 import type { MapPoint } from '@/components/emergency-map';
 
 export const dynamic = 'force-dynamic';
@@ -159,14 +161,25 @@ export default async function EmergencyPage({ params, searchParams }: Props) {
             <h1 className="text-3xl font-bold tracking-tight text-gray-900">
               {emergency.name}
             </h1>
-            <Badge variant="active" aria-label="Estado: emergencia activa">
-              Emergencia activa
-            </Badge>
+            {emergency.status === 'active' && (
+              <Badge variant="active" aria-label="Estado: emergencia activa">
+                Emergencia activa
+              </Badge>
+            )}
           </div>
           <p className="text-sm font-medium text-gray-500 tracking-wide uppercase">
             Fuente oficial · ReliefHub
           </p>
         </header>
+
+        {/* ── 1b. BANNER DE ESTADO ─────────────────────────────────────── */}
+        <StatusBanner status={emergency.status} />
+
+        {/* ── 1c. COMUNICADO OFICIAL ───────────────────────────────────── */}
+        <AnnouncementCard
+          announcement={emergency.announcement}
+          updatedAt={emergency.updatedAt}
+        />
 
         {/* ── 2. RESUMEN (métricas) ────────────────────────────────────── */}
         {metrics !== undefined && (
@@ -224,20 +237,26 @@ export default async function EmergencyPage({ params, searchParams }: Props) {
           >
             ¿Cómo quieres colaborar?
           </h2>
-          <div className="flex flex-col gap-3">
-            <Link
-              href={`/e/${slug}/registrar`}
-              className="flex items-center justify-center w-full py-4 px-6 text-lg font-semibold text-white bg-gray-900 rounded-lg border-2 border-gray-900 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 transition-colors"
-            >
-              Ofrecer un recurso
-            </Link>
-            <Link
-              href={`/e/${slug}/peticion`}
-              className="flex items-center justify-center w-full py-4 px-6 text-lg font-semibold text-gray-900 bg-white rounded-lg border-2 border-gray-900 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 transition-colors"
-            >
-              Poner una petición
-            </Link>
-          </div>
+          {emergency.status === 'active' ? (
+            <div className="flex flex-col gap-3">
+              <Link
+                href={`/e/${slug}/registrar`}
+                className="flex items-center justify-center w-full py-4 px-6 text-lg font-semibold text-white bg-gray-900 rounded-lg border-2 border-gray-900 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 transition-colors"
+              >
+                Ofrecer un recurso
+              </Link>
+              <Link
+                href={`/e/${slug}/peticion`}
+                className="flex items-center justify-center w-full py-4 px-6 text-lg font-semibold text-gray-900 bg-white rounded-lg border-2 border-gray-900 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 transition-colors"
+              >
+                Poner una petición
+              </Link>
+            </div>
+          ) : (
+            <p className="rounded-lg border-2 border-gray-200 bg-gray-50 px-5 py-4 text-sm text-gray-500">
+              El alta de recursos y peticiones está en pausa. Consulta la información disponible y vuelve más tarde.
+            </p>
+          )}
         </section>
 
         {/* ── 5. PUNTOS ACTIVOS ────────────────────────────────────────── */}

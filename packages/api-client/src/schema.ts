@@ -364,6 +364,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/emergencies/{id}/pause": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: { id: string };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Pause intake for an emergency (coordinator only) */
+        post: operations["EmergenciesController_pause"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/emergencies/{id}/resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: { id: string };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resume intake for a paused emergency (coordinator only) */
+        post: operations["EmergenciesController_resume"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/emergencies/{id}/announcement": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: { id: string };
+            cookie?: never;
+        };
+        get?: never;
+        /** Update the official announcement for an emergency (coordinator only) */
+        put: operations["EmergenciesController_updateAnnouncement"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -524,8 +575,16 @@ export interface components {
             slug: string;
             /** @example VE */
             country: string;
-            /** @example active */
-            status: string;
+            /** @description Lifecycle status of the emergency */
+            status: 'active' | 'paused' | 'closed';
+            /** @description Official coordinator announcement, or null if none */
+            announcement: string | null;
+            /** @description ISO 8601 timestamp of the last update */
+            updatedAt: string;
+        };
+        UpdateAnnouncementDto: {
+            /** @description Official announcement message */
+            message: string;
         };
         NeedLocationDto: {
             /** @example 123 Main Street, Caracas, Venezuela */
@@ -1633,6 +1692,113 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["EmergencyMetricsDto"];
                 };
+            };
+        };
+    };
+    EmergenciesController_pause: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: { id: string };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Emergency paused */
+            204: {
+                headers: { [name: string]: unknown };
+                content?: never;
+            };
+            /** @description Missing or invalid token */
+            401: {
+                headers: { [name: string]: unknown };
+                content?: never;
+            };
+            /** @description Coordinator role required */
+            403: {
+                headers: { [name: string]: unknown };
+                content?: never;
+            };
+            /** @description Emergency not found */
+            404: {
+                headers: { [name: string]: unknown };
+                content?: never;
+            };
+            /** @description Emergency already paused */
+            409: {
+                headers: { [name: string]: unknown };
+                content?: never;
+            };
+        };
+    };
+    EmergenciesController_resume: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: { id: string };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Emergency resumed */
+            204: {
+                headers: { [name: string]: unknown };
+                content?: never;
+            };
+            /** @description Missing or invalid token */
+            401: {
+                headers: { [name: string]: unknown };
+                content?: never;
+            };
+            /** @description Coordinator role required */
+            403: {
+                headers: { [name: string]: unknown };
+                content?: never;
+            };
+            /** @description Emergency not found */
+            404: {
+                headers: { [name: string]: unknown };
+                content?: never;
+            };
+            /** @description Emergency is not paused */
+            409: {
+                headers: { [name: string]: unknown };
+                content?: never;
+            };
+        };
+    };
+    EmergenciesController_updateAnnouncement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: { id: string };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateAnnouncementDto"];
+            };
+        };
+        responses: {
+            /** @description Announcement updated */
+            204: {
+                headers: { [name: string]: unknown };
+                content?: never;
+            };
+            /** @description Missing or invalid token */
+            401: {
+                headers: { [name: string]: unknown };
+                content?: never;
+            };
+            /** @description Coordinator role required */
+            403: {
+                headers: { [name: string]: unknown };
+                content?: never;
+            };
+            /** @description Emergency not found */
+            404: {
+                headers: { [name: string]: unknown };
+                content?: never;
             };
         };
     };
