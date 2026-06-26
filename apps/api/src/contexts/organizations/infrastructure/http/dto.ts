@@ -1,6 +1,9 @@
 import { IsEmail, IsEnum, IsOptional, IsString } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { OrganizationType, OrganizationRole } from '../../domain/organization-enums';
+import {
+  OrganizationType,
+  OrganizationRole,
+} from '../../domain/organization-enums';
 
 export class CreateOrganizationDto {
   @ApiProperty({ example: 'Red Cross Spain' })

@@ -30,7 +30,14 @@ describe('ValidateNeed', () => {
       description: null,
       location: { address: 'Caracas', latitude: 10.4806, longitude: -66.9036 },
       priority: Priority.Urgent,
-      items: [{ name: 'Kits', quantity: 10, unit: 'kits', category: NeedCategory.Medical }],
+      items: [
+        {
+          name: 'Kits',
+          quantity: 10,
+          unit: 'kits',
+          category: NeedCategory.Medical,
+        },
+      ],
     });
     bus.published = [];
 

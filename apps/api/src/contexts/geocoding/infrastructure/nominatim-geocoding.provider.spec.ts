@@ -45,8 +45,16 @@ describe('NominatimGeocodingProvider', () => {
     const results = await provider.search('Madrid');
 
     expect(results).toEqual([
-      { address: 'Madrid, Community of Madrid, Spain', latitude: 40.4165, longitude: -3.70256 },
-      { address: 'Madrid, Cundinamarca, Colombia', latitude: 4.73191, longitude: -74.26411 },
+      {
+        address: 'Madrid, Community of Madrid, Spain',
+        latitude: 40.4165,
+        longitude: -3.70256,
+      },
+      {
+        address: 'Madrid, Cundinamarca, Colombia',
+        latitude: 4.73191,
+        longitude: -74.26411,
+      },
     ]);
   });
 
@@ -87,7 +95,10 @@ describe('NominatimGeocodingProvider', () => {
   });
 
   it('returns [] when Nominatim responds with non-2xx status', async () => {
-    global.fetch = makeFetchMock(null, { ok: false, status: 429 }) as typeof global.fetch;
+    global.fetch = makeFetchMock(null, {
+      ok: false,
+      status: 429,
+    }) as typeof global.fetch;
 
     const provider = new NominatimGeocodingProvider();
     const results = await provider.search('Bilbao');

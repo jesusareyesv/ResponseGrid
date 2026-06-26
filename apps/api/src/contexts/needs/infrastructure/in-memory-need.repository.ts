@@ -7,40 +7,59 @@ import { NeedStatus } from '../domain/need-enums';
 export class InMemoryNeedRepository implements NeedRepository {
   private store = new Map<string, NeedSnapshot>();
 
-  async save(need: Need): Promise<void> {
+  save(need: Need): Promise<void> {
     this.store.set(need.id.value, need.toSnapshot());
+    return Promise.resolve();
   }
 
-  async findById(id: NeedId): Promise<Need | null> {
+  findById(id: NeedId): Promise<Need | null> {
     const snap = this.store.get(id.value);
-    return snap ? Need.fromSnapshot(snap) : null;
+    return Promise.resolve(snap ? Need.fromSnapshot(snap) : null);
   }
 
-  async findValidatedByEmergency(emergencyId: EmergencyId, filters?: NeedFilters): Promise<Need[]> {
-    return [...this.store.values()]
+  findValidatedByEmergency(
+    emergencyId: EmergencyId,
+    filters?: NeedFilters,
+  ): Promise<Need[]> {
+    const result = [...this.store.values()]
       .filter((s) => {
         if (s.emergencyId !== emergencyId.value) return false;
         if (s.status !== NeedStatus.Validated) return false;
-        if (filters?.priority !== undefined && s.priority !== filters.priority) return false;
-        if (filters?.category !== undefined && !s.items.some((i) => i.category === filters.category)) return false;
+        if (filters?.priority !== undefined && s.priority !== filters.priority)
+          return false;
+        if (
+          filters?.category !== undefined &&
+          !s.items.some((i) => i.category === filters.category)
+        )
+          return false;
         return true;
       })
       .map((s) => Need.fromSnapshot(s));
+    return Promise.resolve(result);
   }
 
-  async findPendingByEmergency(emergencyId: EmergencyId, filters?: NeedFilters): Promise<Need[]> {
-    return [...this.store.values()]
+  findPendingByEmergency(
+    emergencyId: EmergencyId,
+    filters?: NeedFilters,
+  ): Promise<Need[]> {
+    const result = [...this.store.values()]
       .filter((s) => {
         if (s.emergencyId !== emergencyId.value) return false;
         if (s.status !== NeedStatus.Pending) return false;
-        if (filters?.priority !== undefined && s.priority !== filters.priority) return false;
-        if (filters?.category !== undefined && !s.items.some((i) => i.category === filters.category)) return false;
+        if (filters?.priority !== undefined && s.priority !== filters.priority)
+          return false;
+        if (
+          filters?.category !== undefined &&
+          !s.items.some((i) => i.category === filters.category)
+        )
+          return false;
         return true;
       })
       .map((s) => Need.fromSnapshot(s));
+    return Promise.resolve(result);
   }
 
-  async countByEmergencyGroupedByStatus(
+  countByEmergencyGroupedByStatus(
     emergencyId: EmergencyId,
   ): Promise<Record<NeedStatus, number>> {
     const result: Record<NeedStatus, number> = {
@@ -51,12 +70,12 @@ export class InMemoryNeedRepository implements NeedRepository {
     };
     for (const snap of this.store.values()) {
       if (snap.emergencyId === emergencyId.value) {
-        const status = snap.status as NeedStatus;
+        const status = snap.status;
         if (status in result) {
           result[status]++;
         }
       }
     }
-    return result;
+    return Promise.resolve(result);
   }
 }

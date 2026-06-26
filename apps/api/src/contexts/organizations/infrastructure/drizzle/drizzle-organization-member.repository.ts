@@ -25,7 +25,11 @@ function rowToSnapshot(row: OrgRow): OrganizationSnapshot {
 export class DrizzleOrganizationMemberRepository implements OrganizationMemberRepository {
   constructor(private readonly db: Db) {}
 
-  async add(organizationId: string, userId: string, role: OrganizationRole): Promise<void> {
+  async add(
+    organizationId: string,
+    userId: string,
+    role: OrganizationRole,
+  ): Promise<void> {
     await this.db
       .insert(organizationMembersTable)
       .values({ organizationId, userId, role })
@@ -57,15 +61,26 @@ export class DrizzleOrganizationMemberRepository implements OrganizationMemberRe
     return rows.length > 0;
   }
 
-  async listMembers(organizationId: string): Promise<OrganizationMemberEntry[]> {
+  async listMembers(
+    organizationId: string,
+  ): Promise<OrganizationMemberEntry[]> {
     const rows = await this.db
-      .select({ userId: organizationMembersTable.userId, role: organizationMembersTable.role })
+      .select({
+        userId: organizationMembersTable.userId,
+        role: organizationMembersTable.role,
+      })
       .from(organizationMembersTable)
       .where(eq(organizationMembersTable.organizationId, organizationId));
-    return rows.map((r) => ({ userId: r.userId, role: r.role as OrganizationRole }));
+    return rows.map((r) => ({
+      userId: r.userId,
+      role: r.role as OrganizationRole,
+    }));
   }
 
-  async getRole(organizationId: string, userId: string): Promise<OrganizationRole | null> {
+  async getRole(
+    organizationId: string,
+    userId: string,
+  ): Promise<OrganizationRole | null> {
     const rows = await this.db
       .select({ role: organizationMembersTable.role })
       .from(organizationMembersTable)

@@ -11,7 +11,9 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   private readonly logger = new Logger(GoogleStrategy.name);
   private readonly configured: boolean;
 
-  constructor(private readonly authenticateWithProvider: AuthenticateWithProvider) {
+  constructor(
+    private readonly authenticateWithProvider: AuthenticateWithProvider,
+  ) {
     const clientID = process.env.GOOGLE_CLIENT_ID;
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
@@ -20,8 +22,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       // module boots without credentials. Requests will fail at Google's end, not here.
       clientID: clientID || PLACEHOLDER,
       clientSecret: clientSecret || PLACEHOLDER,
-      callbackURL:
-        `${process.env.OAUTH_CALLBACK_BASE ?? 'http://localhost:3000'}/auth/google/callback`,
+      callbackURL: `${process.env.OAUTH_CALLBACK_BASE ?? 'http://localhost:3000'}/auth/google/callback`,
       scope: ['email', 'profile'],
     };
 
@@ -47,7 +48,9 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
 
     const name =
       profile.displayName ||
-      [profile.name?.givenName, profile.name?.familyName].filter(Boolean).join(' ') ||
+      [profile.name?.givenName, profile.name?.familyName]
+        .filter(Boolean)
+        .join(' ') ||
       email;
 
     return this.authenticateWithProvider.execute({

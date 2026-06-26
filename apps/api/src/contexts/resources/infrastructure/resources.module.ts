@@ -11,7 +11,10 @@ import { GetCoordinationQueue } from '../application/get-coordination-queue';
 import { GetPublicResources } from '../application/get-public-resources';
 import { VerifyResource } from '../application/verify-resource';
 import { PublishResource } from '../application/publish-resource';
-import { RESOURCE_REPOSITORY, ResourceRepository } from '../domain/ports/resource.repository';
+import {
+  RESOURCE_REPOSITORY,
+  ResourceRepository,
+} from '../domain/ports/resource.repository';
 import { EVENT_BUS, EventBus } from '../domain/ports/event-bus';
 import { DrizzleResourceRepository } from './drizzle/drizzle-resource.repository';
 import { BullMqEventBus } from './bullmq-event-bus';
@@ -44,13 +47,15 @@ const resourceRepositoryProvider = {
 const busProvider = {
   provide: EVENT_BUS,
   inject: [EVENT_QUEUE],
-  useFactory: (eventQueue: EventQueue): EventBus => new BullMqEventBus(eventQueue.queue),
+  useFactory: (eventQueue: EventQueue): EventBus =>
+    new BullMqEventBus(eventQueue.queue),
 };
 
 const registerProvider = {
   provide: RegisterResource,
   inject: [RESOURCE_REPOSITORY, EVENT_BUS],
-  useFactory: (repo: ResourceRepository, bus: EventBus) => new RegisterResource(repo, bus),
+  useFactory: (repo: ResourceRepository, bus: EventBus) =>
+    new RegisterResource(repo, bus),
 };
 const queueProvider = {
   provide: GetCoordinationQueue,
@@ -60,12 +65,14 @@ const queueProvider = {
 const verifyProvider = {
   provide: VerifyResource,
   inject: [RESOURCE_REPOSITORY, EVENT_BUS],
-  useFactory: (repo: ResourceRepository, bus: EventBus) => new VerifyResource(repo, bus),
+  useFactory: (repo: ResourceRepository, bus: EventBus) =>
+    new VerifyResource(repo, bus),
 };
 const publishProvider = {
   provide: PublishResource,
   inject: [RESOURCE_REPOSITORY, EVENT_BUS],
-  useFactory: (repo: ResourceRepository, bus: EventBus) => new PublishResource(repo, bus),
+  useFactory: (repo: ResourceRepository, bus: EventBus) =>
+    new PublishResource(repo, bus),
 };
 const publicResourcesProvider = {
   provide: GetPublicResources,
@@ -93,12 +100,12 @@ export class ResourcesModule implements OnModuleDestroy {
   async onModuleDestroy(): Promise<void> {
     try {
       await this.eventQueue.queue.close();
-    } catch (_) {
+    } catch {
       // ignore — let remaining teardown proceed
     }
     try {
       await this.eventQueue.connection.quit();
-    } catch (_) {
+    } catch {
       // ignore
     }
   }

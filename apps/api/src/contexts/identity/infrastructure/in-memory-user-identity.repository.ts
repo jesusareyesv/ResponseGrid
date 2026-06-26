@@ -12,22 +12,30 @@ interface StoredLink {
 export class InMemoryUserIdentityRepository implements UserIdentityRepository {
   private store: StoredLink[] = [];
 
-  async findByProvider(provider: AuthProvider, providerUserId: string): Promise<UserId | null> {
+  findByProvider(
+    provider: AuthProvider,
+    providerUserId: string,
+  ): Promise<UserId | null> {
     const link = this.store.find(
       (l) => l.provider === provider && l.providerUserId === providerUserId,
     );
-    return link ? UserId.fromString(link.userId) : null;
+    return Promise.resolve(link ? UserId.fromString(link.userId) : null);
   }
 
-  async link(userId: UserId, identity: UserIdentity): Promise<void> {
+  link(userId: UserId, identity: UserIdentity): Promise<void> {
     // Idempotent: replace if already linked
     this.store = this.store.filter(
-      (l) => !(l.provider === identity.provider && l.providerUserId === identity.providerUserId),
+      (l) =>
+        !(
+          l.provider === identity.provider &&
+          l.providerUserId === identity.providerUserId
+        ),
     );
     this.store.push({
       userId: userId.value,
       provider: identity.provider,
       providerUserId: identity.providerUserId,
     });
+    return Promise.resolve();
   }
 }

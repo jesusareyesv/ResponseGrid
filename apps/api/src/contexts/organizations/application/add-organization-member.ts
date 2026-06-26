@@ -33,11 +33,18 @@ export class AddOrganizationMember {
       throw new UserNotFoundError(cmd.email);
     }
 
-    const alreadyMember = await this.memberRepo.isMember(cmd.organizationId, user.id);
+    const alreadyMember = await this.memberRepo.isMember(
+      cmd.organizationId,
+      user.id,
+    );
     if (alreadyMember) {
       throw new AlreadyMemberError();
     }
 
-    await this.memberRepo.add(cmd.organizationId, user.id, OrganizationRole.Member);
+    await this.memberRepo.add(
+      cmd.organizationId,
+      user.id,
+      OrganizationRole.Member,
+    );
   }
 }

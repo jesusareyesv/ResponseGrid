@@ -17,7 +17,9 @@ export class VerifyResource {
   ) {}
 
   async execute(cmd: VerifyResourceCommand): Promise<void> {
-    const resource = await this.repo.findById(ResourceId.fromString(cmd.resourceId));
+    const resource = await this.repo.findById(
+      ResourceId.fromString(cmd.resourceId),
+    );
     if (!resource) throw new ResourceNotFoundError(cmd.resourceId);
     resource.verify(cmd.level, cmd.coordinatorId);
     await this.repo.save(resource);

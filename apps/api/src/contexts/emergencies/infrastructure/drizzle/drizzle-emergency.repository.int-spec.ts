@@ -7,7 +7,9 @@ import { Slug } from '../../domain/slug';
 import { EmergencyStatus } from '../../domain/emergency-status';
 import type { Pool } from 'pg';
 
-const URL = process.env.DATABASE_URL ?? 'postgres://reliefhub:reliefhub@localhost:5433/reliefhub';
+const URL =
+  process.env.DATABASE_URL ??
+  'postgres://reliefhub:reliefhub@localhost:5433/reliefhub';
 const SEED_ID = '11111111-1111-4111-8111-111111111111';
 
 describe('DrizzleEmergencyRepository (integration)', () => {

@@ -1,8 +1,16 @@
 import { ResourceId } from './resource-id';
 import { EmergencyId } from '../../../shared/domain/emergency-id';
-import { ResourceType, ResourceStage, VerificationLevel, PublicStatus } from './resource-enums';
+import {
+  ResourceType,
+  ResourceStage,
+  VerificationLevel,
+  PublicStatus,
+} from './resource-enums';
 import { Location, LocationProps } from '../../../shared/domain/location';
-import { InvalidVerificationLevelError, ResourceNotVerifiedError } from './resource-errors';
+import {
+  InvalidVerificationLevelError,
+  ResourceNotVerifiedError,
+} from './resource-errors';
 import { DomainEvent } from './events/domain-event';
 import { ResourceRegistered } from './events/resource-registered';
 import { ResourceVerified } from './events/resource-verified';
@@ -123,7 +131,11 @@ export class Resource {
       throw new ResourceNotVerifiedError();
     }
     this._publicStatus = PublicStatus.Active;
-    this.events.push(new ResourcePublished(this.id.value, { emergencyId: this.emergencyId.value }));
+    this.events.push(
+      new ResourcePublished(this.id.value, {
+        emergencyId: this.emergencyId.value,
+      }),
+    );
   }
 
   toSnapshot(): ResourceSnapshot {

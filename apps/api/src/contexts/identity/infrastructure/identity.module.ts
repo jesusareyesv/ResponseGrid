@@ -8,8 +8,14 @@ import { OAuthController } from './http/oauth.controller';
 import { Login } from '../application/login';
 import { RegisterUser } from '../application/register-user';
 import { AuthenticateWithProvider } from '../application/authenticate-with-provider';
-import { USER_REPOSITORY, UserRepository } from '../domain/ports/user.repository';
-import { MEMBERSHIP_REPOSITORY, MembershipRepository } from '../domain/ports/membership.repository';
+import {
+  USER_REPOSITORY,
+  UserRepository,
+} from '../domain/ports/user.repository';
+import {
+  MEMBERSHIP_REPOSITORY,
+  MembershipRepository,
+} from '../domain/ports/membership.repository';
 import {
   USER_IDENTITY_REPOSITORY,
   UserIdentityRepository,
@@ -48,13 +54,15 @@ const userRepositoryProvider = {
 const membershipRepositoryProvider = {
   provide: MEMBERSHIP_REPOSITORY,
   inject: [DB],
-  useFactory: (db: Db): MembershipRepository => new DrizzleMembershipRepository(db),
+  useFactory: (db: Db): MembershipRepository =>
+    new DrizzleMembershipRepository(db),
 };
 
 const userIdentityRepositoryProvider = {
   provide: USER_IDENTITY_REPOSITORY,
   inject: [DB],
-  useFactory: (db: Db): UserIdentityRepository => new DrizzleUserIdentityRepository(db),
+  useFactory: (db: Db): UserIdentityRepository =>
+    new DrizzleUserIdentityRepository(db),
 };
 
 const passwordHasherProvider = {
@@ -71,13 +79,15 @@ const tokenServiceProvider = {
 const resourceEmergencyLookupProvider = {
   provide: RESOURCE_EMERGENCY_LOOKUP,
   inject: [DB],
-  useFactory: (db: Db): ResourceEmergencyLookup => new DrizzleResourceEmergencyLookup(db),
+  useFactory: (db: Db): ResourceEmergencyLookup =>
+    new DrizzleResourceEmergencyLookup(db),
 };
 
 const needEmergencyLookupProvider = {
   provide: NEED_EMERGENCY_LOOKUP,
   inject: [DB],
-  useFactory: (db: Db): NeedEmergencyLookup => new DrizzleNeedEmergencyLookup(db),
+  useFactory: (db: Db): NeedEmergencyLookup =>
+    new DrizzleNeedEmergencyLookup(db),
 };
 
 const loginProvider = {

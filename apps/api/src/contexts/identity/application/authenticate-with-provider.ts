@@ -29,7 +29,9 @@ export class AuthenticateWithProvider {
     private readonly tokenService: TokenService,
   ) {}
 
-  async execute(cmd: AuthenticateWithProviderCommand): Promise<{ accessToken: string }> {
+  async execute(
+    cmd: AuthenticateWithProviderCommand,
+  ): Promise<{ accessToken: string }> {
     const identity = UserIdentity.create({
       provider: cmd.provider,
       providerUserId: cmd.providerUserId,
@@ -44,7 +46,9 @@ export class AuthenticateWithProvider {
       const user = await this.userRepo.findById(existingUserId);
       if (user === null) {
         // Inconsistent state — should not happen in practice
-        throw new Error(`User not found for linked identity: ${existingUserId.value}`);
+        throw new Error(
+          `User not found for linked identity: ${existingUserId.value}`,
+        );
       }
       return { accessToken: this.tokenService.sign(this.payload(user)) };
     }
@@ -72,6 +76,10 @@ export class AuthenticateWithProvider {
   }
 
   private payload(user: User) {
-    return { sub: user.id.value, email: user.email.value, isAdmin: user.isAdmin };
+    return {
+      sub: user.id.value,
+      email: user.email.value,
+      isAdmin: user.isAdmin,
+    };
   }
 }

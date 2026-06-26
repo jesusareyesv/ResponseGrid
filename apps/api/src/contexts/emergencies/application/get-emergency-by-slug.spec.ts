@@ -38,8 +38,8 @@ describe('GetEmergencyBySlug', () => {
     const repo = new InMemoryEmergencyRepository();
     const useCase = new GetEmergencyBySlug(repo);
 
-    await expect(
-      useCase.execute({ slug: 'INVALID SLUG!' }),
-    ).rejects.toThrow('Invalid slug');
+    await expect(useCase.execute({ slug: 'INVALID SLUG!' })).rejects.toThrow(
+      'Invalid slug',
+    );
   });
 });

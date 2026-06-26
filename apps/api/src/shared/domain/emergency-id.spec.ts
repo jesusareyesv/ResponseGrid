@@ -3,7 +3,9 @@ import { EmergencyId } from './emergency-id';
 describe('EmergencyId', () => {
   it('creates a valid uuid', () => {
     const id = EmergencyId.create();
-    expect(id.value).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+    expect(id.value).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+    );
   });
 
   it('round-trips through fromString', () => {

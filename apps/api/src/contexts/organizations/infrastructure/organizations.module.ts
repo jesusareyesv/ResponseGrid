@@ -2,8 +2,14 @@ import { Module } from '@nestjs/common';
 import { DB, DatabaseModule } from '../../../shared/database.module';
 import { Db } from '../../../shared/db';
 import { IdentityModule } from '../../identity/infrastructure/identity.module';
-import { ORGANIZATION_REPOSITORY, OrganizationRepository } from '../domain/ports/organization.repository';
-import { ORGANIZATION_MEMBER_REPOSITORY, OrganizationMemberRepository } from '../domain/ports/organization-member.repository';
+import {
+  ORGANIZATION_REPOSITORY,
+  OrganizationRepository,
+} from '../domain/ports/organization.repository';
+import {
+  ORGANIZATION_MEMBER_REPOSITORY,
+  OrganizationMemberRepository,
+} from '../domain/ports/organization-member.repository';
 import { USER_DIRECTORY, UserDirectory } from '../domain/ports/user-directory';
 import { DrizzleOrganizationRepository } from './drizzle/drizzle-organization.repository';
 import { DrizzleOrganizationMemberRepository } from './drizzle/drizzle-organization-member.repository';
@@ -19,7 +25,8 @@ import { OrganizationsController } from './http/organizations.controller';
 const organizationRepositoryProvider = {
   provide: ORGANIZATION_REPOSITORY,
   inject: [DB],
-  useFactory: (db: Db): OrganizationRepository => new DrizzleOrganizationRepository(db),
+  useFactory: (db: Db): OrganizationRepository =>
+    new DrizzleOrganizationRepository(db),
 };
 
 const organizationMemberRepositoryProvider = {
@@ -47,20 +54,24 @@ const createOrganizationProvider = {
 const listMyOrganizationsProvider = {
   provide: ListMyOrganizations,
   inject: [ORGANIZATION_MEMBER_REPOSITORY],
-  useFactory: (memberRepo: OrganizationMemberRepository) => new ListMyOrganizations(memberRepo),
+  useFactory: (memberRepo: OrganizationMemberRepository) =>
+    new ListMyOrganizations(memberRepo),
 };
 
 const listOrganizationsProvider = {
   provide: ListOrganizations,
   inject: [ORGANIZATION_REPOSITORY],
-  useFactory: (orgRepo: OrganizationRepository) => new ListOrganizations(orgRepo),
+  useFactory: (orgRepo: OrganizationRepository) =>
+    new ListOrganizations(orgRepo),
 };
 
 const addOrganizationMemberProvider = {
   provide: AddOrganizationMember,
   inject: [ORGANIZATION_MEMBER_REPOSITORY, USER_DIRECTORY],
-  useFactory: (memberRepo: OrganizationMemberRepository, userDirectory: UserDirectory) =>
-    new AddOrganizationMember(memberRepo, userDirectory),
+  useFactory: (
+    memberRepo: OrganizationMemberRepository,
+    userDirectory: UserDirectory,
+  ) => new AddOrganizationMember(memberRepo, userDirectory),
 };
 
 const removeOrganizationMemberProvider = {
@@ -73,8 +84,10 @@ const removeOrganizationMemberProvider = {
 const listOrganizationMembersProvider = {
   provide: ListOrganizationMembers,
   inject: [ORGANIZATION_MEMBER_REPOSITORY, USER_DIRECTORY],
-  useFactory: (memberRepo: OrganizationMemberRepository, userDirectory: UserDirectory) =>
-    new ListOrganizationMembers(memberRepo, userDirectory),
+  useFactory: (
+    memberRepo: OrganizationMemberRepository,
+    userDirectory: UserDirectory,
+  ) => new ListOrganizationMembers(memberRepo, userDirectory),
 };
 
 @Module({

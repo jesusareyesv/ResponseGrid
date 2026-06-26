@@ -99,7 +99,7 @@ export class Need {
       s.requesterUserId,
       s.requesterOrganizationId,
       s.managingOrganizationId,
-      s.items.map(NeedItem.fromSnapshot),
+      s.items.map((i) => NeedItem.fromSnapshot(i)),
       s.status,
       s.createdAt,
     );

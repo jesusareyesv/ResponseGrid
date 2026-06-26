@@ -6,7 +6,9 @@ import { UserId } from '../../domain/user-id';
 import { Role } from '../../domain/role';
 import type { Pool } from 'pg';
 
-const URL = process.env.DATABASE_URL ?? 'postgres://reliefhub:reliefhub@localhost:5433/reliefhub';
+const URL =
+  process.env.DATABASE_URL ??
+  'postgres://reliefhub:reliefhub@localhost:5433/reliefhub';
 const USER_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 const EM_ID = '11111111-1111-4111-8111-111111111111';
 const MEMBERSHIP_ID = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
@@ -64,12 +66,20 @@ describe('DrizzleMembershipRepository (integration)', () => {
     });
     await repo.save(membership);
 
-    const result = await repo.hasRole(UserId.fromString(USER_ID), EM_ID, Role.Coordinator);
+    const result = await repo.hasRole(
+      UserId.fromString(USER_ID),
+      EM_ID,
+      Role.Coordinator,
+    );
     expect(result).toBe(true);
   });
 
   it('hasRole returns false when role does not exist', async () => {
-    const result = await repo.hasRole(UserId.fromString(USER_ID), EM_ID, Role.Coordinator);
+    const result = await repo.hasRole(
+      UserId.fromString(USER_ID),
+      EM_ID,
+      Role.Coordinator,
+    );
     expect(result).toBe(false);
   });
 

@@ -21,7 +21,13 @@ export const membershipsTable = pgTable(
     emergencyId: uuid('emergency_id').notNull(),
     role: text('role').notNull(),
   },
-  (t) => [unique('memberships_user_emergency_role_unique').on(t.userId, t.emergencyId, t.role)],
+  (t) => [
+    unique('memberships_user_emergency_role_unique').on(
+      t.userId,
+      t.emergencyId,
+      t.role,
+    ),
+  ],
 );
 
 export const userIdentitiesTable = pgTable(
@@ -35,5 +41,10 @@ export const userIdentitiesTable = pgTable(
     provider: text('provider').notNull(),
     providerUserId: text('provider_user_id').notNull(),
   },
-  (t) => [unique('user_identities_provider_provider_user_id_unique').on(t.provider, t.providerUserId)],
+  (t) => [
+    unique('user_identities_provider_provider_user_id_unique').on(
+      t.provider,
+      t.providerUserId,
+    ),
+  ],
 );

@@ -4,10 +4,15 @@ import { DrizzleOrganizationRepository } from './drizzle-organization.repository
 import { DrizzleOrganizationMemberRepository } from './drizzle-organization-member.repository';
 import { Organization } from '../../domain/organization';
 import { OrganizationId } from '../../domain/organization-id';
-import { OrganizationType, VerificationLevel } from '../../domain/organization-enums';
+import {
+  OrganizationType,
+  VerificationLevel,
+} from '../../domain/organization-enums';
 import type { Pool } from 'pg';
 
-const URL = process.env.DATABASE_URL ?? 'postgres://reliefhub:reliefhub@localhost:5433/reliefhub';
+const URL =
+  process.env.DATABASE_URL ??
+  'postgres://reliefhub:reliefhub@localhost:5433/reliefhub';
 const USER_A = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 const USER_B = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
 
@@ -15,12 +20,12 @@ describe('DrizzleOrganizationRepository (integration)', () => {
   let db: Db;
   let pool: Pool;
   let orgRepo: DrizzleOrganizationRepository;
-  let memberRepo: DrizzleOrganizationMemberRepository;
+  let _memberRepo: DrizzleOrganizationMemberRepository;
 
   beforeAll(() => {
     ({ db, pool } = createDb(URL));
     orgRepo = new DrizzleOrganizationRepository(db);
-    memberRepo = new DrizzleOrganizationMemberRepository(db);
+    _memberRepo = new DrizzleOrganizationMemberRepository(db);
   });
 
   afterAll(async () => {
@@ -50,8 +55,20 @@ describe('DrizzleOrganizationRepository (integration)', () => {
   });
 
   it('listAll returns all saved organizations', async () => {
-    const org1 = Organization.create({ id: OrganizationId.create(), name: 'Org 1', type: OrganizationType.Ngo, taxId: null, contactEmail: null });
-    const org2 = Organization.create({ id: OrganizationId.create(), name: 'Org 2', type: OrganizationType.Company, taxId: null, contactEmail: null });
+    const org1 = Organization.create({
+      id: OrganizationId.create(),
+      name: 'Org 1',
+      type: OrganizationType.Ngo,
+      taxId: null,
+      contactEmail: null,
+    });
+    const org2 = Organization.create({
+      id: OrganizationId.create(),
+      name: 'Org 2',
+      type: OrganizationType.Company,
+      taxId: null,
+      contactEmail: null,
+    });
     await orgRepo.save(org1);
     await orgRepo.save(org2);
 
@@ -89,7 +106,13 @@ describe('DrizzleOrganizationMemberRepository (integration)', () => {
   });
 
   it('adds a member and reports isMember correctly', async () => {
-    const org = Organization.create({ id: OrganizationId.create(), name: 'Org', type: OrganizationType.Ngo, taxId: null, contactEmail: null });
+    const org = Organization.create({
+      id: OrganizationId.create(),
+      name: 'Org',
+      type: OrganizationType.Ngo,
+      taxId: null,
+      contactEmail: null,
+    });
     await orgRepo.save(org);
 
     await memberRepo.add(org.id.value, USER_A);
@@ -99,8 +122,20 @@ describe('DrizzleOrganizationMemberRepository (integration)', () => {
   });
 
   it('listOrganizationsOfUser returns only the user orgs', async () => {
-    const org1 = Organization.create({ id: OrganizationId.create(), name: 'Mine', type: OrganizationType.Ngo, taxId: null, contactEmail: null });
-    const org2 = Organization.create({ id: OrganizationId.create(), name: 'Others', type: OrganizationType.Company, taxId: null, contactEmail: null });
+    const org1 = Organization.create({
+      id: OrganizationId.create(),
+      name: 'Mine',
+      type: OrganizationType.Ngo,
+      taxId: null,
+      contactEmail: null,
+    });
+    const org2 = Organization.create({
+      id: OrganizationId.create(),
+      name: 'Others',
+      type: OrganizationType.Company,
+      taxId: null,
+      contactEmail: null,
+    });
     await orgRepo.save(org1);
     await orgRepo.save(org2);
     await memberRepo.add(org1.id.value, USER_A);
@@ -112,7 +147,13 @@ describe('DrizzleOrganizationMemberRepository (integration)', () => {
   });
 
   it('add is idempotent (no duplicate error on second add)', async () => {
-    const org = Organization.create({ id: OrganizationId.create(), name: 'Idempotent', type: OrganizationType.Other, taxId: null, contactEmail: null });
+    const org = Organization.create({
+      id: OrganizationId.create(),
+      name: 'Idempotent',
+      type: OrganizationType.Other,
+      taxId: null,
+      contactEmail: null,
+    });
     await orgRepo.save(org);
 
     await memberRepo.add(org.id.value, USER_A);

@@ -1,7 +1,10 @@
 import { CreateOrganization } from './create-organization';
 import { InMemoryOrganizationRepository } from '../infrastructure/in-memory-organization.repository';
 import { InMemoryOrganizationMemberRepository } from '../infrastructure/in-memory-organization-member.repository';
-import { OrganizationType, OrganizationRole } from '../domain/organization-enums';
+import {
+  OrganizationType,
+  OrganizationRole,
+} from '../domain/organization-enums';
 import { OrganizationId } from '../domain/organization-id';
 
 describe('CreateOrganization', () => {

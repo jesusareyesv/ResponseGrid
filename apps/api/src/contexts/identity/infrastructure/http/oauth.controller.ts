@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Get,
-  Req,
-  Res,
-  UseGuards,
-  Logger,
-} from '@nestjs/common';
+import { Controller, Get, Req, Res, UseGuards, Logger } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiExcludeController } from '@nestjs/swagger';
 import type { Request, Response } from 'express';

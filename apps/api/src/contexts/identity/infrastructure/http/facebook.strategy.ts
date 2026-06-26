@@ -11,7 +11,9 @@ export class FacebookStrategy extends PassportStrategy(Strategy, 'facebook') {
   private readonly logger = new Logger(FacebookStrategy.name);
   private readonly configured: boolean;
 
-  constructor(private readonly authenticateWithProvider: AuthenticateWithProvider) {
+  constructor(
+    private readonly authenticateWithProvider: AuthenticateWithProvider,
+  ) {
     const clientID = process.env.FACEBOOK_APP_ID;
     const clientSecret = process.env.FACEBOOK_APP_SECRET;
 
@@ -20,8 +22,7 @@ export class FacebookStrategy extends PassportStrategy(Strategy, 'facebook') {
       // module boots without credentials. Requests will fail at Facebook's end, not here.
       clientID: clientID || PLACEHOLDER,
       clientSecret: clientSecret || PLACEHOLDER,
-      callbackURL:
-        `${process.env.OAUTH_CALLBACK_BASE ?? 'http://localhost:3000'}/auth/facebook/callback`,
+      callbackURL: `${process.env.OAUTH_CALLBACK_BASE ?? 'http://localhost:3000'}/auth/facebook/callback`,
       profileFields: ['id', 'emails', 'name', 'displayName'],
     };
 
@@ -47,7 +48,9 @@ export class FacebookStrategy extends PassportStrategy(Strategy, 'facebook') {
 
     const name =
       profile.displayName ||
-      [profile.name?.givenName, profile.name?.familyName].filter(Boolean).join(' ') ||
+      [profile.name?.givenName, profile.name?.familyName]
+        .filter(Boolean)
+        .join(' ') ||
       email;
 
     return this.authenticateWithProvider.execute({

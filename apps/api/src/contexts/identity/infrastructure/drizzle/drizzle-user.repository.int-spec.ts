@@ -6,7 +6,9 @@ import { UserId } from '../../domain/user-id';
 import { Email } from '../../domain/email';
 import type { Pool } from 'pg';
 
-const URL = process.env.DATABASE_URL ?? 'postgres://reliefhub:reliefhub@localhost:5433/reliefhub';
+const URL =
+  process.env.DATABASE_URL ??
+  'postgres://reliefhub:reliefhub@localhost:5433/reliefhub';
 const USER_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 
 describe('DrizzleUserRepository (integration)', () => {
@@ -55,19 +57,25 @@ describe('DrizzleUserRepository (integration)', () => {
     });
 
     await repo.save(user);
-    const found = await repo.findByEmail(Email.fromString('test@reliefhub.org'));
+    const found = await repo.findByEmail(
+      Email.fromString('test@reliefhub.org'),
+    );
 
     expect(found).not.toBeNull();
     expect(found?.isAdmin).toBe(true);
   });
 
   it('findByEmail returns null when not found', async () => {
-    const result = await repo.findByEmail(Email.fromString('nonexistent@example.com'));
+    const result = await repo.findByEmail(
+      Email.fromString('nonexistent@example.com'),
+    );
     expect(result).toBeNull();
   });
 
   it('findById returns null when not found', async () => {
-    const result = await repo.findById(UserId.fromString('ffffffff-ffff-4fff-8fff-ffffffffffff'));
+    const result = await repo.findById(
+      UserId.fromString('ffffffff-ffff-4fff-8fff-ffffffffffff'),
+    );
     expect(result).toBeNull();
   });
 

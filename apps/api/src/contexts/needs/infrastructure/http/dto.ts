@@ -17,17 +17,26 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { NeedCategory, Priority } from '../../domain/need-enums';
 
 export class NeedItemDto {
-  @ApiProperty({ example: 'Water bottles', description: 'Name of the item needed' })
+  @ApiProperty({
+    example: 'Water bottles',
+    description: 'Name of the item needed',
+  })
   @IsString()
   @IsNotEmpty()
   name!: string;
 
-  @ApiProperty({ example: 100, description: 'Quantity needed (positive integer)' })
+  @ApiProperty({
+    example: 100,
+    description: 'Quantity needed (positive integer)',
+  })
   @IsInt()
   @IsPositive()
   quantity!: number;
 
-  @ApiPropertyOptional({ example: 'liters', description: 'Unit of measurement (optional)' })
+  @ApiPropertyOptional({
+    example: 'liters',
+    description: 'Unit of measurement (optional)',
+  })
   @IsOptional()
   @IsString()
   unit?: string;

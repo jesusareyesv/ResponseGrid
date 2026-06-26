@@ -1,11 +1,15 @@
 import { Test } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
+import type { Server } from 'node:http';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { DomainExceptionFilter } from '../src/contexts/resources/infrastructure/http/domain-exception.filter';
 import { createDb } from '../src/shared/db';
 import { resourcesTable } from '../src/contexts/resources/infrastructure/drizzle/schema';
-import { usersTable, membershipsTable } from '../src/contexts/identity/infrastructure/drizzle/schema';
+import {
+  usersTable,
+  membershipsTable,
+} from '../src/contexts/identity/infrastructure/drizzle/schema';
 import * as bcrypt from 'bcryptjs';
 
 const EM = '11111111-1111-4111-8111-111111111111';
@@ -13,20 +17,37 @@ const EM = '11111111-1111-4111-8111-111111111111';
 const COORD_ID = 'dd000000-0000-4000-8000-000000000004';
 const MEMBERSHIP_ID = 'ee000000-0000-4000-8000-000000000005';
 
-const baseLocation = { address: 'Plaza España, Valencia', latitude: 39.4699, longitude: -0.3763 };
+const baseLocation = {
+  address: 'Plaza España, Valencia',
+  latitude: 39.4699,
+  longitude: -0.3763,
+};
 
 describe('Resource flow (e2e)', () => {
   let app: INestApplication;
+  let server: Server;
   let coordToken: string;
 
   beforeAll(async () => {
-    const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+    const moduleRef = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
     app = moduleRef.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    );
     app.useGlobalFilters(new DomainExceptionFilter());
     await app.init();
+    server = app.getHttpServer() as Server;
 
-    const { db, pool } = createDb(process.env.DATABASE_URL ?? 'postgres://reliefhub:reliefhub@localhost:5433/reliefhub');
+    const { db, pool } = createDb(
+      process.env.DATABASE_URL ??
+        'postgres://reliefhub:reliefhub@localhost:5433/reliefhub',
+    );
     try {
       await db.delete(resourcesTable);
       await db.delete(membershipsTable);
@@ -51,17 +72,19 @@ describe('Resource flow (e2e)', () => {
     }
 
     // Obtain coordinator token
-    const loginRes = await request(app.getHttpServer())
+    const loginRes = await request(server)
       .post('/auth/login')
       .send({ email: 'coord@reliefhub.org', password: 'coord1234' })
       .expect(200);
-    coordToken = loginRes.body.accessToken as string;
+    coordToken = (loginRes.body as { accessToken: string }).accessToken;
   });
 
-  afterAll(async () => { await app.close(); });
+  afterAll(async () => {
+    await app.close();
+  });
 
   it('POST /emergencies/:id/resources without token returns 401', async () => {
-    await request(app.getHttpServer())
+    await request(server)
       .post(`/emergencies/${EM}/resources`)
       .send({
         type: 'warehouse',
@@ -73,8 +96,6 @@ describe('Resource flow (e2e)', () => {
   });
 
   it('registers with token → appears in queue → verifies → publishes → appears in public', async () => {
-    const server = app.getHttpServer();
-
     const created = await request(server)
       .post(`/emergencies/${EM}/resources`)
       .set('Authorization', `Bearer ${coordToken}`)
@@ -85,7 +106,7 @@ describe('Resource flow (e2e)', () => {
         location: baseLocation,
       })
       .expect(201);
-    const id = created.body.id;
+    const id = (created.body as { id: string }).id;
     expect(typeof id).toBe('string');
 
     const queue = await request(server)
@@ -98,7 +119,9 @@ describe('Resource flow (e2e)', () => {
         stage: 'intermediate',
         verificationLevel: 'unverified',
         publicStatus: 'hidden',
-        location: expect.objectContaining({ address: baseLocation.address }),
+        location: expect.objectContaining({
+          address: baseLocation.address,
+        }) as unknown,
       }),
     ]);
 
@@ -118,19 +141,22 @@ describe('Resource flow (e2e)', () => {
       .expect(200);
     expect(afterPublish.body).toEqual([]); // no longer pending
 
-    const publicResources = await request(server).get(`/emergencies/${EM}/public/resources`).expect(200);
+    const publicResources = await request(server)
+      .get(`/emergencies/${EM}/public/resources`)
+      .expect(200);
     expect(publicResources.body).toEqual([
       expect.objectContaining({
         id,
         stage: 'intermediate',
         publicStatus: 'active',
-        location: expect.objectContaining({ address: baseLocation.address }),
+        location: expect.objectContaining({
+          address: baseLocation.address,
+        }) as unknown,
       }),
     ]);
   });
 
   it('registers with collection_and_delivery type → 201', async () => {
-    const server = app.getHttpServer();
     const res = await request(server)
       .post(`/emergencies/${EM}/resources`)
       .set('Authorization', `Bearer ${coordToken}`)
@@ -141,11 +167,10 @@ describe('Resource flow (e2e)', () => {
         location: baseLocation,
       })
       .expect(201);
-    expect(typeof res.body.id).toBe('string');
+    expect(typeof (res.body as { id: string }).id).toBe('string');
   });
 
   it('verify on non-existent resource returns 404', async () => {
-    const server = app.getHttpServer();
     const nonExistentId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
     await request(server)
       .post(`/resources/${nonExistentId}/verify`)
@@ -155,8 +180,6 @@ describe('Resource flow (e2e)', () => {
   });
 
   it('publish without prior verification returns 409', async () => {
-    const server = app.getHttpServer();
-
     // Register a resource but do NOT verify it
     const created = await request(server)
       .post(`/emergencies/${EM}/resources`)
@@ -168,7 +191,7 @@ describe('Resource flow (e2e)', () => {
         location: baseLocation,
       })
       .expect(201);
-    const id = created.body.id;
+    const id = (created.body as { id: string }).id;
 
     // Attempt to publish without verifying → 409
     await request(server)

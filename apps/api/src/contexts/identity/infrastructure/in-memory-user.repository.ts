@@ -6,22 +6,23 @@ import { Email } from '../domain/email';
 export class InMemoryUserRepository implements UserRepository {
   private store = new Map<string, ReturnType<User['toSnapshot']>>();
 
-  async save(user: User): Promise<void> {
+  save(user: User): Promise<void> {
     this.store.set(user.id.value, user.toSnapshot());
+    return Promise.resolve();
   }
 
-  async findByEmail(email: Email): Promise<User | null> {
+  findByEmail(email: Email): Promise<User | null> {
     const snap = [...this.store.values()].find((s) => s.email === email.value);
-    return snap ? User.fromSnapshot(snap) : null;
+    return Promise.resolve(snap ? User.fromSnapshot(snap) : null);
   }
 
-  async findById(id: UserId): Promise<User | null> {
+  findById(id: UserId): Promise<User | null> {
     const snap = this.store.get(id.value);
-    return snap ? User.fromSnapshot(snap) : null;
+    return Promise.resolve(snap ? User.fromSnapshot(snap) : null);
   }
 
   /** Test helper — returns the total number of stored users. */
-  async countAll(): Promise<number> {
-    return this.store.size;
+  countAll(): Promise<number> {
+    return Promise.resolve(this.store.size);
   }
 }

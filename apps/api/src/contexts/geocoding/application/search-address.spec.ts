@@ -1,5 +1,8 @@
 import { SearchAddress } from './search-address';
-import { GeocodeResult, GeocodingProvider } from '../domain/ports/geocoding.provider';
+import {
+  GeocodeResult,
+  GeocodingProvider,
+} from '../domain/ports/geocoding.provider';
 
 class FakeGeocodingProvider implements GeocodingProvider {
   readonly calls: string[] = [];
@@ -9,15 +12,19 @@ class FakeGeocodingProvider implements GeocodingProvider {
     this.fixture = fixture;
   }
 
-  async search(query: string): Promise<GeocodeResult[]> {
+  search(query: string): Promise<GeocodeResult[]> {
     this.calls.push(query);
-    return this.fixture;
+    return Promise.resolve(this.fixture);
   }
 }
 
 const FIXTURE: GeocodeResult[] = [
   { address: 'Madrid, Spain', latitude: 40.4168, longitude: -3.7038 },
-  { address: 'Madrid, Cundinamarca, Colombia', latitude: 4.7319, longitude: -74.2641 },
+  {
+    address: 'Madrid, Cundinamarca, Colombia',
+    latitude: 4.7319,
+    longitude: -74.2641,
+  },
 ];
 
 describe('SearchAddress', () => {

@@ -5,6 +5,10 @@ export class ResourceVerified implements DomainEvent {
   readonly occurredOn = new Date();
   constructor(
     readonly aggregateId: string,
-    readonly payload: { emergencyId: string; level: string; coordinatorId: string },
+    readonly payload: {
+      emergencyId: string;
+      level: string;
+      coordinatorId: string;
+    },
   ) {}
 }

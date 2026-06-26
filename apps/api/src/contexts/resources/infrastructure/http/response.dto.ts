@@ -1,8 +1,16 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { ResourceType, ResourceStage, VerificationLevel, PublicStatus } from '../../domain/resource-enums';
+import {
+  ResourceType,
+  ResourceStage,
+  VerificationLevel,
+  PublicStatus,
+} from '../../domain/resource-enums';
 
 export class RegisterResourceResponseDto {
-  @ApiProperty({ format: 'uuid', example: '3fa85f64-5717-4562-b3fc-2c963f66afa6' })
+  @ApiProperty({
+    format: 'uuid',
+    example: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+  })
   id!: string;
 }
 
@@ -18,7 +26,10 @@ export class LocationViewDto {
 }
 
 export class ResourceViewDto {
-  @ApiProperty({ format: 'uuid', example: '3fa85f64-5717-4562-b3fc-2c963f66afa6' })
+  @ApiProperty({
+    format: 'uuid',
+    example: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+  })
   id!: string;
 
   @ApiProperty({ enum: ResourceType, example: ResourceType.CollectionPoint })
@@ -30,7 +41,10 @@ export class ResourceViewDto {
   @ApiProperty({ example: 'Cruz Roja Madrid' })
   name!: string;
 
-  @ApiPropertyOptional({ example: 'Centro de acopio principal', nullable: true })
+  @ApiPropertyOptional({
+    example: 'Centro de acopio principal',
+    nullable: true,
+  })
   description!: string | null;
 
   @ApiProperty({ type: LocationViewDto })

@@ -25,7 +25,9 @@ export const needsTable = pgTable('needs', {
 
 export const needItemsTable = pgTable('need_items', {
   id: uuid('id').primaryKey(),
-  needId: uuid('need_id').notNull().references(() => needsTable.id, { onDelete: 'cascade' }),
+  needId: uuid('need_id')
+    .notNull()
+    .references(() => needsTable.id, { onDelete: 'cascade' }),
   name: text('name').notNull(),
   quantity: integer('quantity').notNull(),
   unit: text('unit'),

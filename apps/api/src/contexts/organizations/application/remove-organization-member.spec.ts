@@ -1,7 +1,10 @@
 import { RemoveOrganizationMember } from './remove-organization-member';
 import { InMemoryOrganizationRepository } from '../infrastructure/in-memory-organization.repository';
 import { InMemoryOrganizationMemberRepository } from '../infrastructure/in-memory-organization-member.repository';
-import { OrganizationType, OrganizationRole } from '../domain/organization-enums';
+import {
+  OrganizationType,
+  OrganizationRole,
+} from '../domain/organization-enums';
 import { Organization } from '../domain/organization';
 import { OrganizationId } from '../domain/organization-id';
 import {

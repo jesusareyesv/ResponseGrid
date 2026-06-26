@@ -1,4 +1,9 @@
-import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus } from '@nestjs/common';
+import {
+  ArgumentsHost,
+  Catch,
+  ExceptionFilter,
+  HttpStatus,
+} from '@nestjs/common';
 import { Response } from 'express';
 import {
   NotOrganizationOwnerError,
@@ -40,6 +45,8 @@ export class OrganizationExceptionFilter implements ExceptionFilter {
       status = HttpStatus.UNPROCESSABLE_ENTITY;
     }
 
-    response.status(status).json({ statusCode: status, message: exception.message });
+    response
+      .status(status)
+      .json({ statusCode: status, message: exception.message });
   }
 }

@@ -1,4 +1,7 @@
-import { GeocodeResult, GeocodingProvider } from '../domain/ports/geocoding.provider';
+import {
+  GeocodeResult,
+  GeocodingProvider,
+} from '../domain/ports/geocoding.provider';
 
 export interface SearchAddressQuery {
   query: string;

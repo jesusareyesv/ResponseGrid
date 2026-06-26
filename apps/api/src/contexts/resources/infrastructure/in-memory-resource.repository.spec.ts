@@ -2,13 +2,21 @@ import { InMemoryResourceRepository } from './in-memory-resource.repository';
 import { Resource } from '../domain/resource';
 import { ResourceId } from '../domain/resource-id';
 import { EmergencyId } from '../../../shared/domain/emergency-id';
-import { ResourceType, ResourceStage, VerificationLevel } from '../domain/resource-enums';
+import {
+  ResourceType,
+  ResourceStage,
+  VerificationLevel,
+} from '../domain/resource-enums';
 import { PublicStatus } from '../domain/resource-enums';
 import { Location } from '../../../shared/domain/location';
 
 const EM_A = '11111111-1111-4111-8111-111111111111';
 const EM_B = '22222222-2222-4222-8222-222222222222';
-const baseLocation = Location.create({ address: 'Calle Test 1, Madrid', latitude: 40.4168, longitude: -3.7038 });
+const baseLocation = Location.create({
+  address: 'Calle Test 1, Madrid',
+  latitude: 40.4168,
+  longitude: -3.7038,
+});
 
 const make = (emergencyId: string, name: string) =>
   Resource.register({
@@ -40,7 +48,9 @@ describe('InMemoryResourceRepository', () => {
     await repo.save(verified);
     await repo.save(otherEmergency);
 
-    const result = await repo.findPendingByEmergency(EmergencyId.fromString(EM_A));
+    const result = await repo.findPendingByEmergency(
+      EmergencyId.fromString(EM_A),
+    );
     expect(result.map((r) => r.name)).toEqual(['Pending A']);
   });
 
@@ -57,11 +67,15 @@ describe('InMemoryResourceRepository', () => {
     await repo.save(pending);
     await repo.save(otherEmergency);
 
-    const activeResult = await repo.findActiveByEmergency(EmergencyId.fromString(EM_A));
+    const activeResult = await repo.findActiveByEmergency(
+      EmergencyId.fromString(EM_A),
+    );
     expect(activeResult.map((r) => r.name)).toEqual(['Active A']);
     expect(activeResult[0].publicStatus).toBe(PublicStatus.Active);
 
-    const pendingResult = await repo.findPendingByEmergency(EmergencyId.fromString(EM_A));
+    const pendingResult = await repo.findPendingByEmergency(
+      EmergencyId.fromString(EM_A),
+    );
     expect(pendingResult.map((r) => r.name)).toEqual(['Pending A']);
   });
 });

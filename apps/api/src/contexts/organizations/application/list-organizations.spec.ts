@@ -20,8 +20,20 @@ describe('ListOrganizations', () => {
     const createUseCase = new CreateOrganization(orgRepo, memberRepo);
     const listUseCase = new ListOrganizations(orgRepo);
 
-    await createUseCase.execute({ name: 'Org A', type: OrganizationType.Ngo, taxId: null, contactEmail: null, creatorUserId: 'aaaaaaaa-0000-4000-8000-000000000001' });
-    await createUseCase.execute({ name: 'Org B', type: OrganizationType.Company, taxId: null, contactEmail: null, creatorUserId: 'bbbbbbbb-0000-4000-8000-000000000001' });
+    await createUseCase.execute({
+      name: 'Org A',
+      type: OrganizationType.Ngo,
+      taxId: null,
+      contactEmail: null,
+      creatorUserId: 'aaaaaaaa-0000-4000-8000-000000000001',
+    });
+    await createUseCase.execute({
+      name: 'Org B',
+      type: OrganizationType.Company,
+      taxId: null,
+      contactEmail: null,
+      creatorUserId: 'bbbbbbbb-0000-4000-8000-000000000001',
+    });
 
     const result = await listUseCase.execute();
     expect(result).toHaveLength(2);
@@ -40,8 +52,20 @@ describe('ListMyOrganizations', () => {
     const userId1 = 'aaaaaaaa-0000-4000-8000-000000000001';
     const userId2 = 'bbbbbbbb-0000-4000-8000-000000000001';
 
-    await createUseCase.execute({ name: 'My Org', type: OrganizationType.Ngo, taxId: null, contactEmail: null, creatorUserId: userId1 });
-    await createUseCase.execute({ name: 'Other Org', type: OrganizationType.Company, taxId: null, contactEmail: null, creatorUserId: userId2 });
+    await createUseCase.execute({
+      name: 'My Org',
+      type: OrganizationType.Ngo,
+      taxId: null,
+      contactEmail: null,
+      creatorUserId: userId1,
+    });
+    await createUseCase.execute({
+      name: 'Other Org',
+      type: OrganizationType.Company,
+      taxId: null,
+      contactEmail: null,
+      creatorUserId: userId2,
+    });
 
     const result = await listMine.execute({ userId: userId1 });
     expect(result).toHaveLength(1);
@@ -53,7 +77,9 @@ describe('ListMyOrganizations', () => {
     const memberRepo = new InMemoryOrganizationMemberRepository(orgRepo);
     const listMine = new ListMyOrganizations(memberRepo);
 
-    const result = await listMine.execute({ userId: 'ffffffff-0000-4000-8000-000000000001' });
+    const result = await listMine.execute({
+      userId: 'ffffffff-0000-4000-8000-000000000001',
+    });
     expect(result).toEqual([]);
   });
 });

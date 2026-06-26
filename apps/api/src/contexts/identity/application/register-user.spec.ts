@@ -8,11 +8,11 @@ import type { PasswordHasher } from '../domain/ports/password-hasher';
 import type { TokenService, TokenPayload } from '../domain/ports/token.service';
 
 class FakePasswordHasher implements PasswordHasher {
-  async hash(plain: string): Promise<string> {
-    return `hashed:${plain}`;
+  hash(plain: string): Promise<string> {
+    return Promise.resolve(`hashed:${plain}`);
   }
-  async compare(plain: string, hash: string): Promise<boolean> {
-    return hash === `hashed:${plain}`;
+  compare(plain: string, hash: string): Promise<boolean> {
+    return Promise.resolve(hash === `hashed:${plain}`);
   }
 }
 
@@ -28,7 +28,9 @@ class FakeTokenService implements TokenService {
 
 const EXISTING_USER_ID = '22222222-2222-4222-8222-222222222222';
 
-async function buildRepoWithUser(email: string): Promise<InMemoryUserRepository> {
+async function buildRepoWithUser(
+  email: string,
+): Promise<InMemoryUserRepository> {
   const repo = new InMemoryUserRepository();
   const hasher = new FakePasswordHasher();
   const user = User.create({
@@ -65,9 +67,15 @@ describe('RegisterUser', () => {
     const repo = new InMemoryUserRepository();
     const useCase = new RegisterUser(repo, hasher, tokenService);
 
-    await useCase.execute({ email: 'saved@reliefhub.org', password: 'password123', name: 'Saved' });
+    await useCase.execute({
+      email: 'saved@reliefhub.org',
+      password: 'password123',
+      name: 'Saved',
+    });
 
-    const found = await repo.findByEmail(Email.fromString('saved@reliefhub.org'));
+    const found = await repo.findByEmail(
+      Email.fromString('saved@reliefhub.org'),
+    );
     expect(found).not.toBeNull();
     expect(found?.name).toBe('Saved');
     expect(found?.isAdmin).toBe(false);
@@ -78,7 +86,11 @@ describe('RegisterUser', () => {
     const useCase = new RegisterUser(repo, hasher, tokenService);
 
     await expect(
-      useCase.execute({ email: 'existing@reliefhub.org', password: 'other123', name: 'Other' }),
+      useCase.execute({
+        email: 'existing@reliefhub.org',
+        password: 'other123',
+        name: 'Other',
+      }),
     ).rejects.toThrow(EmailAlreadyRegisteredError);
   });
 
@@ -87,7 +99,11 @@ describe('RegisterUser', () => {
     const useCase = new RegisterUser(repo, hasher, tokenService);
 
     await expect(
-      useCase.execute({ email: 'TAKEN@RELIEFHUB.ORG', password: 'pw123456', name: 'Dup' }),
+      useCase.execute({
+        email: 'TAKEN@RELIEFHUB.ORG',
+        password: 'pw123456',
+        name: 'Dup',
+      }),
     ).rejects.toThrow(EmailAlreadyRegisteredError);
   });
 
@@ -96,7 +112,11 @@ describe('RegisterUser', () => {
     const useCase = new RegisterUser(repo, hasher, tokenService);
 
     await expect(
-      useCase.execute({ email: 'not-an-email', password: 'pw123456', name: 'Bad' }),
+      useCase.execute({
+        email: 'not-an-email',
+        password: 'pw123456',
+        name: 'Bad',
+      }),
     ).rejects.toThrow();
   });
 
@@ -104,9 +124,15 @@ describe('RegisterUser', () => {
     const repo = new InMemoryUserRepository();
     const useCase = new RegisterUser(repo, hasher, tokenService);
 
-    await useCase.execute({ email: 'hash@reliefhub.org', password: 'mysecret', name: 'Hashed' });
+    await useCase.execute({
+      email: 'hash@reliefhub.org',
+      password: 'mysecret',
+      name: 'Hashed',
+    });
 
-    const found = await repo.findByEmail(Email.fromString('hash@reliefhub.org'));
+    const found = await repo.findByEmail(
+      Email.fromString('hash@reliefhub.org'),
+    );
     expect(found?.passwordHash).not.toBe('mysecret');
     expect(found?.passwordHash).toBe('hashed:mysecret');
   });

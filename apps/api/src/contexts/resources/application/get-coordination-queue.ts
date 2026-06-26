@@ -6,7 +6,9 @@ export class GetCoordinationQueue {
   constructor(private readonly repo: ResourceRepository) {}
 
   async execute(q: { emergencyId: string }): Promise<ResourceView[]> {
-    const pending = await this.repo.findPendingByEmergency(EmergencyId.fromString(q.emergencyId));
+    const pending = await this.repo.findPendingByEmergency(
+      EmergencyId.fromString(q.emergencyId),
+    );
     return pending.map(toResourceView);
   }
 }

@@ -24,7 +24,10 @@ import {
   ApiConflictResponse,
 } from '@nestjs/swagger';
 import { Request as ExpressRequest } from 'express';
-import { JwtAuthGuard, AuthenticatedUser } from '../../../identity/infrastructure/http/jwt-auth.guard';
+import {
+  JwtAuthGuard,
+  AuthenticatedUser,
+} from '../../../identity/infrastructure/http/jwt-auth.guard';
 import { CreateOrganization } from '../../application/create-organization';
 import { ListMyOrganizations } from '../../application/list-my-organizations';
 import { ListOrganizations } from '../../application/list-organizations';
@@ -60,7 +63,10 @@ export class OrganizationsController {
   @HttpCode(HttpStatus.CREATED)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new organization (authenticated users)' })
-  @ApiCreatedResponse({ description: 'Organization created', type: CreateOrganizationResponseDto })
+  @ApiCreatedResponse({
+    description: 'Organization created',
+    type: CreateOrganizationResponseDto,
+  })
   @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
   async create(
     @Body() dto: CreateOrganizationDto,
@@ -78,8 +84,13 @@ export class OrganizationsController {
   @Get('mine')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'List organizations the authenticated user belongs to' })
-  @ApiOkResponse({ description: 'User organizations', type: [OrganizationViewDto] })
+  @ApiOperation({
+    summary: 'List organizations the authenticated user belongs to',
+  })
+  @ApiOkResponse({
+    description: 'User organizations',
+    type: [OrganizationViewDto],
+  })
   @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
   async mine(@Request() req: AuthedRequest): Promise<OrganizationViewDto[]> {
     return this.listMyOrganizations.execute({ userId: req.user.id });
@@ -87,7 +98,10 @@ export class OrganizationsController {
 
   @Get()
   @ApiOperation({ summary: 'List all organizations (public)' })
-  @ApiOkResponse({ description: 'All organizations', type: [OrganizationViewDto] })
+  @ApiOkResponse({
+    description: 'All organizations',
+    type: [OrganizationViewDto],
+  })
   async list(): Promise<OrganizationViewDto[]> {
     return this.listOrganizations.execute();
   }
@@ -95,8 +109,13 @@ export class OrganizationsController {
   @Get(':id/members')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'List members of an organization (must be a member)' })
-  @ApiOkResponse({ description: 'Organization members', type: [OrganizationMemberDto] })
+  @ApiOperation({
+    summary: 'List members of an organization (must be a member)',
+  })
+  @ApiOkResponse({
+    description: 'Organization members',
+    type: [OrganizationMemberDto],
+  })
   @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
   @ApiForbiddenResponse({ description: 'Not a member of this organization' })
   async listMembers(
@@ -135,7 +154,9 @@ export class OrganizationsController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Remove a member from an organization (owner only)' })
+  @ApiOperation({
+    summary: 'Remove a member from an organization (owner only)',
+  })
   @ApiNoContentResponse({ description: 'Member removed' })
   @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
   @ApiForbiddenResponse({ description: 'Only the owner can remove members' })

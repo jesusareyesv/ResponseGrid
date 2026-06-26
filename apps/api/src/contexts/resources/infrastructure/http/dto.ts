@@ -1,7 +1,21 @@
-import { IsEnum, IsNotIn, IsString, MinLength, IsOptional, IsNumber, Min, Max, ValidateNested } from 'class-validator';
+import {
+  IsEnum,
+  IsNotIn,
+  IsString,
+  MinLength,
+  IsOptional,
+  IsNumber,
+  Min,
+  Max,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { ResourceType, ResourceStage, VerificationLevel } from '../../domain/resource-enums';
+import {
+  ResourceType,
+  ResourceStage,
+  VerificationLevel,
+} from '../../domain/resource-enums';
 
 export class LocationDto {
   @ApiProperty({ example: 'Calle Mayor 1, Valencia' })
@@ -15,7 +29,10 @@ export class LocationDto {
   @Max(90)
   latitude!: number;
 
-  @ApiProperty({ example: -0.3763, description: 'Longitude between -180 and 180' })
+  @ApiProperty({
+    example: -0.3763,
+    description: 'Longitude between -180 and 180',
+  })
   @IsNumber()
   @Min(-180)
   @Max(180)
@@ -27,7 +44,11 @@ export class RegisterResourceDto {
   @IsEnum(ResourceType)
   type!: ResourceType;
 
-  @ApiProperty({ enum: ResourceStage, example: ResourceStage.Origin, description: 'Stage of the resource in the emergency supply chain' })
+  @ApiProperty({
+    enum: ResourceStage,
+    example: ResourceStage.Origin,
+    description: 'Stage of the resource in the emergency supply chain',
+  })
   @IsEnum(ResourceStage)
   stage!: ResourceStage;
 
@@ -41,12 +62,19 @@ export class RegisterResourceDto {
   @IsString()
   description?: string;
 
-  @ApiProperty({ type: LocationDto, description: 'Physical location of the resource' })
+  @ApiProperty({
+    type: LocationDto,
+    description: 'Physical location of the resource',
+  })
   @ValidateNested()
   @Type(() => LocationDto)
   location!: LocationDto;
 
-  @ApiPropertyOptional({ format: 'uuid', example: '3fa85f64-5717-4562-b3fc-2c963f66afa6', description: 'Organization offering this resource (optional)' })
+  @ApiPropertyOptional({
+    format: 'uuid',
+    example: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+    description: 'Organization offering this resource (optional)',
+  })
   @IsOptional()
   @IsString()
   ownerOrganizationId?: string;

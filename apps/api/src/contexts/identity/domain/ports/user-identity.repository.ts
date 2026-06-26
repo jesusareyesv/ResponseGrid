@@ -8,7 +8,10 @@ export interface UserIdentityRepository {
   /**
    * Returns the UserId associated with a given provider + providerUserId, or null if not found.
    */
-  findByProvider(provider: AuthProvider, providerUserId: string): Promise<UserId | null>;
+  findByProvider(
+    provider: AuthProvider,
+    providerUserId: string,
+  ): Promise<UserId | null>;
 
   /**
    * Links a social identity to an existing user account.

@@ -8,11 +8,11 @@ import type { PasswordHasher } from '../domain/ports/password-hasher';
 import type { TokenService, TokenPayload } from '../domain/ports/token.service';
 
 class FakePasswordHasher implements PasswordHasher {
-  async hash(plain: string): Promise<string> {
-    return `hashed:${plain}`;
+  hash(plain: string): Promise<string> {
+    return Promise.resolve(`hashed:${plain}`);
   }
-  async compare(plain: string, hash: string): Promise<boolean> {
-    return hash === `hashed:${plain}`;
+  compare(plain: string, hash: string): Promise<boolean> {
+    return Promise.resolve(hash === `hashed:${plain}`);
   }
 }
 
@@ -49,7 +49,10 @@ describe('Login', () => {
   it('returns an accessToken for valid credentials', async () => {
     const repo = await buildRepo('admin@reliefhub.org', 'admin1234', true);
     const login = new Login(repo, hasher, tokenService);
-    const result = await login.execute({ email: 'admin@reliefhub.org', password: 'admin1234' });
+    const result = await login.execute({
+      email: 'admin@reliefhub.org',
+      password: 'admin1234',
+    });
     expect(result.accessToken).toContain(USER_ID);
     expect(result.accessToken).toContain('admin@reliefhub.org');
     expect(result.accessToken).toContain('true');
@@ -58,32 +61,35 @@ describe('Login', () => {
   it('throws InvalidCredentialsError for unknown email', async () => {
     const repo = new InMemoryUserRepository(); // empty
     const login = new Login(repo, hasher, tokenService);
-    await expect(login.execute({ email: 'unknown@example.com', password: 'pass' })).rejects.toThrow(
-      InvalidCredentialsError,
-    );
+    await expect(
+      login.execute({ email: 'unknown@example.com', password: 'pass' }),
+    ).rejects.toThrow(InvalidCredentialsError);
   });
 
   it('throws InvalidCredentialsError for wrong password', async () => {
     const repo = await buildRepo('admin@reliefhub.org', 'admin1234');
     const login = new Login(repo, hasher, tokenService);
-    await expect(login.execute({ email: 'admin@reliefhub.org', password: 'wrong' })).rejects.toThrow(
-      InvalidCredentialsError,
-    );
+    await expect(
+      login.execute({ email: 'admin@reliefhub.org', password: 'wrong' }),
+    ).rejects.toThrow(InvalidCredentialsError);
   });
 
   it('throws InvalidCredentialsError for malformed email', async () => {
     const repo = new InMemoryUserRepository();
     const login = new Login(repo, hasher, tokenService);
-    await expect(login.execute({ email: 'not-an-email', password: 'pass' })).rejects.toThrow(
-      InvalidCredentialsError,
-    );
+    await expect(
+      login.execute({ email: 'not-an-email', password: 'pass' }),
+    ).rejects.toThrow(InvalidCredentialsError);
   });
 
   it('email comparison is case-insensitive (normalised to lowercase)', async () => {
     const repo = await buildRepo('admin@reliefhub.org', 'admin1234');
     const login = new Login(repo, hasher, tokenService);
     // email sent uppercased
-    const result = await login.execute({ email: 'ADMIN@RELIEFHUB.ORG', password: 'admin1234' });
+    const result = await login.execute({
+      email: 'ADMIN@RELIEFHUB.ORG',
+      password: 'admin1234',
+    });
     expect(result.accessToken).toBeTruthy();
   });
 });

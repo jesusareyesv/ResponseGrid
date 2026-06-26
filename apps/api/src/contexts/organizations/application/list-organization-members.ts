@@ -21,7 +21,9 @@ export class ListOrganizationMembers {
     private readonly userDirectory: UserDirectory,
   ) {}
 
-  async execute(query: ListOrganizationMembersQuery): Promise<OrganizationMemberView[]> {
+  async execute(
+    query: ListOrganizationMembersQuery,
+  ): Promise<OrganizationMemberView[]> {
     const requesterIsMember = await this.memberRepo.isMember(
       query.organizationId,
       query.requesterUserId,

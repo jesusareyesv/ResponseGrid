@@ -50,7 +50,8 @@ export class GetEmergencyMetrics {
       needCounts[NeedStatus.Rejected] +
       needCounts[NeedStatus.Fulfilled];
 
-    const needOpen = needCounts[NeedStatus.Pending] + needCounts[NeedStatus.Validated];
+    const needOpen =
+      needCounts[NeedStatus.Pending] + needCounts[NeedStatus.Validated];
     const needClosed = needCounts[NeedStatus.Fulfilled];
 
     const resourceTotal =

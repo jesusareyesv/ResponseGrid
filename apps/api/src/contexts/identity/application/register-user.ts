@@ -27,7 +27,13 @@ export class RegisterUser {
 
     const passwordHash = await this.hasher.hash(cmd.password);
     const id = UserId.create();
-    const user = User.create({ id, email, passwordHash, name: cmd.name, isAdmin: false });
+    const user = User.create({
+      id,
+      email,
+      passwordHash,
+      name: cmd.name,
+      isAdmin: false,
+    });
     await this.userRepo.save(user);
 
     const accessToken = this.tokenService.sign({

@@ -22,7 +22,13 @@ import {
 import { Request as ExpressRequest } from 'express';
 import { Login } from '../../application/login';
 import { RegisterUser } from '../../application/register-user';
-import { LoginDto, LoginResponseDto, RegisterDto, RegisterResponseDto, MeResponseDto } from './dto';
+import {
+  LoginDto,
+  LoginResponseDto,
+  RegisterDto,
+  RegisterResponseDto,
+  MeResponseDto,
+} from './dto';
 import { IdentityExceptionFilter } from './identity-exception.filter';
 import { JwtAuthGuard, AuthenticatedUser } from './jwt-auth.guard';
 
@@ -49,19 +55,31 @@ export class AuthController {
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Register a new user account (auto-login returns JWT)' })
-  @ApiCreatedResponse({ description: 'User registered successfully', type: RegisterResponseDto })
+  @ApiOperation({
+    summary: 'Register a new user account (auto-login returns JWT)',
+  })
+  @ApiCreatedResponse({
+    description: 'User registered successfully',
+    type: RegisterResponseDto,
+  })
   @ApiBadRequestResponse({ description: 'Invalid request body' })
   @ApiConflictResponse({ description: 'Email already registered' })
   async registerRoute(@Body() dto: RegisterDto): Promise<RegisterResponseDto> {
-    return this.registerUser.execute({ email: dto.email, password: dto.password, name: dto.name });
+    return this.registerUser.execute({
+      email: dto.email,
+      password: dto.password,
+      name: dto.name,
+    });
   }
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get the authenticated user profile' })
-  @ApiOkResponse({ description: 'Authenticated user info', type: MeResponseDto })
+  @ApiOkResponse({
+    description: 'Authenticated user info',
+    type: MeResponseDto,
+  })
   @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
   me(@Request() req: AuthedRequest): MeResponseDto {
     return {

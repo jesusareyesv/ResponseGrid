@@ -39,7 +39,9 @@ export class NeedItem {
       throw new NeedItemValidationError('NeedItem name must not be empty');
     }
     if (!Number.isInteger(props.quantity) || props.quantity < 1) {
-      throw new NeedItemValidationError('NeedItem quantity must be a positive integer');
+      throw new NeedItemValidationError(
+        'NeedItem quantity must be a positive integer',
+      );
     }
     return new NeedItem({
       name: props.name.trim(),

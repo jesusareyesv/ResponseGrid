@@ -31,7 +31,14 @@ describe('AssignNeedManager', () => {
       description: null,
       location: { address: 'Caracas', latitude: 10.4806, longitude: -66.9036 },
       priority: Priority.High,
-      items: [{ name: 'Water', quantity: 10, unit: 'liters', category: NeedCategory.Water }],
+      items: [
+        {
+          name: 'Water',
+          quantity: 10,
+          unit: 'liters',
+          category: NeedCategory.Water,
+        },
+      ],
     });
 
     await assignManager.execute({ needId: id, organizationId: ORG_ID });
@@ -59,7 +66,14 @@ describe('AssignNeedManager', () => {
       description: null,
       location: { address: 'Caracas', latitude: 10.4806, longitude: -66.9036 },
       priority: Priority.Urgent,
-      items: [{ name: 'Kits', quantity: 5, unit: 'kits', category: NeedCategory.Medical }],
+      items: [
+        {
+          name: 'Kits',
+          quantity: 5,
+          unit: 'kits',
+          category: NeedCategory.Medical,
+        },
+      ],
     });
 
     // Validate via repo

@@ -4,11 +4,20 @@ import { RegisterResource } from './register-resource';
 import { InMemoryResourceRepository } from '../infrastructure/in-memory-resource.repository';
 import { FakeEventBus } from '../infrastructure/fake-event-bus';
 import { ResourceId } from '../domain/resource-id';
-import { ResourceType, ResourceStage, VerificationLevel, PublicStatus } from '../domain/resource-enums';
+import {
+  ResourceType,
+  ResourceStage,
+  VerificationLevel,
+  PublicStatus,
+} from '../domain/resource-enums';
 import { ResourceNotVerifiedError } from '../domain/resource-errors';
 
 const EM = '11111111-1111-4111-8111-111111111111';
-const baseLocation = { address: 'Gran Vía 44, Madrid', latitude: 40.4201, longitude: -3.7057 };
+const baseLocation = {
+  address: 'Gran Vía 44, Madrid',
+  latitude: 40.4201,
+  longitude: -3.7057,
+};
 
 describe('PublishResource', () => {
   it('publishes a verified resource and emits ResourcePublished', async () => {
@@ -22,14 +31,20 @@ describe('PublishResource', () => {
       location: baseLocation,
       ownerUserId: 'user-publish-test',
     });
-    await new VerifyResource(repo, bus).execute({ resourceId: id, level: VerificationLevel.Verified, coordinatorId: 'c1' });
+    await new VerifyResource(repo, bus).execute({
+      resourceId: id,
+      level: VerificationLevel.Verified,
+      coordinatorId: 'c1',
+    });
     bus.published = [];
 
     await new PublishResource(repo, bus).execute({ resourceId: id });
 
     const found = await repo.findById(ResourceId.fromString(id));
     expect(found?.publicStatus).toBe(PublicStatus.Active);
-    expect(bus.published.map((e) => e.eventName)).toEqual(['resource.published']);
+    expect(bus.published.map((e) => e.eventName)).toEqual([
+      'resource.published',
+    ]);
   });
 
   it('refuses to publish an unverified resource', async () => {
@@ -43,6 +58,8 @@ describe('PublishResource', () => {
       location: baseLocation,
       ownerUserId: 'user-publish-test-2',
     });
-    await expect(new PublishResource(repo, bus).execute({ resourceId: id })).rejects.toBeInstanceOf(ResourceNotVerifiedError);
+    await expect(
+      new PublishResource(repo, bus).execute({ resourceId: id }),
+    ).rejects.toBeInstanceOf(ResourceNotVerifiedError);
   });
 });

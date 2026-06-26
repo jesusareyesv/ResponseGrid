@@ -5,7 +5,12 @@ import { ResourceRepository } from '../../domain/ports/resource.repository';
 import { Resource, ResourceSnapshot } from '../../domain/resource';
 import { ResourceId } from '../../domain/resource-id';
 import { EmergencyId } from '../../../../shared/domain/emergency-id';
-import { ResourceType, ResourceStage, VerificationLevel, PublicStatus } from '../../domain/resource-enums';
+import {
+  ResourceType,
+  ResourceStage,
+  VerificationLevel,
+  PublicStatus,
+} from '../../domain/resource-enums';
 
 type Row = typeof resourcesTable.$inferSelect;
 
@@ -64,7 +69,10 @@ export class DrizzleResourceRepository implements ResourceRepository {
   }
 
   async findById(id: ResourceId): Promise<Resource | null> {
-    const rows = await this.db.select().from(resourcesTable).where(eq(resourcesTable.id, id.value));
+    const rows = await this.db
+      .select()
+      .from(resourcesTable)
+      .where(eq(resourcesTable.id, id.value));
     return rows[0] ? Resource.fromSnapshot(rowToSnapshot(rows[0])) : null;
   }
 

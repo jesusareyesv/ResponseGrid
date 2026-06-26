@@ -33,7 +33,9 @@ export class RegisterDto {
 }
 
 export class RegisterResponseDto {
-  @ApiProperty({ description: 'JWT access token (auto-login after registration)' })
+  @ApiProperty({
+    description: 'JWT access token (auto-login after registration)',
+  })
   accessToken!: string;
 }
 

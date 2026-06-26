@@ -11,5 +11,7 @@ export interface ResourceRepository {
   findPendingByEmergency(emergencyId: EmergencyId): Promise<Resource[]>;
   findActiveByEmergency(emergencyId: EmergencyId): Promise<Resource[]>;
   /** Returns a count map for all PublicStatus values for the given emergency. */
-  countByEmergencyGroupedByPublicStatus(emergencyId: EmergencyId): Promise<Record<PublicStatus, number>>;
+  countByEmergencyGroupedByPublicStatus(
+    emergencyId: EmergencyId,
+  ): Promise<Record<PublicStatus, number>>;
 }

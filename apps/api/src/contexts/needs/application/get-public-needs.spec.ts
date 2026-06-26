@@ -14,7 +14,9 @@ const baseCmd = {
   requesterOrganizationId: null,
   description: null,
   location: { address: 'Caracas', latitude: 10.4806, longitude: -66.9036 },
-  items: [{ name: 'Water', quantity: 10, unit: null, category: NeedCategory.Water }],
+  items: [
+    { name: 'Water', quantity: 10, unit: null, category: NeedCategory.Water },
+  ],
 };
 
 describe('GetPublicNeeds', () => {
@@ -33,8 +35,16 @@ describe('GetPublicNeeds', () => {
   });
 
   it('returns only validated needs', async () => {
-    const { id: id1 } = await createNeed.execute({ ...baseCmd, title: 'Validated need', priority: Priority.High });
-    await createNeed.execute({ ...baseCmd, title: 'Still pending', priority: Priority.Medium });
+    const { id: id1 } = await createNeed.execute({
+      ...baseCmd,
+      title: 'Validated need',
+      priority: Priority.High,
+    });
+    await createNeed.execute({
+      ...baseCmd,
+      title: 'Still pending',
+      priority: Priority.Medium,
+    });
 
     await validateNeed.execute({ needId: id1 });
 
@@ -50,10 +60,24 @@ describe('GetPublicNeeds', () => {
       title: 'Rich need',
       priority: Priority.Urgent,
       description: 'Urgent water need',
-      location: { address: 'Plaza Bolívar, Caracas', latitude: 10.48, longitude: -66.9 },
+      location: {
+        address: 'Plaza Bolívar, Caracas',
+        latitude: 10.48,
+        longitude: -66.9,
+      },
       items: [
-        { name: 'Water', quantity: 100, unit: 'liters', category: NeedCategory.Water },
-        { name: 'Food', quantity: 50, unit: 'boxes', category: NeedCategory.Food },
+        {
+          name: 'Water',
+          quantity: 100,
+          unit: 'liters',
+          category: NeedCategory.Water,
+        },
+        {
+          name: 'Food',
+          quantity: 50,
+          unit: 'boxes',
+          category: NeedCategory.Food,
+        },
       ],
     });
     await validateNeed.execute({ needId: id });
@@ -65,7 +89,11 @@ describe('GetPublicNeeds', () => {
   });
 
   it('returns empty array when no validated needs', async () => {
-    await createNeed.execute({ ...baseCmd, title: 'Pending need', priority: Priority.Low });
+    await createNeed.execute({
+      ...baseCmd,
+      title: 'Pending need',
+      priority: Priority.Low,
+    });
     const result = await getPublicNeeds.execute({ emergencyId: EM });
     expect(result).toHaveLength(0);
   });
@@ -77,19 +105,31 @@ describe('GetPublicNeeds', () => {
       ...baseCmd,
       title: 'Food need',
       priority: Priority.High,
-      items: [{ name: 'Rice', quantity: 20, unit: null, category: NeedCategory.Food }],
+      items: [
+        { name: 'Rice', quantity: 20, unit: null, category: NeedCategory.Food },
+      ],
     });
     const { id: waterId } = await createNeed.execute({
       ...baseCmd,
       title: 'Water need',
       priority: Priority.Medium,
-      items: [{ name: 'Bottles', quantity: 100, unit: null, category: NeedCategory.Water }],
+      items: [
+        {
+          name: 'Bottles',
+          quantity: 100,
+          unit: null,
+          category: NeedCategory.Water,
+        },
+      ],
     });
 
     await validateNeed.execute({ needId: foodId });
     await validateNeed.execute({ needId: waterId });
 
-    const result = await getPublicNeeds.execute({ emergencyId: EM, category: NeedCategory.Food });
+    const result = await getPublicNeeds.execute({
+      emergencyId: EM,
+      category: NeedCategory.Food,
+    });
     expect(result).toHaveLength(1);
     expect(result[0].id).toBe(foodId);
   });
@@ -101,12 +141,20 @@ describe('GetPublicNeeds', () => {
       priority: Priority.High,
       items: [
         { name: 'Rice', quantity: 20, unit: null, category: NeedCategory.Food },
-        { name: 'Bandages', quantity: 50, unit: null, category: NeedCategory.Medical },
+        {
+          name: 'Bandages',
+          quantity: 50,
+          unit: null,
+          category: NeedCategory.Medical,
+        },
       ],
     });
     await validateNeed.execute({ needId: id });
 
-    const result = await getPublicNeeds.execute({ emergencyId: EM, category: NeedCategory.Medical });
+    const result = await getPublicNeeds.execute({
+      emergencyId: EM,
+      category: NeedCategory.Medical,
+    });
     expect(result).toHaveLength(1);
     expect(result[0].id).toBe(id);
   });
@@ -116,11 +164,21 @@ describe('GetPublicNeeds', () => {
       ...baseCmd,
       title: 'Water only',
       priority: Priority.Low,
-      items: [{ name: 'Water', quantity: 10, unit: null, category: NeedCategory.Water }],
+      items: [
+        {
+          name: 'Water',
+          quantity: 10,
+          unit: null,
+          category: NeedCategory.Water,
+        },
+      ],
     });
     await validateNeed.execute({ needId: id });
 
-    const result = await getPublicNeeds.execute({ emergencyId: EM, category: NeedCategory.Tools });
+    const result = await getPublicNeeds.execute({
+      emergencyId: EM,
+      category: NeedCategory.Tools,
+    });
     expect(result).toHaveLength(0);
   });
 
@@ -141,7 +199,10 @@ describe('GetPublicNeeds', () => {
     await validateNeed.execute({ needId: urgentId });
     await validateNeed.execute({ needId: lowId });
 
-    const result = await getPublicNeeds.execute({ emergencyId: EM, priority: Priority.Urgent });
+    const result = await getPublicNeeds.execute({
+      emergencyId: EM,
+      priority: Priority.Urgent,
+    });
     expect(result).toHaveLength(1);
     expect(result[0].id).toBe(urgentId);
   });
@@ -154,7 +215,10 @@ describe('GetPublicNeeds', () => {
     });
     await validateNeed.execute({ needId: id });
 
-    const result = await getPublicNeeds.execute({ emergencyId: EM, priority: Priority.Urgent });
+    const result = await getPublicNeeds.execute({
+      emergencyId: EM,
+      priority: Priority.Urgent,
+    });
     expect(result).toHaveLength(0);
   });
 
@@ -165,19 +229,30 @@ describe('GetPublicNeeds', () => {
       ...baseCmd,
       title: 'Urgent food',
       priority: Priority.Urgent,
-      items: [{ name: 'Rice', quantity: 10, unit: null, category: NeedCategory.Food }],
+      items: [
+        { name: 'Rice', quantity: 10, unit: null, category: NeedCategory.Food },
+      ],
     });
     const { id: wrongPrioId } = await createNeed.execute({
       ...baseCmd,
       title: 'Low food',
       priority: Priority.Low,
-      items: [{ name: 'Bread', quantity: 5, unit: null, category: NeedCategory.Food }],
+      items: [
+        { name: 'Bread', quantity: 5, unit: null, category: NeedCategory.Food },
+      ],
     });
     const { id: wrongCatId } = await createNeed.execute({
       ...baseCmd,
       title: 'Urgent water',
       priority: Priority.Urgent,
-      items: [{ name: 'Water', quantity: 20, unit: null, category: NeedCategory.Water }],
+      items: [
+        {
+          name: 'Water',
+          quantity: 20,
+          unit: null,
+          category: NeedCategory.Water,
+        },
+      ],
     });
 
     await validateNeed.execute({ needId: matchId });
@@ -196,8 +271,16 @@ describe('GetPublicNeeds', () => {
   // ── No filters: existing behaviour unchanged ────────────────────────────────
 
   it('returns all validated needs when no filters are given', async () => {
-    const { id: id1 } = await createNeed.execute({ ...baseCmd, title: 'Need 1', priority: Priority.Low });
-    const { id: id2 } = await createNeed.execute({ ...baseCmd, title: 'Need 2', priority: Priority.High });
+    const { id: id1 } = await createNeed.execute({
+      ...baseCmd,
+      title: 'Need 1',
+      priority: Priority.Low,
+    });
+    const { id: id2 } = await createNeed.execute({
+      ...baseCmd,
+      title: 'Need 2',
+      priority: Priority.High,
+    });
     await validateNeed.execute({ needId: id1 });
     await validateNeed.execute({ needId: id2 });
 

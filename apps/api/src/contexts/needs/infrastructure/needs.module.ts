@@ -9,7 +9,10 @@ import { ValidateNeed } from '../application/validate-need';
 import { GetPublicNeeds } from '../application/get-public-needs';
 import { GetNeedsQueue } from '../application/get-needs-queue';
 import { AssignNeedManager } from '../application/assign-need-manager';
-import { NEED_REPOSITORY, NeedRepository } from '../domain/ports/need.repository';
+import {
+  NEED_REPOSITORY,
+  NeedRepository,
+} from '../domain/ports/need.repository';
 import { EVENT_BUS, EventBus } from '../domain/ports/event-bus';
 import { DrizzleNeedRepository } from './drizzle/drizzle-need.repository';
 import { BullMqEventBus } from './bullmq-event-bus';
@@ -42,19 +45,22 @@ const needRepositoryProvider = {
 const eventBusProvider = {
   provide: EVENT_BUS,
   inject: [EVENT_QUEUE],
-  useFactory: (eventQueue: EventQueue): EventBus => new BullMqEventBus(eventQueue.queue),
+  useFactory: (eventQueue: EventQueue): EventBus =>
+    new BullMqEventBus(eventQueue.queue),
 };
 
 const createNeedProvider = {
   provide: CreateNeed,
   inject: [NEED_REPOSITORY, EVENT_BUS],
-  useFactory: (repo: NeedRepository, bus: EventBus) => new CreateNeed(repo, bus),
+  useFactory: (repo: NeedRepository, bus: EventBus) =>
+    new CreateNeed(repo, bus),
 };
 
 const validateNeedProvider = {
   provide: ValidateNeed,
   inject: [NEED_REPOSITORY, EVENT_BUS],
-  useFactory: (repo: NeedRepository, bus: EventBus) => new ValidateNeed(repo, bus),
+  useFactory: (repo: NeedRepository, bus: EventBus) =>
+    new ValidateNeed(repo, bus),
 };
 
 const getPublicNeedsProvider = {
@@ -95,12 +101,12 @@ export class NeedsModule implements OnModuleDestroy {
   async onModuleDestroy(): Promise<void> {
     try {
       await this.eventQueue.queue.close();
-    } catch (_) {
+    } catch {
       // ignore — let remaining teardown proceed
     }
     try {
       await this.eventQueue.connection.quit();
-    } catch (_) {
+    } catch {
       // ignore
     }
   }

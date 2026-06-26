@@ -13,8 +13,16 @@ export interface NeedFilters {
 export interface NeedRepository {
   save(need: Need): Promise<void>;
   findById(id: NeedId): Promise<Need | null>;
-  findValidatedByEmergency(emergencyId: EmergencyId, filters?: NeedFilters): Promise<Need[]>;
-  findPendingByEmergency(emergencyId: EmergencyId, filters?: NeedFilters): Promise<Need[]>;
+  findValidatedByEmergency(
+    emergencyId: EmergencyId,
+    filters?: NeedFilters,
+  ): Promise<Need[]>;
+  findPendingByEmergency(
+    emergencyId: EmergencyId,
+    filters?: NeedFilters,
+  ): Promise<Need[]>;
   /** Returns a count map for all NeedStatus values for the given emergency. */
-  countByEmergencyGroupedByStatus(emergencyId: EmergencyId): Promise<Record<NeedStatus, number>>;
+  countByEmergencyGroupedByStatus(
+    emergencyId: EmergencyId,
+  ): Promise<Record<NeedStatus, number>>;
 }

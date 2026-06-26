@@ -30,7 +30,13 @@ export class User {
   ) {}
 
   static create(props: CreateUserProps): User {
-    return new User(props.id, props.email, props.passwordHash, props.name, props.isAdmin);
+    return new User(
+      props.id,
+      props.email,
+      props.passwordHash,
+      props.name,
+      props.isAdmin,
+    );
   }
 
   static fromSnapshot(snap: UserSnapshot): User {

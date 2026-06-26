@@ -4,15 +4,26 @@ import { DrizzleResourceRepository } from './drizzle-resource.repository';
 import { Resource } from '../../domain/resource';
 import { ResourceId } from '../../domain/resource-id';
 import { EmergencyId } from '../../../../shared/domain/emergency-id';
-import { ResourceType, ResourceStage, VerificationLevel, PublicStatus } from '../../domain/resource-enums';
+import {
+  ResourceType,
+  ResourceStage,
+  VerificationLevel,
+  PublicStatus,
+} from '../../domain/resource-enums';
 import { Location } from '../../../../shared/domain/location';
 import type { Pool } from 'pg';
 
 const OWNER_ID = 'ffffffff-ffff-4fff-8fff-ffffffffffff';
 
-const URL = process.env.DATABASE_URL ?? 'postgres://reliefhub:reliefhub@localhost:5433/reliefhub';
+const URL =
+  process.env.DATABASE_URL ??
+  'postgres://reliefhub:reliefhub@localhost:5433/reliefhub';
 const EM = '11111111-1111-4111-8111-111111111111';
-const baseLocation = Location.create({ address: 'Calle Test 1, Sevilla', latitude: 37.3886, longitude: -5.9823 });
+const baseLocation = Location.create({
+  address: 'Calle Test 1, Sevilla',
+  latitude: 37.3886,
+  longitude: -5.9823,
+});
 
 describe('DrizzleResourceRepository (integration)', () => {
   let db: Db;
@@ -23,8 +34,12 @@ describe('DrizzleResourceRepository (integration)', () => {
     ({ db, pool } = createDb(URL));
     repo = new DrizzleResourceRepository(db);
   });
-  afterAll(async () => { await pool.end(); });
-  beforeEach(async () => { await db.delete(resourcesTable); });
+  afterAll(async () => {
+    await pool.end();
+  });
+  beforeEach(async () => {
+    await db.delete(resourcesTable);
+  });
 
   it('round-trips an aggregate through Postgres', async () => {
     const r = Resource.register({
@@ -61,7 +76,9 @@ describe('DrizzleResourceRepository (integration)', () => {
     await repo.save(r);
     const found = await repo.findById(r.id);
     expect(found?.description).toBe('Recogida y entrega central');
-    expect(found?.ownerOrganizationId).toBe('cccccccc-cccc-4ccc-8ccc-cccccccccccc');
+    expect(found?.ownerOrganizationId).toBe(
+      'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+    );
     expect(found?.stage).toBe(ResourceStage.Intermediate);
   });
 
@@ -87,7 +104,9 @@ describe('DrizzleResourceRepository (integration)', () => {
     verified.verify(VerificationLevel.Verified, 'c1');
     await repo.save(pending);
     await repo.save(verified);
-    const result = await repo.findPendingByEmergency(EmergencyId.fromString(EM));
+    const result = await repo.findPendingByEmergency(
+      EmergencyId.fromString(EM),
+    );
     expect(result.map((x) => x.name)).toEqual(['P']);
   });
 
@@ -115,16 +134,22 @@ describe('DrizzleResourceRepository (integration)', () => {
     await repo.save(active);
     await repo.save(pending);
 
-    const activeResult = await repo.findActiveByEmergency(EmergencyId.fromString(EM));
+    const activeResult = await repo.findActiveByEmergency(
+      EmergencyId.fromString(EM),
+    );
     expect(activeResult.map((x) => x.name)).toEqual(['Active']);
     expect(activeResult[0].publicStatus).toBe(PublicStatus.Active);
 
-    const pendingResult = await repo.findPendingByEmergency(EmergencyId.fromString(EM));
+    const pendingResult = await repo.findPendingByEmergency(
+      EmergencyId.fromString(EM),
+    );
     expect(pendingResult.map((x) => x.name)).toEqual(['Pending']);
   });
 
   it('countByEmergencyGroupedByPublicStatus returns zero map when no resources', async () => {
-    const counts = await repo.countByEmergencyGroupedByPublicStatus(EmergencyId.fromString(EM));
+    const counts = await repo.countByEmergencyGroupedByPublicStatus(
+      EmergencyId.fromString(EM),
+    );
     expect(counts[PublicStatus.Hidden]).toBe(0);
     expect(counts[PublicStatus.Active]).toBe(0);
     expect(counts[PublicStatus.Saturated]).toBe(0);
@@ -157,7 +182,9 @@ describe('DrizzleResourceRepository (integration)', () => {
     await repo.save(hidden);
     await repo.save(active);
 
-    const counts = await repo.countByEmergencyGroupedByPublicStatus(EmergencyId.fromString(EM));
+    const counts = await repo.countByEmergencyGroupedByPublicStatus(
+      EmergencyId.fromString(EM),
+    );
     expect(counts[PublicStatus.Hidden]).toBe(1);
     expect(counts[PublicStatus.Active]).toBe(1);
     expect(counts[PublicStatus.Saturated]).toBe(0);
@@ -186,7 +213,9 @@ describe('DrizzleResourceRepository (integration)', () => {
     await repo.save(mine);
     await repo.save(other);
 
-    const counts = await repo.countByEmergencyGroupedByPublicStatus(EmergencyId.fromString(EM));
+    const counts = await repo.countByEmergencyGroupedByPublicStatus(
+      EmergencyId.fromString(EM),
+    );
     expect(counts[PublicStatus.Hidden]).toBe(1);
   });
 });

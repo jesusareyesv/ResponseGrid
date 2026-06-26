@@ -7,29 +7,39 @@ import { VerificationLevel, PublicStatus } from '../domain/resource-enums';
 export class InMemoryResourceRepository implements ResourceRepository {
   private store = new Map<string, ReturnType<Resource['toSnapshot']>>();
 
-  async save(resource: Resource): Promise<void> {
+  save(resource: Resource): Promise<void> {
     this.store.set(resource.id.value, resource.toSnapshot());
-  }
-  async findById(id: ResourceId): Promise<Resource | null> {
-    const snap = this.store.get(id.value);
-    return snap ? Resource.fromSnapshot(snap) : null;
-  }
-  async findPendingByEmergency(emergencyId: EmergencyId): Promise<Resource[]> {
-    return [...this.store.values()]
-      .filter(
-        (s) => s.emergencyId === emergencyId.value && s.verificationLevel === VerificationLevel.Unverified,
-      )
-      .map((s) => Resource.fromSnapshot(s));
-  }
-  async findActiveByEmergency(emergencyId: EmergencyId): Promise<Resource[]> {
-    return [...this.store.values()]
-      .filter(
-        (s) => s.emergencyId === emergencyId.value && s.publicStatus === PublicStatus.Active,
-      )
-      .map((s) => Resource.fromSnapshot(s));
+    return Promise.resolve();
   }
 
-  async countByEmergencyGroupedByPublicStatus(
+  findById(id: ResourceId): Promise<Resource | null> {
+    const snap = this.store.get(id.value);
+    return Promise.resolve(snap ? Resource.fromSnapshot(snap) : null);
+  }
+
+  findPendingByEmergency(emergencyId: EmergencyId): Promise<Resource[]> {
+    const result = [...this.store.values()]
+      .filter(
+        (s) =>
+          s.emergencyId === emergencyId.value &&
+          s.verificationLevel === VerificationLevel.Unverified,
+      )
+      .map((s) => Resource.fromSnapshot(s));
+    return Promise.resolve(result);
+  }
+
+  findActiveByEmergency(emergencyId: EmergencyId): Promise<Resource[]> {
+    const result = [...this.store.values()]
+      .filter(
+        (s) =>
+          s.emergencyId === emergencyId.value &&
+          s.publicStatus === PublicStatus.Active,
+      )
+      .map((s) => Resource.fromSnapshot(s));
+    return Promise.resolve(result);
+  }
+
+  countByEmergencyGroupedByPublicStatus(
     emergencyId: EmergencyId,
   ): Promise<Record<PublicStatus, number>> {
     const result: Record<PublicStatus, number> = {
@@ -41,12 +51,12 @@ export class InMemoryResourceRepository implements ResourceRepository {
     };
     for (const snap of this.store.values()) {
       if (snap.emergencyId === emergencyId.value) {
-        const status = snap.publicStatus as PublicStatus;
+        const status = snap.publicStatus;
         if (status in result) {
           result[status]++;
         }
       }
     }
-    return result;
+    return Promise.resolve(result);
   }
 }

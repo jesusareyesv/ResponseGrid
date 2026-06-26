@@ -59,12 +59,11 @@ describe('ListActiveEmergencies', () => {
     const useCase = new ListActiveEmergencies(repo);
     const views = await useCase.execute();
 
-    expect(views[0]).toMatchObject({
-      id: expect.any(String),
-      name: 'Shape Test',
-      slug: 'shape-test',
-      country: 'FR',
-      status: 'active',
-    });
+    const v = views[0];
+    expect(typeof v.id).toBe('string');
+    expect(v.name).toBe('Shape Test');
+    expect(v.slug).toBe('shape-test');
+    expect(v.country).toBe('FR');
+    expect(v.status).toBe('active');
   });
 });

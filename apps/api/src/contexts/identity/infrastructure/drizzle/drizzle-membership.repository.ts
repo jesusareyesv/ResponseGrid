@@ -24,9 +24,18 @@ export class DrizzleMembershipRepository implements MembershipRepository {
     const s = membership.toSnapshot();
     await this.db
       .insert(membershipsTable)
-      .values({ id: s.id, userId: s.userId, emergencyId: s.emergencyId, role: s.role })
+      .values({
+        id: s.id,
+        userId: s.userId,
+        emergencyId: s.emergencyId,
+        role: s.role,
+      })
       .onConflictDoUpdate({
-        target: [membershipsTable.userId, membershipsTable.emergencyId, membershipsTable.role],
+        target: [
+          membershipsTable.userId,
+          membershipsTable.emergencyId,
+          membershipsTable.role,
+        ],
         set: { role: s.role },
       });
   }
@@ -39,7 +48,11 @@ export class DrizzleMembershipRepository implements MembershipRepository {
     return rows.map((r) => Membership.fromSnapshot(rowToSnapshot(r)));
   }
 
-  async hasRole(userId: UserId, emergencyId: string, role: Role): Promise<boolean> {
+  async hasRole(
+    userId: UserId,
+    emergencyId: string,
+    role: Role,
+  ): Promise<boolean> {
     const rows = await this.db
       .select()
       .from(membershipsTable)

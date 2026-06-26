@@ -1,12 +1,24 @@
 import { Resource } from './resource';
 import { ResourceId } from './resource-id';
 import { EmergencyId } from '../../../shared/domain/emergency-id';
-import { ResourceType, ResourceStage, VerificationLevel, PublicStatus } from './resource-enums';
+import {
+  ResourceType,
+  ResourceStage,
+  VerificationLevel,
+  PublicStatus,
+} from './resource-enums';
 import { Location } from '../../../shared/domain/location';
-import { ResourceNotVerifiedError, InvalidVerificationLevelError } from './resource-errors';
+import {
+  ResourceNotVerifiedError,
+  InvalidVerificationLevelError,
+} from './resource-errors';
 
 const makeLocation = () =>
-  Location.create({ address: 'Calle Mayor 1, Valencia', latitude: 39.4699, longitude: -0.3763 });
+  Location.create({
+    address: 'Calle Mayor 1, Valencia',
+    latitude: 39.4699,
+    longitude: -0.3763,
+  });
 
 const make = () =>
   Resource.register({
@@ -32,7 +44,9 @@ describe('Resource', () => {
   it('stores stage, location, ownerUserId and optional ownerOrganizationId', () => {
     const r = Resource.register({
       id: ResourceId.create(),
-      emergencyId: EmergencyId.fromString('11111111-1111-4111-8111-111111111111'),
+      emergencyId: EmergencyId.fromString(
+        '11111111-1111-4111-8111-111111111111',
+      ),
       type: ResourceType.CollectionAndDelivery,
       stage: ResourceStage.Intermediate,
       name: 'Punto Mixto',
@@ -61,12 +75,16 @@ describe('Resource', () => {
     r.verify(VerificationLevel.Verified, 'coord-1');
     expect(r.verificationLevel).toBe(VerificationLevel.Verified);
     expect(r.publicStatus).toBe(PublicStatus.Hidden);
-    expect(r.pullDomainEvents().map((e) => e.eventName)).toEqual(['resource.verified']);
+    expect(r.pullDomainEvents().map((e) => e.eventName)).toEqual([
+      'resource.verified',
+    ]);
   });
 
   it('rejects verifying with the unverified level', () => {
     const r = make();
-    expect(() => r.verify(VerificationLevel.Unverified, 'coord-1')).toThrow(InvalidVerificationLevelError);
+    expect(() => r.verify(VerificationLevel.Unverified, 'coord-1')).toThrow(
+      InvalidVerificationLevelError,
+    );
   });
 
   it('publishes only after verification', () => {
@@ -76,13 +94,17 @@ describe('Resource', () => {
     r.pullDomainEvents();
     r.publish();
     expect(r.publicStatus).toBe(PublicStatus.Active);
-    expect(r.pullDomainEvents().map((e) => e.eventName)).toEqual(['resource.published']);
+    expect(r.pullDomainEvents().map((e) => e.eventName)).toEqual([
+      'resource.published',
+    ]);
   });
 
   it('toSnapshot / fromSnapshot round-trip preserves all fields', () => {
     const r = Resource.register({
       id: ResourceId.create(),
-      emergencyId: EmergencyId.fromString('11111111-1111-4111-8111-111111111111'),
+      emergencyId: EmergencyId.fromString(
+        '11111111-1111-4111-8111-111111111111',
+      ),
       type: ResourceType.Transport,
       stage: ResourceStage.Destination,
       name: 'Camión',

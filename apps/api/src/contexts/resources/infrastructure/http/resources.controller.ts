@@ -1,4 +1,13 @@
-import { Body, Controller, HttpCode, Param, ParseUUIDPipe, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -18,7 +27,10 @@ import { VerifyResource } from '../../application/verify-resource';
 import { PublishResource } from '../../application/publish-resource';
 import { RegisterResourceDto, VerifyResourceDto } from './dto';
 import { RegisterResourceResponseDto } from './response.dto';
-import { JwtAuthGuard, AuthenticatedUser } from '../../../identity/infrastructure/http/jwt-auth.guard';
+import {
+  JwtAuthGuard,
+  AuthenticatedUser,
+} from '../../../identity/infrastructure/http/jwt-auth.guard';
 import { RequireResourceCoordinatorGuard } from '../../../identity/infrastructure/http/require-resource-coordinator.guard';
 
 @ApiTags('resources')
@@ -34,9 +46,18 @@ export class ResourcesController {
   @HttpCode(201)
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Register a resource for an emergency (requires authentication)' })
-  @ApiParam({ name: 'emergencyId', description: 'Emergency UUID', format: 'uuid' })
-  @ApiCreatedResponse({ description: 'Resource registered', type: RegisterResourceResponseDto })
+  @ApiOperation({
+    summary: 'Register a resource for an emergency (requires authentication)',
+  })
+  @ApiParam({
+    name: 'emergencyId',
+    description: 'Emergency UUID',
+    format: 'uuid',
+  })
+  @ApiCreatedResponse({
+    description: 'Resource registered',
+    type: RegisterResourceResponseDto,
+  })
   @ApiBadRequestResponse({ description: 'Invalid request body or UUID' })
   @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
   async create(
@@ -61,8 +82,14 @@ export class ResourcesController {
   @HttpCode(204)
   @UseGuards(JwtAuthGuard, RequireResourceCoordinatorGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Verify a resource (coordinator of the resource\'s emergency only)' })
-  @ApiParam({ name: 'resourceId', description: 'Resource UUID', format: 'uuid' })
+  @ApiOperation({
+    summary: "Verify a resource (coordinator of the resource's emergency only)",
+  })
+  @ApiParam({
+    name: 'resourceId',
+    description: 'Resource UUID',
+    format: 'uuid',
+  })
   @ApiNoContentResponse({ description: 'Resource verified' })
   @ApiNotFoundResponse({ description: 'Resource not found' })
   @ApiBadRequestResponse({ description: 'Invalid verification level or UUID' })
@@ -81,15 +108,24 @@ export class ResourcesController {
   @HttpCode(204)
   @UseGuards(JwtAuthGuard, RequireResourceCoordinatorGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Publish a resource (coordinator of the resource\'s emergency only)' })
-  @ApiParam({ name: 'resourceId', description: 'Resource UUID', format: 'uuid' })
+  @ApiOperation({
+    summary:
+      "Publish a resource (coordinator of the resource's emergency only)",
+  })
+  @ApiParam({
+    name: 'resourceId',
+    description: 'Resource UUID',
+    format: 'uuid',
+  })
   @ApiNoContentResponse({ description: 'Resource published' })
   @ApiNotFoundResponse({ description: 'Resource not found' })
   @ApiConflictResponse({ description: 'Resource not verified yet' })
   @ApiBadRequestResponse({ description: 'Invalid UUID' })
   @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
   @ApiForbiddenResponse({ description: 'Coordinator role required' })
-  async publishResource(@Param('resourceId', ParseUUIDPipe) resourceId: string): Promise<void> {
+  async publishResource(
+    @Param('resourceId', ParseUUIDPipe) resourceId: string,
+  ): Promise<void> {
     await this.publish.execute({ resourceId });
   }
 }

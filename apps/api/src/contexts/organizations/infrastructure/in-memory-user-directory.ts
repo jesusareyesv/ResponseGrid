@@ -7,14 +7,14 @@ export class InMemoryUserDirectory implements UserDirectory {
     this.store.set(user.id, user);
   }
 
-  async findByEmail(email: string): Promise<UserView | null> {
+  findByEmail(email: string): Promise<UserView | null> {
     for (const user of this.store.values()) {
-      if (user.email === email) return user;
+      if (user.email === email) return Promise.resolve(user);
     }
-    return null;
+    return Promise.resolve(null);
   }
 
-  async findById(id: string): Promise<UserView | null> {
-    return this.store.get(id) ?? null;
+  findById(id: string): Promise<UserView | null> {
+    return Promise.resolve(this.store.get(id) ?? null);
   }
 }

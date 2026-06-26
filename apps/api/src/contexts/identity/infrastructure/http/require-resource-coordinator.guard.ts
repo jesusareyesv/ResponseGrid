@@ -36,9 +36,12 @@ export class RequireResourceCoordinatorGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context
       .switchToHttp()
-      .getRequest<Request & { user?: AuthenticatedUser; params: { resourceId?: string } }>();
+      .getRequest<
+        Request & { user?: AuthenticatedUser; params: { resourceId?: string } }
+      >();
 
-    if (!request.user) throw new UnauthorizedException('Authentication required');
+    if (!request.user)
+      throw new UnauthorizedException('Authentication required');
     if (request.user.isAdmin) return true;
 
     const { resourceId } = request.params;
@@ -56,7 +59,9 @@ export class RequireResourceCoordinatorGuard implements CanActivate {
     );
 
     if (!hasRole) {
-      throw new ForbiddenException('Coordinator role required for this emergency');
+      throw new ForbiddenException(
+        'Coordinator role required for this emergency',
+      );
     }
     return true;
   }

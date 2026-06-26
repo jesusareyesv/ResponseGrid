@@ -12,17 +12,32 @@ import { Location } from '../../../shared/domain/location';
 import { NeedItem } from '../../needs/domain/need-item';
 import { Resource } from '../../resources/domain/resource';
 import { ResourceId } from '../../resources/domain/resource-id';
-import { ResourceType, ResourceStage, VerificationLevel } from '../../resources/domain/resource-enums';
+import {
+  ResourceType,
+  ResourceStage,
+  VerificationLevel,
+} from '../../resources/domain/resource-enums';
 
 const EM = '11111111-1111-4111-8111-111111111111';
 const USER_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 
 function makeNeedLocation() {
-  return Location.create({ address: 'Caracas', latitude: 10.48, longitude: -66.9 });
+  return Location.create({
+    address: 'Caracas',
+    latitude: 10.48,
+    longitude: -66.9,
+  });
 }
 
 function makeNeedItems() {
-  return [NeedItem.create({ name: 'Water', quantity: 10, unit: null, category: NeedCategory.Water })];
+  return [
+    NeedItem.create({
+      name: 'Water',
+      quantity: 10,
+      unit: null,
+      category: NeedCategory.Water,
+    }),
+  ];
 }
 
 function seedNeed(repo: InMemoryNeedRepository, title: string): Need {
@@ -41,10 +56,17 @@ function seedNeed(repo: InMemoryNeedRepository, title: string): Need {
 }
 
 function makeResourceLocation() {
-  return Location.create({ address: 'Sevilla', latitude: 37.38, longitude: -5.98 });
+  return Location.create({
+    address: 'Sevilla',
+    latitude: 37.38,
+    longitude: -5.98,
+  });
 }
 
-function seedResource(repo: InMemoryResourceRepository, name: string): Resource {
+function seedResource(
+  repo: InMemoryResourceRepository,
+  name: string,
+): Resource {
   return Resource.register({
     id: ResourceId.create(),
     emergencyId: EmergencyId.fromString(EM),
@@ -60,16 +82,16 @@ describe('GetEmergencyMetrics', () => {
   let needRepo: InMemoryNeedRepository;
   let resourceRepo: InMemoryResourceRepository;
   let bus: FakeEventBus;
-  let createNeed: CreateNeed;
-  let validateNeed: ValidateNeed;
+  let _createNeed: CreateNeed;
+  let _validateNeed: ValidateNeed;
   let useCase: GetEmergencyMetrics;
 
   beforeEach(() => {
     needRepo = new InMemoryNeedRepository();
     resourceRepo = new InMemoryResourceRepository();
     bus = new FakeEventBus();
-    createNeed = new CreateNeed(needRepo, bus);
-    validateNeed = new ValidateNeed(needRepo, bus);
+    _createNeed = new CreateNeed(needRepo, bus);
+    _validateNeed = new ValidateNeed(needRepo, bus);
     useCase = new GetEmergencyMetrics(needRepo, resourceRepo);
   });
 
@@ -155,7 +177,7 @@ describe('GetEmergencyMetrics', () => {
 
     const result = await useCase.execute({ emergencyId: EM });
     expect(result.needs.total).toBe(5);
-    expect(result.needs.open).toBe(3);  // 2 pending + 1 validated
+    expect(result.needs.open).toBe(3); // 2 pending + 1 validated
     expect(result.needs.closed).toBe(1); // 1 fulfilled
     // rejected: in total, not in open/closed
   });

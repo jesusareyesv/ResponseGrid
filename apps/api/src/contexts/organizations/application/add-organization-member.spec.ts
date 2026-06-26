@@ -2,7 +2,10 @@ import { AddOrganizationMember } from './add-organization-member';
 import { InMemoryOrganizationRepository } from '../infrastructure/in-memory-organization.repository';
 import { InMemoryOrganizationMemberRepository } from '../infrastructure/in-memory-organization-member.repository';
 import { InMemoryUserDirectory } from '../infrastructure/in-memory-user-directory';
-import { OrganizationType, OrganizationRole } from '../domain/organization-enums';
+import {
+  OrganizationType,
+  OrganizationRole,
+} from '../domain/organization-enums';
 import { Organization } from '../domain/organization';
 import { OrganizationId } from '../domain/organization-id';
 import {
@@ -40,7 +43,11 @@ describe('AddOrganizationMember', () => {
 
     await orgRepo.save(makeOrg());
     await memberRepo.add(ORG_ID, OWNER_ID, OrganizationRole.Owner);
-    userDirectory.seed({ id: MEMBER_ID, email: MEMBER_EMAIL, name: 'New Member' });
+    userDirectory.seed({
+      id: MEMBER_ID,
+      email: MEMBER_EMAIL,
+      name: 'New Member',
+    });
   });
 
   it('adds a new member when requester is owner', async () => {

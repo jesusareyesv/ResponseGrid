@@ -9,16 +9,29 @@ import { Location } from '../../../../shared/domain/location';
 import { NeedItem } from '../../domain/need-item';
 import type { Pool } from 'pg';
 
-const URL = process.env.DATABASE_URL ?? 'postgres://reliefhub:reliefhub@localhost:5433/reliefhub';
+const URL =
+  process.env.DATABASE_URL ??
+  'postgres://reliefhub:reliefhub@localhost:5433/reliefhub';
 const EM = '22222222-2222-4222-8222-222222222222';
 const USER_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 
 function makeLocation() {
-  return Location.create({ address: 'Test Street, Caracas', latitude: 10.4806, longitude: -66.9036 });
+  return Location.create({
+    address: 'Test Street, Caracas',
+    latitude: 10.4806,
+    longitude: -66.9036,
+  });
 }
 
 function makeItems() {
-  return [NeedItem.create({ name: 'Water', quantity: 50, unit: 'liters', category: NeedCategory.Water })];
+  return [
+    NeedItem.create({
+      name: 'Water',
+      quantity: 50,
+      unit: 'liters',
+      category: NeedCategory.Water,
+    }),
+  ];
 }
 
 function makeNeed(overrides?: { title?: string; items?: NeedItem[] }) {
@@ -89,8 +102,18 @@ describe('DrizzleNeedRepository (integration)', () => {
       requesterUserId: USER_ID,
       requesterOrganizationId: null,
       items: [
-        NeedItem.create({ name: 'Food', quantity: 100, unit: 'boxes', category: NeedCategory.Food }),
-        NeedItem.create({ name: 'Blankets', quantity: 30, unit: null, category: NeedCategory.Shelter }),
+        NeedItem.create({
+          name: 'Food',
+          quantity: 100,
+          unit: 'boxes',
+          category: NeedCategory.Food,
+        }),
+        NeedItem.create({
+          name: 'Blankets',
+          quantity: 30,
+          unit: null,
+          category: NeedCategory.Shelter,
+        }),
       ],
     });
     await repo.save(need);
@@ -133,7 +156,9 @@ describe('DrizzleNeedRepository (integration)', () => {
     await repo.save(pending);
     await repo.save(toValidate);
 
-    const result = await repo.findPendingByEmergency(EmergencyId.fromString(EM));
+    const result = await repo.findPendingByEmergency(
+      EmergencyId.fromString(EM),
+    );
     expect(result).toHaveLength(1);
     expect(result[0].title).toBe('Pending food');
     expect(result[0].items).toHaveLength(1);
@@ -147,7 +172,9 @@ describe('DrizzleNeedRepository (integration)', () => {
     await repo.save(pending);
     await repo.save(validated);
 
-    const result = await repo.findValidatedByEmergency(EmergencyId.fromString(EM));
+    const result = await repo.findValidatedByEmergency(
+      EmergencyId.fromString(EM),
+    );
     expect(result).toHaveLength(1);
     expect(result[0].title).toBe('Validated need');
     expect(result[0].status).toBe(NeedStatus.Validated);
@@ -191,8 +218,18 @@ describe('DrizzleNeedRepository (integration)', () => {
       requesterUserId: USER_ID,
       requesterOrganizationId: null,
       items: [
-        NeedItem.create({ name: 'Water', quantity: 50, unit: 'liters', category: NeedCategory.Water }),
-        NeedItem.create({ name: 'Bread', quantity: 20, unit: 'loaves', category: NeedCategory.Food }),
+        NeedItem.create({
+          name: 'Water',
+          quantity: 50,
+          unit: 'liters',
+          category: NeedCategory.Water,
+        }),
+        NeedItem.create({
+          name: 'Bread',
+          quantity: 20,
+          unit: 'loaves',
+          category: NeedCategory.Food,
+        }),
       ],
     });
     const need2 = Need.create({
@@ -205,14 +242,21 @@ describe('DrizzleNeedRepository (integration)', () => {
       requesterUserId: USER_ID,
       requesterOrganizationId: null,
       items: [
-        NeedItem.create({ name: 'Tent', quantity: 5, unit: null, category: NeedCategory.Shelter }),
+        NeedItem.create({
+          name: 'Tent',
+          quantity: 5,
+          unit: null,
+          category: NeedCategory.Shelter,
+        }),
       ],
     });
 
     await repo.save(need1);
     await repo.save(need2);
 
-    const results = await repo.findPendingByEmergency(EmergencyId.fromString(EM));
+    const results = await repo.findPendingByEmergency(
+      EmergencyId.fromString(EM),
+    );
     expect(results).toHaveLength(2);
 
     const found1 = results.find((n) => n.id.value === need1.id.value);
@@ -229,7 +273,9 @@ describe('DrizzleNeedRepository (integration)', () => {
   });
 
   it('countByEmergencyGroupedByStatus returns zero map when no needs', async () => {
-    const counts = await repo.countByEmergencyGroupedByStatus(EmergencyId.fromString(EM));
+    const counts = await repo.countByEmergencyGroupedByStatus(
+      EmergencyId.fromString(EM),
+    );
     expect(counts[NeedStatus.Pending]).toBe(0);
     expect(counts[NeedStatus.Validated]).toBe(0);
     expect(counts[NeedStatus.Rejected]).toBe(0);
@@ -252,7 +298,9 @@ describe('DrizzleNeedRepository (integration)', () => {
     await repo.save(rejected);
     await repo.save(fulfilled);
 
-    const counts = await repo.countByEmergencyGroupedByStatus(EmergencyId.fromString(EM));
+    const counts = await repo.countByEmergencyGroupedByStatus(
+      EmergencyId.fromString(EM),
+    );
     expect(counts[NeedStatus.Pending]).toBe(1);
     expect(counts[NeedStatus.Validated]).toBe(1);
     expect(counts[NeedStatus.Rejected]).toBe(1);
@@ -276,7 +324,9 @@ describe('DrizzleNeedRepository (integration)', () => {
     await repo.save(myNeed);
     await repo.save(otherNeed);
 
-    const counts = await repo.countByEmergencyGroupedByStatus(EmergencyId.fromString(EM));
+    const counts = await repo.countByEmergencyGroupedByStatus(
+      EmergencyId.fromString(EM),
+    );
     expect(counts[NeedStatus.Pending]).toBe(1);
   });
 });

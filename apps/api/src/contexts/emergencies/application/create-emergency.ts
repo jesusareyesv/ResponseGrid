@@ -13,7 +13,9 @@ export interface CreateEmergencyCommand {
 export class CreateEmergency {
   constructor(private readonly repo: EmergencyRepository) {}
 
-  async execute(cmd: CreateEmergencyCommand): Promise<{ id: string; slug: string }> {
+  async execute(
+    cmd: CreateEmergencyCommand,
+  ): Promise<{ id: string; slug: string }> {
     const slug = cmd.slug ? Slug.fromString(cmd.slug) : Slug.fromName(cmd.name);
     const existing = await this.repo.findBySlug(slug);
     if (existing) throw new SlugAlreadyExistsError(slug.value);

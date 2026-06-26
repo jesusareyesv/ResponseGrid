@@ -19,7 +19,12 @@ function makeLocation(): Location {
 
 function makeItems(): NeedItem[] {
   return [
-    NeedItem.create({ name: 'Water bottles', quantity: 100, unit: 'units', category: NeedCategory.Water }),
+    NeedItem.create({
+      name: 'Water bottles',
+      quantity: 100,
+      unit: 'units',
+      category: NeedCategory.Water,
+    }),
   ];
 }
 
@@ -88,12 +93,24 @@ describe('Need aggregate', () => {
       requesterUserId: USER_ID,
       requesterOrganizationId: '11111111-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
       items: [
-        NeedItem.create({ name: 'Food', quantity: 50, unit: 'boxes', category: NeedCategory.Food }),
-        NeedItem.create({ name: 'Blankets', quantity: 20, unit: null, category: NeedCategory.Shelter }),
+        NeedItem.create({
+          name: 'Food',
+          quantity: 50,
+          unit: 'boxes',
+          category: NeedCategory.Food,
+        }),
+        NeedItem.create({
+          name: 'Blankets',
+          quantity: 20,
+          unit: null,
+          category: NeedCategory.Shelter,
+        }),
       ],
     });
     expect(need.items).toHaveLength(2);
-    expect(need.requesterOrganizationId).toBe('11111111-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
+    expect(need.requesterOrganizationId).toBe(
+      '11111111-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    );
   });
 
   it('validate() transitions to Validated and emits need.validated event', () => {

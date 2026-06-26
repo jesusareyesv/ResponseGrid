@@ -5,7 +5,11 @@ import { FakeEventBus } from '../infrastructure/fake-event-bus';
 import { ResourceType, ResourceStage } from '../domain/resource-enums';
 
 const EM = '11111111-1111-4111-8111-111111111111';
-const baseLocation = { address: 'Calle Mayor 1, Valencia', latitude: 39.4699, longitude: -0.3763 };
+const baseLocation = {
+  address: 'Calle Mayor 1, Valencia',
+  latitude: 39.4699,
+  longitude: -0.3763,
+};
 
 describe('GetCoordinationQueue', () => {
   it('returns pending resources of the emergency as views', async () => {
@@ -20,7 +24,9 @@ describe('GetCoordinationQueue', () => {
       ownerUserId: 'user-coord-test',
     });
 
-    const views = await new GetCoordinationQueue(repo).execute({ emergencyId: EM });
+    const views = await new GetCoordinationQueue(repo).execute({
+      emergencyId: EM,
+    });
 
     expect(views).toEqual([
       expect.objectContaining({

@@ -7,7 +7,13 @@ describe('User', () => {
   const email = Email.fromString('admin@reliefhub.org');
 
   it('creates a user via User.create', () => {
-    const user = User.create({ id, email, passwordHash: 'hash', name: 'Admin', isAdmin: true });
+    const user = User.create({
+      id,
+      email,
+      passwordHash: 'hash',
+      name: 'Admin',
+      isAdmin: true,
+    });
     expect(user.id.value).toBe(id.value);
     expect(user.email.value).toBe(email.value);
     expect(user.passwordHash).toBe('hash');
@@ -16,7 +22,13 @@ describe('User', () => {
   });
 
   it('round-trips through snapshot', () => {
-    const user = User.create({ id, email, passwordHash: 'hash', name: 'Admin', isAdmin: false });
+    const user = User.create({
+      id,
+      email,
+      passwordHash: 'hash',
+      name: 'Admin',
+      isAdmin: false,
+    });
     const restored = User.fromSnapshot(user.toSnapshot());
     expect(restored.id.value).toBe(user.id.value);
     expect(restored.email.value).toBe(user.email.value);

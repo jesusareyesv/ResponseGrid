@@ -1,4 +1,7 @@
-import { GeocodeResult, GeocodingProvider } from '../domain/ports/geocoding.provider';
+import {
+  GeocodeResult,
+  GeocodingProvider,
+} from '../domain/ports/geocoding.provider';
 
 /** Shape of a single item returned by Nominatim JSON v2 */
 interface NominatimItem {
@@ -21,7 +24,10 @@ const USER_AGENT = 'ReliefHub/0.1 (emergency-aid-coordination)';
  * benefits from its own hot cache without coordination overhead.
  */
 export class NominatimGeocodingProvider implements GeocodingProvider {
-  private readonly cache = new Map<string, { results: GeocodeResult[]; expiresAt: number }>();
+  private readonly cache = new Map<
+    string,
+    { results: GeocodeResult[]; expiresAt: number }
+  >();
   private readonly ttlMs: number;
 
   constructor(ttlMs = 86_400_000 /* 1 day */) {

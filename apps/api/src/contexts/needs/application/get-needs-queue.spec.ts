@@ -14,7 +14,9 @@ const baseCmd = {
   requesterOrganizationId: null,
   description: null,
   location: { address: 'Caracas', latitude: 10.4806, longitude: -66.9036 },
-  items: [{ name: 'Food', quantity: 10, unit: null, category: NeedCategory.Food }],
+  items: [
+    { name: 'Food', quantity: 10, unit: null, category: NeedCategory.Food },
+  ],
 };
 
 describe('GetNeedsQueue', () => {
@@ -33,8 +35,16 @@ describe('GetNeedsQueue', () => {
   });
 
   it('returns only pending needs', async () => {
-    const { id: id1 } = await createNeed.execute({ ...baseCmd, title: 'Pending need', priority: Priority.High });
-    const { id: id2 } = await createNeed.execute({ ...baseCmd, title: 'Will be validated', priority: Priority.Urgent });
+    const { id: id1 } = await createNeed.execute({
+      ...baseCmd,
+      title: 'Pending need',
+      priority: Priority.High,
+    });
+    const { id: id2 } = await createNeed.execute({
+      ...baseCmd,
+      title: 'Will be validated',
+      priority: Priority.Urgent,
+    });
 
     await validateNeed.execute({ needId: id2 });
 
@@ -50,7 +60,12 @@ describe('GetNeedsQueue', () => {
       title: 'Queue check',
       priority: Priority.Medium,
       items: [
-        { name: 'Blankets', quantity: 30, unit: null, category: NeedCategory.Shelter },
+        {
+          name: 'Blankets',
+          quantity: 30,
+          unit: null,
+          category: NeedCategory.Shelter,
+        },
       ],
     });
 
@@ -61,7 +76,11 @@ describe('GetNeedsQueue', () => {
   });
 
   it('returns empty when all needs validated', async () => {
-    const { id } = await createNeed.execute({ ...baseCmd, title: 'Need', priority: Priority.Medium });
+    const { id } = await createNeed.execute({
+      ...baseCmd,
+      title: 'Need',
+      priority: Priority.Medium,
+    });
     await validateNeed.execute({ needId: id });
 
     const result = await getNeedsQueue.execute({ emergencyId: EM });
@@ -75,16 +94,28 @@ describe('GetNeedsQueue', () => {
       ...baseCmd,
       title: 'Food need',
       priority: Priority.High,
-      items: [{ name: 'Rice', quantity: 20, unit: null, category: NeedCategory.Food }],
+      items: [
+        { name: 'Rice', quantity: 20, unit: null, category: NeedCategory.Food },
+      ],
     });
     await createNeed.execute({
       ...baseCmd,
       title: 'Water need',
       priority: Priority.Medium,
-      items: [{ name: 'Bottles', quantity: 100, unit: null, category: NeedCategory.Water }],
+      items: [
+        {
+          name: 'Bottles',
+          quantity: 100,
+          unit: null,
+          category: NeedCategory.Water,
+        },
+      ],
     });
 
-    const result = await getNeedsQueue.execute({ emergencyId: EM, category: NeedCategory.Food });
+    const result = await getNeedsQueue.execute({
+      emergencyId: EM,
+      category: NeedCategory.Food,
+    });
     expect(result).toHaveLength(1);
     expect(result[0].title).toBe('Food need');
   });
@@ -95,12 +126,20 @@ describe('GetNeedsQueue', () => {
       title: 'Mixed need',
       priority: Priority.High,
       items: [
-        { name: 'Soap', quantity: 20, unit: null, category: NeedCategory.Hygiene },
+        {
+          name: 'Soap',
+          quantity: 20,
+          unit: null,
+          category: NeedCategory.Hygiene,
+        },
         { name: 'Rice', quantity: 10, unit: null, category: NeedCategory.Food },
       ],
     });
 
-    const result = await getNeedsQueue.execute({ emergencyId: EM, category: NeedCategory.Hygiene });
+    const result = await getNeedsQueue.execute({
+      emergencyId: EM,
+      category: NeedCategory.Hygiene,
+    });
     expect(result).toHaveLength(1);
     expect(result[0].id).toBe(id);
   });
@@ -110,10 +149,20 @@ describe('GetNeedsQueue', () => {
       ...baseCmd,
       title: 'Shelter need',
       priority: Priority.Low,
-      items: [{ name: 'Tents', quantity: 5, unit: null, category: NeedCategory.Shelter }],
+      items: [
+        {
+          name: 'Tents',
+          quantity: 5,
+          unit: null,
+          category: NeedCategory.Shelter,
+        },
+      ],
     });
 
-    const result = await getNeedsQueue.execute({ emergencyId: EM, category: NeedCategory.Medical });
+    const result = await getNeedsQueue.execute({
+      emergencyId: EM,
+      category: NeedCategory.Medical,
+    });
     expect(result).toHaveLength(0);
   });
 
@@ -131,7 +180,10 @@ describe('GetNeedsQueue', () => {
       priority: Priority.Low,
     });
 
-    const result = await getNeedsQueue.execute({ emergencyId: EM, priority: Priority.Urgent });
+    const result = await getNeedsQueue.execute({
+      emergencyId: EM,
+      priority: Priority.Urgent,
+    });
     expect(result).toHaveLength(1);
     expect(result[0].id).toBe(urgentId);
   });
@@ -143,7 +195,10 @@ describe('GetNeedsQueue', () => {
       priority: Priority.Medium,
     });
 
-    const result = await getNeedsQueue.execute({ emergencyId: EM, priority: Priority.High });
+    const result = await getNeedsQueue.execute({
+      emergencyId: EM,
+      priority: Priority.High,
+    });
     expect(result).toHaveLength(0);
   });
 
@@ -154,19 +209,40 @@ describe('GetNeedsQueue', () => {
       ...baseCmd,
       title: 'Urgent food',
       priority: Priority.Urgent,
-      items: [{ name: 'Canned food', quantity: 50, unit: null, category: NeedCategory.Food }],
+      items: [
+        {
+          name: 'Canned food',
+          quantity: 50,
+          unit: null,
+          category: NeedCategory.Food,
+        },
+      ],
     });
     await createNeed.execute({
       ...baseCmd,
       title: 'Low food',
       priority: Priority.Low,
-      items: [{ name: 'Bread', quantity: 10, unit: null, category: NeedCategory.Food }],
+      items: [
+        {
+          name: 'Bread',
+          quantity: 10,
+          unit: null,
+          category: NeedCategory.Food,
+        },
+      ],
     });
     await createNeed.execute({
       ...baseCmd,
       title: 'Urgent water',
       priority: Priority.Urgent,
-      items: [{ name: 'Water', quantity: 100, unit: null, category: NeedCategory.Water }],
+      items: [
+        {
+          name: 'Water',
+          quantity: 100,
+          unit: null,
+          category: NeedCategory.Water,
+        },
+      ],
     });
 
     const result = await getNeedsQueue.execute({
@@ -181,8 +257,16 @@ describe('GetNeedsQueue', () => {
   // ── No filters: existing behaviour unchanged ────────────────────────────────
 
   it('returns all pending needs when no filters are given', async () => {
-    await createNeed.execute({ ...baseCmd, title: 'Need 1', priority: Priority.Low });
-    await createNeed.execute({ ...baseCmd, title: 'Need 2', priority: Priority.High });
+    await createNeed.execute({
+      ...baseCmd,
+      title: 'Need 1',
+      priority: Priority.Low,
+    });
+    await createNeed.execute({
+      ...baseCmd,
+      title: 'Need 2',
+      priority: Priority.High,
+    });
 
     const result = await getNeedsQueue.execute({ emergencyId: EM });
     expect(result).toHaveLength(2);

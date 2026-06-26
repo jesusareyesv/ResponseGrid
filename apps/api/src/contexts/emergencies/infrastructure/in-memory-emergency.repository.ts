@@ -7,23 +7,25 @@ import { Slug } from '../domain/slug';
 export class InMemoryEmergencyRepository implements EmergencyRepository {
   private store = new Map<string, ReturnType<Emergency['toSnapshot']>>();
 
-  async save(e: Emergency): Promise<void> {
+  save(e: Emergency): Promise<void> {
     this.store.set(e.id.value, e.toSnapshot());
+    return Promise.resolve();
   }
 
-  async findById(id: EmergencyId): Promise<Emergency | null> {
+  findById(id: EmergencyId): Promise<Emergency | null> {
     const snap = this.store.get(id.value);
-    return snap ? Emergency.fromSnapshot(snap) : null;
+    return Promise.resolve(snap ? Emergency.fromSnapshot(snap) : null);
   }
 
-  async findBySlug(slug: Slug): Promise<Emergency | null> {
+  findBySlug(slug: Slug): Promise<Emergency | null> {
     const snap = [...this.store.values()].find((s) => s.slug === slug.value);
-    return snap ? Emergency.fromSnapshot(snap) : null;
+    return Promise.resolve(snap ? Emergency.fromSnapshot(snap) : null);
   }
 
-  async listActive(): Promise<Emergency[]> {
-    return [...this.store.values()]
+  listActive(): Promise<Emergency[]> {
+    const result = [...this.store.values()]
       .filter((s) => s.status === EmergencyStatus.Active)
       .map((s) => Emergency.fromSnapshot(s));
+    return Promise.resolve(result);
   }
 }

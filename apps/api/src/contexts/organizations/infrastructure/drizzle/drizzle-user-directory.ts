@@ -8,7 +8,11 @@ export class DrizzleUserDirectory implements UserDirectory {
 
   async findByEmail(email: string): Promise<UserView | null> {
     const rows = await this.db
-      .select({ id: usersTable.id, email: usersTable.email, name: usersTable.name })
+      .select({
+        id: usersTable.id,
+        email: usersTable.email,
+        name: usersTable.name,
+      })
       .from(usersTable)
       .where(eq(usersTable.email, email));
     if (!rows[0]) return null;
@@ -17,7 +21,11 @@ export class DrizzleUserDirectory implements UserDirectory {
 
   async findById(id: string): Promise<UserView | null> {
     const rows = await this.db
-      .select({ id: usersTable.id, email: usersTable.email, name: usersTable.name })
+      .select({
+        id: usersTable.id,
+        email: usersTable.email,
+        name: usersTable.name,
+      })
       .from(usersTable)
       .where(eq(usersTable.id, id));
     if (!rows[0]) return null;

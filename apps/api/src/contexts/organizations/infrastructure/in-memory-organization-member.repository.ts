@@ -1,4 +1,7 @@
-import { OrganizationMemberRepository, OrganizationMemberEntry } from '../domain/ports/organization-member.repository';
+import {
+  OrganizationMemberRepository,
+  OrganizationMemberEntry,
+} from '../domain/ports/organization-member.repository';
 import { OrganizationRole } from '../domain/organization-enums';
 import { Organization } from '../domain/organization';
 import { InMemoryOrganizationRepository } from './in-memory-organization.repository';
@@ -20,8 +23,17 @@ export class InMemoryOrganizationMemberRepository implements OrganizationMemberR
     return `${organizationId}:${userId}`;
   }
 
-  async add(organizationId: string, userId: string, role: OrganizationRole): Promise<void> {
-    this.store.set(this.key(organizationId, userId), { organizationId, userId, role });
+  add(
+    organizationId: string,
+    userId: string,
+    role: OrganizationRole,
+  ): Promise<void> {
+    this.store.set(this.key(organizationId, userId), {
+      organizationId,
+      userId,
+      role,
+    });
+    return Promise.resolve();
   }
 
   async listOrganizationsOfUser(userId: string): Promise<Organization[]> {
@@ -37,26 +49,30 @@ export class InMemoryOrganizationMemberRepository implements OrganizationMemberR
     return results;
   }
 
-  async isMember(organizationId: string, userId: string): Promise<boolean> {
-    return this.store.has(this.key(organizationId, userId));
+  isMember(organizationId: string, userId: string): Promise<boolean> {
+    return Promise.resolve(this.store.has(this.key(organizationId, userId)));
   }
 
-  async listMembers(organizationId: string): Promise<OrganizationMemberEntry[]> {
+  listMembers(organizationId: string): Promise<OrganizationMemberEntry[]> {
     const result: OrganizationMemberEntry[] = [];
     for (const entry of this.store.values()) {
       if (entry.organizationId === organizationId) {
         result.push({ userId: entry.userId, role: entry.role });
       }
     }
-    return result;
+    return Promise.resolve(result);
   }
 
-  async getRole(organizationId: string, userId: string): Promise<OrganizationRole | null> {
+  getRole(
+    organizationId: string,
+    userId: string,
+  ): Promise<OrganizationRole | null> {
     const entry = this.store.get(this.key(organizationId, userId));
-    return entry?.role ?? null;
+    return Promise.resolve(entry?.role ?? null);
   }
 
-  async remove(organizationId: string, userId: string): Promise<void> {
+  remove(organizationId: string, userId: string): Promise<void> {
     this.store.delete(this.key(organizationId, userId));
+    return Promise.resolve();
   }
 }

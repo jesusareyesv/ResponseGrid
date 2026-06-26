@@ -52,7 +52,11 @@ describe('AuthenticateWithProvider', () => {
         providerUserId: 'google-uid-123',
       });
 
-      const useCase = new AuthenticateWithProvider(userRepo, identityRepo, tokenService);
+      const useCase = new AuthenticateWithProvider(
+        userRepo,
+        identityRepo,
+        tokenService,
+      );
       const result = await useCase.execute(cmd);
 
       expect(result.accessToken).toContain(EXISTING_USER_ID);
@@ -67,10 +71,16 @@ describe('AuthenticateWithProvider', () => {
         providerUserId: 'google-uid-123',
       });
 
-      const useCase = new AuthenticateWithProvider(userRepo, identityRepo, tokenService);
+      const useCase = new AuthenticateWithProvider(
+        userRepo,
+        identityRepo,
+        tokenService,
+      );
       await useCase.execute(cmd);
       // Only the original user should exist
-      const found = await userRepo.findByEmail(Email.fromString('social@example.com'));
+      const found = await userRepo.findByEmail(
+        Email.fromString('social@example.com'),
+      );
       expect(found?.id.value).toBe(EXISTING_USER_ID);
     });
   });
@@ -80,7 +90,11 @@ describe('AuthenticateWithProvider', () => {
       const userRepo = await buildRepoWithUser('social@example.com');
       const identityRepo = new InMemoryUserIdentityRepository();
 
-      const useCase = new AuthenticateWithProvider(userRepo, identityRepo, tokenService);
+      const useCase = new AuthenticateWithProvider(
+        userRepo,
+        identityRepo,
+        tokenService,
+      );
       const result = await useCase.execute(cmd);
 
       expect(result.accessToken).toContain(EXISTING_USER_ID);
@@ -90,10 +104,17 @@ describe('AuthenticateWithProvider', () => {
       const userRepo = await buildRepoWithUser('social@example.com');
       const identityRepo = new InMemoryUserIdentityRepository();
 
-      const useCase = new AuthenticateWithProvider(userRepo, identityRepo, tokenService);
+      const useCase = new AuthenticateWithProvider(
+        userRepo,
+        identityRepo,
+        tokenService,
+      );
       await useCase.execute(cmd);
 
-      const linkedId = await identityRepo.findByProvider(AuthProvider.Google, 'google-uid-123');
+      const linkedId = await identityRepo.findByProvider(
+        AuthProvider.Google,
+        'google-uid-123',
+      );
       expect(linkedId?.value).toBe(EXISTING_USER_ID);
     });
 
@@ -102,7 +123,11 @@ describe('AuthenticateWithProvider', () => {
       const identityRepo = new InMemoryUserIdentityRepository();
       const countBefore = await userRepo.countAll();
 
-      const useCase = new AuthenticateWithProvider(userRepo, identityRepo, tokenService);
+      const useCase = new AuthenticateWithProvider(
+        userRepo,
+        identityRepo,
+        tokenService,
+      );
       await useCase.execute(cmd);
 
       expect(await userRepo.countAll()).toBe(countBefore);
@@ -114,7 +139,11 @@ describe('AuthenticateWithProvider', () => {
       const userRepo = new InMemoryUserRepository();
       const identityRepo = new InMemoryUserIdentityRepository();
 
-      const useCase = new AuthenticateWithProvider(userRepo, identityRepo, tokenService);
+      const useCase = new AuthenticateWithProvider(
+        userRepo,
+        identityRepo,
+        tokenService,
+      );
       const result = await useCase.execute(cmd);
 
       expect(result.accessToken).toContain('social@example.com');
@@ -124,10 +153,16 @@ describe('AuthenticateWithProvider', () => {
       const userRepo = new InMemoryUserRepository();
       const identityRepo = new InMemoryUserIdentityRepository();
 
-      const useCase = new AuthenticateWithProvider(userRepo, identityRepo, tokenService);
+      const useCase = new AuthenticateWithProvider(
+        userRepo,
+        identityRepo,
+        tokenService,
+      );
       await useCase.execute(cmd);
 
-      const found = await userRepo.findByEmail(Email.fromString('social@example.com'));
+      const found = await userRepo.findByEmail(
+        Email.fromString('social@example.com'),
+      );
       expect(found).not.toBeNull();
       expect(found?.passwordHash).toBeNull();
       expect(found?.name).toBe('Social User');
@@ -138,13 +173,22 @@ describe('AuthenticateWithProvider', () => {
       const userRepo = new InMemoryUserRepository();
       const identityRepo = new InMemoryUserIdentityRepository();
 
-      const useCase = new AuthenticateWithProvider(userRepo, identityRepo, tokenService);
+      const useCase = new AuthenticateWithProvider(
+        userRepo,
+        identityRepo,
+        tokenService,
+      );
       await useCase.execute(cmd);
 
-      const linkedId = await identityRepo.findByProvider(AuthProvider.Google, 'google-uid-123');
+      const linkedId = await identityRepo.findByProvider(
+        AuthProvider.Google,
+        'google-uid-123',
+      );
       expect(linkedId).not.toBeNull();
 
-      const user = await userRepo.findByEmail(Email.fromString('social@example.com'));
+      const user = await userRepo.findByEmail(
+        Email.fromString('social@example.com'),
+      );
       expect(linkedId?.value).toBe(user?.id.value);
     });
 
@@ -152,7 +196,11 @@ describe('AuthenticateWithProvider', () => {
       const userRepo = new InMemoryUserRepository();
       const identityRepo = new InMemoryUserIdentityRepository();
 
-      const useCase = new AuthenticateWithProvider(userRepo, identityRepo, tokenService);
+      const useCase = new AuthenticateWithProvider(
+        userRepo,
+        identityRepo,
+        tokenService,
+      );
       const result = await useCase.execute({
         provider: AuthProvider.Facebook,
         providerUserId: 'fb-uid-456',

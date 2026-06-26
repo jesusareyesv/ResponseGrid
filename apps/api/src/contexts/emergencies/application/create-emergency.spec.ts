@@ -35,10 +35,18 @@ describe('CreateEmergency', () => {
     const repo = new InMemoryEmergencyRepository();
     const useCase = new CreateEmergency(repo);
 
-    await useCase.execute({ name: 'First Emergency', slug: 'my-slug', country: 'US' });
+    await useCase.execute({
+      name: 'First Emergency',
+      slug: 'my-slug',
+      country: 'US',
+    });
 
     await expect(
-      useCase.execute({ name: 'Second Emergency', slug: 'my-slug', country: 'ES' }),
+      useCase.execute({
+        name: 'Second Emergency',
+        slug: 'my-slug',
+        country: 'ES',
+      }),
     ).rejects.toThrow(SlugAlreadyExistsError);
   });
 

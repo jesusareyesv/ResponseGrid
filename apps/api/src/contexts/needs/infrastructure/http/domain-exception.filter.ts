@@ -1,4 +1,9 @@
-import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus } from '@nestjs/common';
+import {
+  ArgumentsHost,
+  Catch,
+  ExceptionFilter,
+  HttpStatus,
+} from '@nestjs/common';
 import { Response } from 'express';
 import { NeedNotFoundError } from '../../application/need-not-found.error';
 import { NeedNotPendingError } from '../../domain/need-errors';
@@ -12,7 +17,11 @@ export class NeedsDomainExceptionFilter implements ExceptionFilter {
   catch(exception: DomainError, host: ArgumentsHost): void {
     const response = host.switchToHttp().getResponse<Response>();
     const statusCode =
-      exception instanceof NeedNotFoundError ? HttpStatus.NOT_FOUND : HttpStatus.CONFLICT;
-    response.status(statusCode).json({ statusCode, message: exception.message });
+      exception instanceof NeedNotFoundError
+        ? HttpStatus.NOT_FOUND
+        : HttpStatus.CONFLICT;
+    response
+      .status(statusCode)
+      .json({ statusCode, message: exception.message });
   }
 }

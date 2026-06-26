@@ -2,7 +2,10 @@ import { ListOrganizationMembers } from './list-organization-members';
 import { InMemoryOrganizationRepository } from '../infrastructure/in-memory-organization.repository';
 import { InMemoryOrganizationMemberRepository } from '../infrastructure/in-memory-organization-member.repository';
 import { InMemoryUserDirectory } from '../infrastructure/in-memory-user-directory';
-import { OrganizationType, OrganizationRole } from '../domain/organization-enums';
+import {
+  OrganizationType,
+  OrganizationRole,
+} from '../domain/organization-enums';
 import { Organization } from '../domain/organization';
 import { OrganizationId } from '../domain/organization-id';
 import { NotMemberError } from '../domain/errors';
@@ -36,8 +39,16 @@ describe('ListOrganizationMembers', () => {
     await orgRepo.save(makeOrg());
     await memberRepo.add(ORG_ID, OWNER_ID, OrganizationRole.Owner);
     await memberRepo.add(ORG_ID, MEMBER_ID, OrganizationRole.Member);
-    userDirectory.seed({ id: OWNER_ID, email: 'owner@example.com', name: 'Owner' });
-    userDirectory.seed({ id: MEMBER_ID, email: 'member@example.com', name: 'Member' });
+    userDirectory.seed({
+      id: OWNER_ID,
+      email: 'owner@example.com',
+      name: 'Owner',
+    });
+    userDirectory.seed({
+      id: MEMBER_ID,
+      email: 'member@example.com',
+      name: 'Member',
+    });
   });
 
   it('returns all members with their roles when requester is a member', async () => {

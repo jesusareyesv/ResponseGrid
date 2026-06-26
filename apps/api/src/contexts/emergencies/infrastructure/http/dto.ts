@@ -10,17 +10,23 @@ export class CreateEmergencyDto {
   @ApiProperty({
     example: 'venezuela',
     required: false,
-    description: 'URL-safe slug (lowercase letters, digits, hyphens). Auto-generated from name if omitted.',
+    description:
+      'URL-safe slug (lowercase letters, digits, hyphens). Auto-generated from name if omitted.',
     pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$',
   })
   @IsOptional()
   @IsString()
   @Matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
-    message: 'slug must contain only lowercase letters, digits, and hyphens (e.g. my-emergency)',
+    message:
+      'slug must contain only lowercase letters, digits, and hyphens (e.g. my-emergency)',
   })
   slug?: string;
 
-  @ApiProperty({ example: 'VE', minLength: 2, description: 'ISO 3166-1 alpha-2 country code' })
+  @ApiProperty({
+    example: 'VE',
+    minLength: 2,
+    description: 'ISO 3166-1 alpha-2 country code',
+  })
   @IsString()
   @MinLength(2)
   country!: string;

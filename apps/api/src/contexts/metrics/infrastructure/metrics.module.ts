@@ -3,8 +3,14 @@ import { DB, DatabaseModule } from '../../../shared/database.module';
 import { Db } from '../../../shared/db';
 import { MetricsController } from './http/metrics.controller';
 import { GetEmergencyMetrics } from '../application/get-emergency-metrics';
-import { NEED_REPOSITORY, NeedRepository } from '../../needs/domain/ports/need.repository';
-import { RESOURCE_REPOSITORY, ResourceRepository } from '../../resources/domain/ports/resource.repository';
+import {
+  NEED_REPOSITORY,
+  NeedRepository,
+} from '../../needs/domain/ports/need.repository';
+import {
+  RESOURCE_REPOSITORY,
+  ResourceRepository,
+} from '../../resources/domain/ports/resource.repository';
 import { DrizzleNeedRepository } from '../../needs/infrastructure/drizzle/drizzle-need.repository';
 import { DrizzleResourceRepository } from '../../resources/infrastructure/drizzle/drizzle-resource.repository';
 

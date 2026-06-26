@@ -14,7 +14,9 @@ export class PublishResource {
   ) {}
 
   async execute(cmd: PublishResourceCommand): Promise<void> {
-    const resource = await this.repo.findById(ResourceId.fromString(cmd.resourceId));
+    const resource = await this.repo.findById(
+      ResourceId.fromString(cmd.resourceId),
+    );
     if (!resource) throw new ResourceNotFoundError(cmd.resourceId);
     resource.publish();
     await this.repo.save(resource);

@@ -13,7 +13,12 @@ const defaultLocation = {
 };
 
 const defaultItems = [
-  { name: 'Water bottles', quantity: 100, unit: 'units', category: NeedCategory.Water },
+  {
+    name: 'Water bottles',
+    quantity: 100,
+    unit: 'units',
+    category: NeedCategory.Water,
+  },
 ];
 
 function makeCmd(overrides?: Partial<CreateNeedCommand>): CreateNeedCommand {
@@ -54,8 +59,18 @@ describe('CreateNeed', () => {
     const result = await useCase.execute(
       makeCmd({
         items: [
-          { name: 'Food boxes', quantity: 50, unit: 'boxes', category: NeedCategory.Food },
-          { name: 'Blankets', quantity: 20, unit: null, category: NeedCategory.Shelter },
+          {
+            name: 'Food boxes',
+            quantity: 50,
+            unit: 'boxes',
+            category: NeedCategory.Food,
+          },
+          {
+            name: 'Blankets',
+            quantity: 20,
+            unit: null,
+            category: NeedCategory.Shelter,
+          },
         ],
       }),
     );
@@ -82,7 +97,9 @@ describe('CreateNeed', () => {
 
   it('stores optional requesterOrganizationId', async () => {
     const orgId = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
-    const result = await useCase.execute(makeCmd({ requesterOrganizationId: orgId }));
+    const result = await useCase.execute(
+      makeCmd({ requesterOrganizationId: orgId }),
+    );
     const saved = await repo.findById({ value: result.id } as never);
     expect(saved!.requesterOrganizationId).toBe(orgId);
   });
@@ -105,7 +122,9 @@ describe('CreateNeed', () => {
   });
 
   it('stores description when provided', async () => {
-    const result = await useCase.execute(makeCmd({ description: 'Critical need near hospital' }));
+    const result = await useCase.execute(
+      makeCmd({ description: 'Critical need near hospital' }),
+    );
     const saved = await repo.findById({ value: result.id } as never);
     expect(saved!.description).toBe('Critical need near hospital');
   });

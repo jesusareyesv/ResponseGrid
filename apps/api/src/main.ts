@@ -9,9 +9,16 @@ import { NeedsDomainExceptionFilter } from './contexts/needs/infrastructure/http
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(
-    new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }),
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
   );
-  app.useGlobalFilters(new DomainExceptionFilter(), new NeedsDomainExceptionFilter());
+  app.useGlobalFilters(
+    new DomainExceptionFilter(),
+    new NeedsDomainExceptionFilter(),
+  );
   app.enableShutdownHooks();
 
   const config = new DocumentBuilder()

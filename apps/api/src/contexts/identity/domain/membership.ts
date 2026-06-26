@@ -16,8 +16,18 @@ export class Membership {
     public readonly role: Role,
   ) {}
 
-  static create(props: { id: string; userId: UserId; emergencyId: string; role: Role }): Membership {
-    return new Membership(props.id, props.userId, props.emergencyId, props.role);
+  static create(props: {
+    id: string;
+    userId: UserId;
+    emergencyId: string;
+    role: Role;
+  }): Membership {
+    return new Membership(
+      props.id,
+      props.userId,
+      props.emergencyId,
+      props.role,
+    );
   }
 
   static fromSnapshot(snap: MembershipSnapshot): Membership {
@@ -25,7 +35,7 @@ export class Membership {
       snap.id,
       UserId.fromString(snap.userId),
       snap.emergencyId,
-      snap.role as Role,
+      snap.role,
     );
   }
 

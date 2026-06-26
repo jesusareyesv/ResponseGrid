@@ -20,21 +20,26 @@ import { AuthenticatedUser } from './jwt-auth.guard';
 @Injectable()
 export class RequireCoordinatorGuard implements CanActivate {
   constructor(
-    @Inject(MEMBERSHIP_REPOSITORY) private readonly membershipRepo: MembershipRepository,
+    @Inject(MEMBERSHIP_REPOSITORY)
+    private readonly membershipRepo: MembershipRepository,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context
       .switchToHttp()
-      .getRequest<Request & { user?: AuthenticatedUser; params: { emergencyId?: string } }>();
+      .getRequest<
+        Request & { user?: AuthenticatedUser; params: { emergencyId?: string } }
+      >();
 
-    if (!request.user) throw new UnauthorizedException('Authentication required');
+    if (!request.user)
+      throw new UnauthorizedException('Authentication required');
 
     // Admins bypass membership checks
     if (request.user.isAdmin) return true;
 
     const emergencyId = request.params.emergencyId;
-    if (!emergencyId) throw new ForbiddenException('Emergency context required');
+    if (!emergencyId)
+      throw new ForbiddenException('Emergency context required');
 
     const hasRole = await this.membershipRepo.hasRole(
       UserId.fromString(request.user.id),
@@ -42,7 +47,10 @@ export class RequireCoordinatorGuard implements CanActivate {
       Role.Coordinator,
     );
 
-    if (!hasRole) throw new ForbiddenException('Coordinator role required for this emergency');
+    if (!hasRole)
+      throw new ForbiddenException(
+        'Coordinator role required for this emergency',
+      );
     return true;
   }
 }

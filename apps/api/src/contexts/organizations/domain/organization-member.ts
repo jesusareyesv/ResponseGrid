@@ -26,6 +26,10 @@ export class OrganizationMember {
   }
 
   toSnapshot(): OrganizationMemberSnapshot {
-    return { organizationId: this.organizationId, userId: this.userId, role: this.role };
+    return {
+      organizationId: this.organizationId,
+      userId: this.userId,
+      role: this.role,
+    };
   }
 }

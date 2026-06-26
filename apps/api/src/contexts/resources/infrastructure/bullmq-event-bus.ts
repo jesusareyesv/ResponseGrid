@@ -11,7 +11,12 @@ export class BullMqEventBus implements EventBus {
     await this.queue.addBulk(
       events.map((e) => ({
         name: e.eventName,
-        data: { name: e.eventName, occurredOn: e.occurredOn.toISOString(), aggregateId: e.aggregateId, payload: e.payload },
+        data: {
+          name: e.eventName,
+          occurredOn: e.occurredOn.toISOString(),
+          aggregateId: e.aggregateId,
+          payload: e.payload,
+        },
       })),
     );
   }

@@ -10,7 +10,10 @@ import { UserId } from '../../domain/user-id';
 export class DrizzleUserIdentityRepository implements UserIdentityRepository {
   constructor(private readonly db: Db) {}
 
-  async findByProvider(provider: AuthProvider, providerUserId: string): Promise<UserId | null> {
+  async findByProvider(
+    provider: AuthProvider,
+    providerUserId: string,
+  ): Promise<UserId | null> {
     const rows = await this.db
       .select()
       .from(userIdentitiesTable)

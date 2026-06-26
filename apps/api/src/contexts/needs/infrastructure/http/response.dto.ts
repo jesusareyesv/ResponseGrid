@@ -2,7 +2,10 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Priority, NeedCategory, NeedStatus } from '../../domain/need-enums';
 
 export class CreateNeedResponseDto {
-  @ApiProperty({ format: 'uuid', example: '3fa85f64-5717-4562-b3fc-2c963f66afa6' })
+  @ApiProperty({
+    format: 'uuid',
+    example: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+  })
   id!: string;
 }
 
@@ -32,10 +35,16 @@ export class NeedItemResponseDto {
 }
 
 export class NeedViewDto {
-  @ApiProperty({ format: 'uuid', example: '3fa85f64-5717-4562-b3fc-2c963f66afa6' })
+  @ApiProperty({
+    format: 'uuid',
+    example: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+  })
   id!: string;
 
-  @ApiProperty({ format: 'uuid', example: '11111111-1111-4111-8111-111111111111' })
+  @ApiProperty({
+    format: 'uuid',
+    example: '11111111-1111-4111-8111-111111111111',
+  })
   emergencyId!: string;
 
   @ApiProperty({ example: 'Alimentos para 50 familias' })

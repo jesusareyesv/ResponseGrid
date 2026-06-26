@@ -1,7 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class NeedsMetricsDto {
-  @ApiProperty({ description: 'Total needs registered for this emergency', example: 10 })
+  @ApiProperty({
+    description: 'Total needs registered for this emergency',
+    example: 10,
+  })
   total!: number;
 
   @ApiProperty({ description: 'Open needs: pending + validated', example: 7 })
@@ -12,13 +15,22 @@ export class NeedsMetricsDto {
 }
 
 export class ResourcesMetricsDto {
-  @ApiProperty({ description: 'Total resources registered for this emergency', example: 5 })
+  @ApiProperty({
+    description: 'Total resources registered for this emergency',
+    example: 5,
+  })
   total!: number;
 
-  @ApiProperty({ description: 'Active logistic points (publicStatus = Active)', example: 3 })
+  @ApiProperty({
+    description: 'Active logistic points (publicStatus = Active)',
+    example: 3,
+  })
   active!: number;
 
-  @ApiProperty({ description: 'Resources pending publication (publicStatus = Hidden)', example: 2 })
+  @ApiProperty({
+    description: 'Resources pending publication (publicStatus = Hidden)',
+    example: 2,
+  })
   pending!: number;
 }
 

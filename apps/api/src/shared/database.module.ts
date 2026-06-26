@@ -35,7 +35,7 @@ export class DatabaseModule implements OnApplicationShutdown {
     try {
       const pool = this.moduleRef.get<Pool>(PG_POOL, { strict: false });
       await pool.end();
-    } catch (_) {
+    } catch {
       // ignore — let remaining teardown proceed
     }
   }

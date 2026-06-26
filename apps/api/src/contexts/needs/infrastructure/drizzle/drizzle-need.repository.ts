@@ -2,7 +2,10 @@ import { and, count, eq, exists, inArray, SQL } from 'drizzle-orm';
 import { randomUUID } from 'node:crypto';
 import { Db } from '../../../../shared/db';
 import { needsTable, needItemsTable } from './schema';
-import { NeedRepository, NeedFilters } from '../../domain/ports/need.repository';
+import {
+  NeedRepository,
+  NeedFilters,
+} from '../../domain/ports/need.repository';
 import { Need, NeedSnapshot } from '../../domain/need';
 import { NeedId } from '../../domain/need-id';
 import { EmergencyId } from '../../../../shared/domain/emergency-id';
@@ -89,7 +92,10 @@ export class DrizzleNeedRepository implements NeedRepository {
   }
 
   async findById(id: NeedId): Promise<Need | null> {
-    const rows = await this.db.select().from(needsTable).where(eq(needsTable.id, id.value));
+    const rows = await this.db
+      .select()
+      .from(needsTable)
+      .where(eq(needsTable.id, id.value));
     if (!rows[0]) return null;
     const items = await this.db
       .select()
@@ -98,12 +104,26 @@ export class DrizzleNeedRepository implements NeedRepository {
     return Need.fromSnapshot(rowToSnapshot(rows[0], items));
   }
 
-  async findValidatedByEmergency(emergencyId: EmergencyId, filters?: NeedFilters): Promise<Need[]> {
-    return this._findByEmergencyAndStatus(emergencyId, NeedStatus.Validated, filters);
+  async findValidatedByEmergency(
+    emergencyId: EmergencyId,
+    filters?: NeedFilters,
+  ): Promise<Need[]> {
+    return this._findByEmergencyAndStatus(
+      emergencyId,
+      NeedStatus.Validated,
+      filters,
+    );
   }
 
-  async findPendingByEmergency(emergencyId: EmergencyId, filters?: NeedFilters): Promise<Need[]> {
-    return this._findByEmergencyAndStatus(emergencyId, NeedStatus.Pending, filters);
+  async findPendingByEmergency(
+    emergencyId: EmergencyId,
+    filters?: NeedFilters,
+  ): Promise<Need[]> {
+    return this._findByEmergencyAndStatus(
+      emergencyId,
+      NeedStatus.Pending,
+      filters,
+    );
   }
 
   async countByEmergencyGroupedByStatus(
