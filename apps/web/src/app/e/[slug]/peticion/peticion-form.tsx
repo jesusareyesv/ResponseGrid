@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useState } from 'react';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import type { PeticionState } from './actions';
@@ -35,6 +35,14 @@ export function PeticionForm({
     action,
     INITIAL_STATE,
   );
+
+  // Controlled field state — values survive the re-render triggered by a
+  // validation error returned from the server action (useActionState replaces
+  // the state object, which re-renders the component, but React preserves
+  // useState hooks across re-renders of the same component instance).
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [priority, setPriority] = useState('');
 
   if (state.status === 'success') {
     return (
@@ -95,6 +103,8 @@ export function PeticionForm({
           required
           minLength={2}
           placeholder="Ej. Mantas térmicas para familias"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
           className="w-full rounded-lg border-2 border-gray-900 bg-white px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
         />
       </div>
@@ -113,6 +123,8 @@ export function PeticionForm({
           name="description"
           rows={3}
           placeholder="Detalla la necesidad para que la coordinación pueda valorarla…"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
           className="w-full rounded-lg border-2 border-gray-900 bg-white px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 resize-none"
         />
       </div>
@@ -129,7 +141,8 @@ export function PeticionForm({
           id="priority"
           name="priority"
           required
-          defaultValue=""
+          value={priority}
+          onChange={(e) => setPriority(e.target.value)}
           className="w-full rounded-lg border-2 border-gray-900 bg-white px-4 py-3 text-base text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
         >
           <option value="" disabled>

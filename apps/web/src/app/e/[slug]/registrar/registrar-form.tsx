@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useState } from 'react';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import type { ActionState } from './actions';
@@ -37,6 +37,15 @@ export function RegistrarForm({ action, slug, locationPicker, orgSelector }: Reg
     action,
     INITIAL_STATE,
   );
+
+  // Controlled field state — values survive the re-render triggered by a
+  // validation error returned from the server action (useActionState replaces
+  // the state object, which re-renders the component, but React preserves
+  // useState hooks across re-renders of the same component instance).
+  const [type, setType] = useState('');
+  const [stage, setStage] = useState('');
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
 
   if (state.status === 'success') {
     return (
@@ -94,7 +103,8 @@ export function RegistrarForm({ action, slug, locationPicker, orgSelector }: Reg
           id="type"
           name="type"
           required
-          defaultValue=""
+          value={type}
+          onChange={(e) => setType(e.target.value)}
           className="w-full rounded-lg border-2 border-gray-900 bg-white px-4 py-3 text-base text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
         >
           <option value="" disabled>
@@ -120,7 +130,8 @@ export function RegistrarForm({ action, slug, locationPicker, orgSelector }: Reg
           id="stage"
           name="stage"
           required
-          defaultValue=""
+          value={stage}
+          onChange={(e) => setStage(e.target.value)}
           className="w-full rounded-lg border-2 border-gray-900 bg-white px-4 py-3 text-base text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
         >
           <option value="" disabled>
@@ -149,6 +160,8 @@ export function RegistrarForm({ action, slug, locationPicker, orgSelector }: Reg
           required
           minLength={2}
           placeholder="Ej. Cruz Roja Madrid"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
           className="w-full rounded-lg border-2 border-gray-900 bg-white px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
         />
       </div>
@@ -167,6 +180,8 @@ export function RegistrarForm({ action, slug, locationPicker, orgSelector }: Reg
           name="description"
           rows={3}
           placeholder="Información adicional sobre el recurso…"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
           className="w-full rounded-lg border-2 border-gray-900 bg-white px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 resize-none"
         />
       </div>
