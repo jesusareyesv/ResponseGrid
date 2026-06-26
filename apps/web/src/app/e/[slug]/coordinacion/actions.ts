@@ -4,12 +4,6 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { api } from '@/lib/api';
 import { getToken, clearToken, authHeaders } from '@/lib/auth';
-import type { components } from '@reliefhub/api-client';
-
-type VerificationLevel = Exclude<
-  components['schemas']['VerifyResourceDto']['level'],
-  'unverified'
->;
 
 export type ActionResult =
   | { status: 'idle' }
@@ -17,14 +11,15 @@ export type ActionResult =
   | { status: 'error'; message: string };
 
 /**
- * Verifies a resource at the given level and immediately publishes it.
+ * Verifies a resource and immediately publishes it.
+ * The verification level is derived server-side by the backend — no level
+ * is sent in the request body.
  * The token is read server-side from the httpOnly cookie — never exposed to
  * the client.
  */
 export async function verifyAndPublish(
   resourceId: string,
   slug: string,
-  level: VerificationLevel,
 ): Promise<ActionResult> {
   const token = await getToken();
   if (token === null) {
@@ -33,16 +28,20 @@ export async function verifyAndPublish(
 
   const headers = authHeaders(token);
 
-  const { error: verifyError, response: verifyResponse } = await api.POST(
-    '/resources/{resourceId}/verify',
+  // The schema still carries VerifyResourceDto but the backend now accepts
+  // an empty body and derives the level itself. We bypass the typed client
+  // here to avoid sending a stale `level` field.
+  const apiBase = process.env.API_URL ?? 'http://localhost:3000';
+  const verifyResponse = await fetch(
+    `${apiBase}/resources/${resourceId}/verify`,
     {
-      params: { path: { resourceId } },
-      body: { level },
-      headers,
+      method: 'POST',
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      body: '{}',
     },
   );
 
-  if (verifyError !== undefined) {
+  if (!verifyResponse.ok) {
     if (verifyResponse.status === 401) {
       await clearToken();
       redirect(`/login?next=/e/${slug}/coordinacion`);

@@ -4,16 +4,11 @@ import { useActionState } from 'react';
 import { verifyAndPublish } from '@/app/e/[slug]/coordinacion/actions';
 import type { components } from '@reliefhub/api-client';
 import type { ActionResult } from '@/app/e/[slug]/coordinacion/actions';
-import { Badge } from '@/components/atoms/badge';
-import { Select } from '@/components/atoms/select';
+import { VerificationBadge } from '@/components/atoms/verification-badge';
 import { Button } from '@/components/atoms/button';
 import { ErrorMessage } from '@/components/atoms/error-message';
 
 type ResourceView = components['schemas']['ResourceViewDto'];
-type VerificationLevel = Exclude<
-  components['schemas']['VerifyResourceDto']['level'],
-  'unverified'
->;
 
 const TYPE_LABELS: Record<ResourceView['type'], string> = {
   collection_point: 'Punto de recogida',
@@ -31,11 +26,6 @@ const STAGE_LABELS: Record<ResourceView['stage'], string> = {
   destination: 'Destino',
 };
 
-const LEVEL_OPTIONS: { value: VerificationLevel; label: string }[] = [
-  { value: 'verified', label: 'Verificado' },
-  { value: 'official', label: 'Oficial' },
-];
-
 const INITIAL_STATE: ActionResult = { status: 'idle' };
 
 interface CoordinationResourceCardProps {
@@ -48,10 +38,7 @@ export function CoordinationResourceCard({
   slug,
 }: CoordinationResourceCardProps) {
   const [state, formAction, pending] = useActionState<ActionResult, FormData>(
-    async (_prev, formData) => {
-      const level = formData.get('level') as VerificationLevel;
-      return verifyAndPublish(resource.id, slug, level);
-    },
+    (_prev, _formData) => verifyAndPublish(resource.id, slug),
     INITIAL_STATE,
   );
 
@@ -70,9 +57,7 @@ export function CoordinationResourceCard({
           <h2 className="text-xl font-bold text-gray-900 leading-tight break-words">
             {resource.name}
           </h2>
-          <Badge variant="unverified" aria-label="Sin verificar">
-            Sin verificar
-          </Badge>
+          <VerificationBadge level={resource.verificationLevel} />
         </div>
         <div className="flex flex-wrap gap-3 text-sm text-gray-600">
           <span className="font-medium">{TYPE_LABELS[resource.type]}</span>
@@ -86,28 +71,8 @@ export function CoordinationResourceCard({
         <ErrorMessage message={state.message ?? 'Error desconocido'} />
       )}
 
-      {/* Action form */}
-      <form action={formAction} className="flex flex-col gap-3">
-        <div className="flex flex-col gap-1.5">
-          <label
-            htmlFor={`level-${resource.id}`}
-            className="text-xs font-semibold uppercase tracking-wide text-gray-700"
-          >
-            Nivel de verificación
-          </label>
-          <Select
-            id={`level-${resource.id}`}
-            name="level"
-            defaultValue="verified"
-          >
-            {LEVEL_OPTIONS.map(({ value, label }) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </Select>
-        </div>
-
+      {/* Action form — no level selection; backend derives the level */}
+      <form action={formAction}>
         <Button type="submit" disabled={pending} fullWidth>
           {pending ? 'Procesando…' : 'Verificar y publicar'}
         </Button>

@@ -1,4 +1,5 @@
 import type { components } from '@reliefhub/api-client';
+import { VerificationBadge } from '@/components/atoms/verification-badge';
 
 type ResourceViewDto = components['schemas']['ResourceViewDto'];
 
@@ -31,10 +32,12 @@ export function PublicResourceCard({ resource }: PublicResourceCardProps) {
       <h3 className="text-lg font-bold text-gray-900 leading-tight">
         {resource.name}
       </h3>
-      <div className="flex flex-wrap gap-2 text-sm text-gray-700">
+      <div className="flex flex-wrap items-center gap-2 text-sm text-gray-700">
         <span className="font-medium">{TYPE_LABELS[resource.type]}</span>
         <span aria-hidden="true" className="text-gray-300">·</span>
         <span>{STAGE_LABELS[resource.stage]}</span>
+        <span aria-hidden="true" className="text-gray-300">·</span>
+        <VerificationBadge level={resource.verificationLevel} />
       </div>
     </article>
   );

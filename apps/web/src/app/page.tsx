@@ -87,6 +87,12 @@ export default async function HomePage() {
             >
               Acceso coordinación
             </Link>
+            <Link
+              href="/admin/acreditaciones"
+              className="text-sm font-medium text-gray-400 hover:text-gray-700 underline underline-offset-2 transition-colors"
+            >
+              Admin
+            </Link>
           </nav>
         </footer>
 
