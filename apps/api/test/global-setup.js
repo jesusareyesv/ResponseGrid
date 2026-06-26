@@ -2,17 +2,17 @@
  * Jest global setup — runs once before the entire test suite in a dedicated
  * Node process. Responsibilities:
  *   1. Drop and recreate the `reliefhub_test` database (fresh slate every run).
- *   2. Apply the schema snapshot (`test/schema.sql`) to the empty database.
+ *   2. Apply Drizzle baseline migrations (drizzle/0000_baseline.sql, etc.) in
+ *      order, so the test DB always reflects the canonical schema TS source of
+ *      truth.
  *
  * Written as plain JS so Jest can execute it without a TS transformer
  * (globalSetup bypasses the transform pipeline). No additional dependencies —
  * only `pg` (already a production dep) and built-in Node modules.
  *
- * To update the schema snapshot after a migration:
- *   docker exec reliefhub-postgres-1 \
- *     pg_dump -U reliefhub -d reliefhub --schema-only --no-owner --no-acl \
- *     > apps/api/test/schema.sql
- * Then commit both the migration file and the updated schema.sql.
+ * To update the schema after adding a migration: just add the new .sql file to
+ * apps/api/drizzle/ — this setup applies all files in lexicographic order
+ * automatically.
  */
 
 'use strict';
@@ -25,6 +25,37 @@ const TEST_DB = 'reliefhub_test';
 /** Connect to the maintenance `postgres` DB so we can DROP/CREATE the test DB. */
 const ADMIN_URL = 'postgres://reliefhub:reliefhub@localhost:5433/postgres';
 const TEST_URL = `postgres://reliefhub:reliefhub@localhost:5433/${TEST_DB}`;
+
+/** Directory that holds the Drizzle migration .sql files. */
+const DRIZZLE_DIR = path.resolve(__dirname, '../drizzle');
+
+/**
+ * Collect all *.sql files from the drizzle directory in lexicographic order
+ * (0000_baseline.sql, 0001_…, etc.). Skips the meta/ subdirectory.
+ */
+function getMigrationFiles() {
+  return fs
+    .readdirSync(DRIZZLE_DIR)
+    .filter((f) => f.endsWith('.sql'))
+    .sort()
+    .map((f) => path.join(DRIZZLE_DIR, f));
+}
+
+/**
+ * Drizzle uses `--> statement-breakpoint` as a delimiter between statements
+ * that must be executed separately (e.g. after CREATE TABLE before ALTER TABLE
+ * that references it). Split on that marker and execute each chunk in order.
+ */
+async function applyMigrationFile(client, filePath) {
+  const sql = fs.readFileSync(filePath, 'utf8');
+  const statements = sql
+    .split('--> statement-breakpoint')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  for (const stmt of statements) {
+    await client.query(stmt);
+  }
+}
 
 module.exports = async function globalSetup() {
   // ── 1. Drop reliefhub_test and recreate it (clean slate) ──────────────────
@@ -44,14 +75,23 @@ module.exports = async function globalSetup() {
     await adminClient.end();
   }
 
-  // ── 2. Apply schema snapshot ───────────────────────────────────────────────
-  const schemaFile = path.resolve(__dirname, 'schema.sql');
-  const schemaSql = fs.readFileSync(schemaFile, 'utf8');
+  // ── 2. Apply Drizzle baseline migrations in order ─────────────────────────
+  const migrationFiles = getMigrationFiles();
+  if (migrationFiles.length === 0) {
+    throw new Error(
+      `[global-setup] No migration files found in ${DRIZZLE_DIR}`,
+    );
+  }
 
   const testClient = new Client({ connectionString: TEST_URL });
   await testClient.connect();
   try {
-    await testClient.query(schemaSql);
+    for (const filePath of migrationFiles) {
+      await applyMigrationFile(testClient, filePath);
+      console.log(
+        `[global-setup] Applied migration: ${path.basename(filePath)}`,
+      );
+    }
     console.log(`[global-setup] Schema applied to "${TEST_DB}".`);
   } finally {
     await testClient.end();

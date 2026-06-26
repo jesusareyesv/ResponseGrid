@@ -5,64 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1782399717878,
-      "tag": "0000_normal_devos",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1782415793869,
-      "tag": "0001_bitter_terror",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1782417787883,
-      "tag": "0002_quick_nighthawk",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1782419256832,
-      "tag": "0003_elite_nomad",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1782422516730,
-      "tag": "0004_aberrant_tombstone",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1782500000000,
-      "tag": "0005_needs_refactor",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1782600000000,
-      "tag": "0006_social_login",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1782700000000,
-      "tag": "0007_org_member_role",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1782800000000,
-      "tag": "0008_add_foreign_keys",
+      "when": 1782482891666,
+      "tag": "0000_baseline",
       "breakpoints": true
     }
   ]
