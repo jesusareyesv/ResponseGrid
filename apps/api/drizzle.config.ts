@@ -6,6 +6,7 @@ export default {
     './src/contexts/identity/infrastructure/drizzle/schema.ts',
     './src/contexts/needs/infrastructure/drizzle/schema.ts',
     './src/contexts/organizations/infrastructure/drizzle/schema.ts',
+    './src/contexts/accreditation/infrastructure/drizzle/schema.ts',
   ],
   out: './drizzle',
   dialect: 'postgresql',

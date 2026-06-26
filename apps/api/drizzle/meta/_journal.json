@@ -22,6 +22,20 @@
       "when": 1782493470035,
       "tag": "0002_eager_clint_barton",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1782494907229,
+      "tag": "0003_accreditations_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1782494936387,
+      "tag": "0004_accreditations_table",
+      "breakpoints": true
     }
   ]
 }

@@ -5,6 +5,7 @@ import { EmergenciesModule } from './contexts/emergencies/infrastructure/emergen
 import { IdentityModule } from './contexts/identity/infrastructure/identity.module';
 import { NeedsModule } from './contexts/needs/infrastructure/needs.module';
 import { OrganizationsModule } from './contexts/organizations/infrastructure/organizations.module';
+import { AccreditationModule } from './contexts/accreditation/infrastructure/accreditation.module';
 import { GeocodingModule } from './contexts/geocoding/infrastructure/geocoding.module';
 import { MetricsModule } from './contexts/metrics/infrastructure/metrics.module';
 
@@ -16,6 +17,7 @@ import { MetricsModule } from './contexts/metrics/infrastructure/metrics.module'
     EmergenciesModule,
     NeedsModule,
     OrganizationsModule,
+    AccreditationModule,
     GeocodingModule,
     MetricsModule,
   ],
