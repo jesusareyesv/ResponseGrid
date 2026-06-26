@@ -13,7 +13,9 @@ export const organizationsTable = pgTable('organizations', {
 export const organizationMembersTable = pgTable(
   'organization_members',
   {
-    organizationId: uuid('organization_id').notNull(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizationsTable.id, { onDelete: 'cascade' }),
     userId: uuid('user_id').notNull(),
     /** OrganizationRole: 'owner' | 'member' */
     role: text('role').notNull().default('member'),

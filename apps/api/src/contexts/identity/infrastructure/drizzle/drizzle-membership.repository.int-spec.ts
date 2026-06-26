@@ -26,8 +26,17 @@ describe('DrizzleMembershipRepository (integration)', () => {
   });
 
   beforeEach(async () => {
+    // Delete in FK-safe order (memberships.user_id → users.id CASCADE)
     await db.delete(membershipsTable);
     await db.delete(usersTable);
+    // Seed the user required by the FK constraint
+    await db.insert(usersTable).values({
+      id: USER_ID,
+      email: 'membership-spec@reliefhub.test',
+      passwordHash: null,
+      name: 'Spec User',
+      isAdmin: false,
+    });
   });
 
   it('saves and finds memberships by user', async () => {

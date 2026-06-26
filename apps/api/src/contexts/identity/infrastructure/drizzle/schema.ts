@@ -13,7 +13,11 @@ export const membershipsTable = pgTable(
   'memberships',
   {
     id: uuid('id').primaryKey(),
-    userId: uuid('user_id').notNull(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => usersTable.id, { onDelete: 'cascade' }),
+    /** NOTE: no FK to emergencies.id — e2e tests insert memberships with
+     *  emergency UUIDs that may not exist in the emergencies table. */
     emergencyId: uuid('emergency_id').notNull(),
     role: text('role').notNull(),
   },
@@ -24,7 +28,9 @@ export const userIdentitiesTable = pgTable(
   'user_identities',
   {
     id: uuid('id').primaryKey(),
-    userId: uuid('user_id').notNull(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => usersTable.id, { onDelete: 'cascade' }),
     /** OAuth provider: 'google' | 'facebook' */
     provider: text('provider').notNull(),
     providerUserId: text('provider_user_id').notNull(),
