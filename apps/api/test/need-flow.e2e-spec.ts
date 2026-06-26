@@ -231,4 +231,125 @@ describe('Need flow (e2e)', () => {
       .send({ organizationId: ORG_ID })
       .expect(404);
   });
+
+  it('GET public/needs?category= filters by item category', async () => {
+    const server = app.getHttpServer();
+
+    // Create and validate a food need
+    const foodRes = await request(server)
+      .post(`/emergencies/${EM}/needs`)
+      .set('Authorization', `Bearer ${coordToken}`)
+      .send({
+        title: 'Food filter test',
+        location: { address: 'Caracas', latitude: 10.48, longitude: -66.90 },
+        priority: 'medium',
+        items: [{ name: 'Bread', quantity: 10, unit: null, category: 'food' }],
+      })
+      .expect(201);
+
+    // Create and validate a medical need
+    const medRes = await request(server)
+      .post(`/emergencies/${EM}/needs`)
+      .set('Authorization', `Bearer ${coordToken}`)
+      .send({
+        title: 'Medical filter test',
+        location: { address: 'Caracas', latitude: 10.48, longitude: -66.90 },
+        priority: 'high',
+        items: [{ name: 'Bandages', quantity: 50, unit: null, category: 'medical' }],
+      })
+      .expect(201);
+
+    await request(server)
+      .post(`/needs/${foodRes.body.id}/validate`)
+      .set('Authorization', `Bearer ${coordToken}`)
+      .expect(204);
+
+    await request(server)
+      .post(`/needs/${medRes.body.id}/validate`)
+      .set('Authorization', `Bearer ${coordToken}`)
+      .expect(204);
+
+    // Filter by food
+    const filtered = await request(server)
+      .get(`/emergencies/${EM}/public/needs?category=food`)
+      .expect(200);
+
+    const ids: string[] = filtered.body.map((n: { id: string }) => n.id);
+    expect(ids).toContain(foodRes.body.id);
+    expect(ids).not.toContain(medRes.body.id);
+  });
+
+  it('GET public/needs?priority= filters by priority', async () => {
+    const server = app.getHttpServer();
+
+    const urgentRes = await request(server)
+      .post(`/emergencies/${EM}/needs`)
+      .set('Authorization', `Bearer ${coordToken}`)
+      .send({
+        title: 'Urgent priority filter test',
+        location: { address: 'Caracas', latitude: 10.48, longitude: -66.90 },
+        priority: 'urgent',
+        items: [{ name: 'Water', quantity: 100, unit: 'liters', category: 'water' }],
+      })
+      .expect(201);
+
+    await request(server)
+      .post(`/needs/${urgentRes.body.id}/validate`)
+      .set('Authorization', `Bearer ${coordToken}`)
+      .expect(204);
+
+    const filtered = await request(server)
+      .get(`/emergencies/${EM}/public/needs?priority=urgent`)
+      .expect(200);
+
+    const ids: string[] = filtered.body.map((n: { id: string }) => n.id);
+    expect(ids).toContain(urgentRes.body.id);
+    // All returned needs should be urgent
+    const allUrgent = filtered.body.every((n: { priority: string }) => n.priority === 'urgent');
+    expect(allUrgent).toBe(true);
+  });
+
+  it('GET needs/queue?category= filters pending needs by item category', async () => {
+    const server = app.getHttpServer();
+
+    const shelterRes = await request(server)
+      .post(`/emergencies/${EM}/needs`)
+      .set('Authorization', `Bearer ${coordToken}`)
+      .send({
+        title: 'Shelter queue filter test',
+        location: { address: 'Caracas', latitude: 10.48, longitude: -66.90 },
+        priority: 'low',
+        items: [{ name: 'Tents', quantity: 5, unit: null, category: 'shelter' }],
+      })
+      .expect(201);
+
+    const filtered = await request(server)
+      .get(`/emergencies/${EM}/needs/queue?category=shelter`)
+      .set('Authorization', `Bearer ${coordToken}`)
+      .expect(200);
+
+    const ids: string[] = filtered.body.map((n: { id: string }) => n.id);
+    expect(ids).toContain(shelterRes.body.id);
+
+    // Tools category should return no results for this need
+    const filteredTools = await request(server)
+      .get(`/emergencies/${EM}/needs/queue?category=tools`)
+      .set('Authorization', `Bearer ${coordToken}`)
+      .expect(200);
+
+    const toolIds: string[] = filteredTools.body.map((n: { id: string }) => n.id);
+    expect(toolIds).not.toContain(shelterRes.body.id);
+  });
+
+  it('invalid category value is silently ignored (returns all)', async () => {
+    const all = await request(app.getHttpServer())
+      .get(`/emergencies/${EM}/public/needs`)
+      .expect(200);
+
+    const filtered = await request(app.getHttpServer())
+      .get(`/emergencies/${EM}/public/needs?category=notavalidcategory`)
+      .expect(200);
+
+    expect(filtered.body.length).toBe(all.body.length);
+  });
 });

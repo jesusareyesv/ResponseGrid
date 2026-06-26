@@ -69,4 +69,139 @@ describe('GetPublicNeeds', () => {
     const result = await getPublicNeeds.execute({ emergencyId: EM });
     expect(result).toHaveLength(0);
   });
+
+  // ── Filter: category ────────────────────────────────────────────────────────
+
+  it('filters by category — returns only needs with at least one item of that category', async () => {
+    const { id: foodId } = await createNeed.execute({
+      ...baseCmd,
+      title: 'Food need',
+      priority: Priority.High,
+      items: [{ name: 'Rice', quantity: 20, unit: null, category: NeedCategory.Food }],
+    });
+    const { id: waterId } = await createNeed.execute({
+      ...baseCmd,
+      title: 'Water need',
+      priority: Priority.Medium,
+      items: [{ name: 'Bottles', quantity: 100, unit: null, category: NeedCategory.Water }],
+    });
+
+    await validateNeed.execute({ needId: foodId });
+    await validateNeed.execute({ needId: waterId });
+
+    const result = await getPublicNeeds.execute({ emergencyId: EM, category: NeedCategory.Food });
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe(foodId);
+  });
+
+  it('filters by category — includes needs with mixed items if at least one matches', async () => {
+    const { id } = await createNeed.execute({
+      ...baseCmd,
+      title: 'Mixed need',
+      priority: Priority.High,
+      items: [
+        { name: 'Rice', quantity: 20, unit: null, category: NeedCategory.Food },
+        { name: 'Bandages', quantity: 50, unit: null, category: NeedCategory.Medical },
+      ],
+    });
+    await validateNeed.execute({ needId: id });
+
+    const result = await getPublicNeeds.execute({ emergencyId: EM, category: NeedCategory.Medical });
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe(id);
+  });
+
+  it('filters by category — returns empty when no needs match the category', async () => {
+    const { id } = await createNeed.execute({
+      ...baseCmd,
+      title: 'Water only',
+      priority: Priority.Low,
+      items: [{ name: 'Water', quantity: 10, unit: null, category: NeedCategory.Water }],
+    });
+    await validateNeed.execute({ needId: id });
+
+    const result = await getPublicNeeds.execute({ emergencyId: EM, category: NeedCategory.Tools });
+    expect(result).toHaveLength(0);
+  });
+
+  // ── Filter: priority ────────────────────────────────────────────────────────
+
+  it('filters by priority — returns only needs matching that priority', async () => {
+    const { id: urgentId } = await createNeed.execute({
+      ...baseCmd,
+      title: 'Urgent need',
+      priority: Priority.Urgent,
+    });
+    const { id: lowId } = await createNeed.execute({
+      ...baseCmd,
+      title: 'Low need',
+      priority: Priority.Low,
+    });
+
+    await validateNeed.execute({ needId: urgentId });
+    await validateNeed.execute({ needId: lowId });
+
+    const result = await getPublicNeeds.execute({ emergencyId: EM, priority: Priority.Urgent });
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe(urgentId);
+  });
+
+  it('filters by priority — returns empty when no needs match', async () => {
+    const { id } = await createNeed.execute({
+      ...baseCmd,
+      title: 'Medium need',
+      priority: Priority.Medium,
+    });
+    await validateNeed.execute({ needId: id });
+
+    const result = await getPublicNeeds.execute({ emergencyId: EM, priority: Priority.Urgent });
+    expect(result).toHaveLength(0);
+  });
+
+  // ── Filter: category + priority combined ────────────────────────────────────
+
+  it('filters by both category and priority — returns only matching needs', async () => {
+    const { id: matchId } = await createNeed.execute({
+      ...baseCmd,
+      title: 'Urgent food',
+      priority: Priority.Urgent,
+      items: [{ name: 'Rice', quantity: 10, unit: null, category: NeedCategory.Food }],
+    });
+    const { id: wrongPrioId } = await createNeed.execute({
+      ...baseCmd,
+      title: 'Low food',
+      priority: Priority.Low,
+      items: [{ name: 'Bread', quantity: 5, unit: null, category: NeedCategory.Food }],
+    });
+    const { id: wrongCatId } = await createNeed.execute({
+      ...baseCmd,
+      title: 'Urgent water',
+      priority: Priority.Urgent,
+      items: [{ name: 'Water', quantity: 20, unit: null, category: NeedCategory.Water }],
+    });
+
+    await validateNeed.execute({ needId: matchId });
+    await validateNeed.execute({ needId: wrongPrioId });
+    await validateNeed.execute({ needId: wrongCatId });
+
+    const result = await getPublicNeeds.execute({
+      emergencyId: EM,
+      category: NeedCategory.Food,
+      priority: Priority.Urgent,
+    });
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe(matchId);
+  });
+
+  // ── No filters: existing behaviour unchanged ────────────────────────────────
+
+  it('returns all validated needs when no filters are given', async () => {
+    const { id: id1 } = await createNeed.execute({ ...baseCmd, title: 'Need 1', priority: Priority.Low });
+    const { id: id2 } = await createNeed.execute({ ...baseCmd, title: 'Need 2', priority: Priority.High });
+    await validateNeed.execute({ needId: id1 });
+    await validateNeed.execute({ needId: id2 });
+
+    const result = await getPublicNeeds.execute({ emergencyId: EM });
+    expect(result).toHaveLength(2);
+  });
 });

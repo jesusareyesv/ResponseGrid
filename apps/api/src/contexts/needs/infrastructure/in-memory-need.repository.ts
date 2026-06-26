@@ -1,4 +1,4 @@
-import { NeedRepository } from '../domain/ports/need.repository';
+import { NeedRepository, NeedFilters } from '../domain/ports/need.repository';
 import { Need, NeedSnapshot } from '../domain/need';
 import { NeedId } from '../domain/need-id';
 import { EmergencyId } from '../domain/emergency-id';
@@ -16,15 +16,27 @@ export class InMemoryNeedRepository implements NeedRepository {
     return snap ? Need.fromSnapshot(snap) : null;
   }
 
-  async findValidatedByEmergency(emergencyId: EmergencyId): Promise<Need[]> {
+  async findValidatedByEmergency(emergencyId: EmergencyId, filters?: NeedFilters): Promise<Need[]> {
     return [...this.store.values()]
-      .filter((s) => s.emergencyId === emergencyId.value && s.status === NeedStatus.Validated)
+      .filter((s) => {
+        if (s.emergencyId !== emergencyId.value) return false;
+        if (s.status !== NeedStatus.Validated) return false;
+        if (filters?.priority !== undefined && s.priority !== filters.priority) return false;
+        if (filters?.category !== undefined && !s.items.some((i) => i.category === filters.category)) return false;
+        return true;
+      })
       .map((s) => Need.fromSnapshot(s));
   }
 
-  async findPendingByEmergency(emergencyId: EmergencyId): Promise<Need[]> {
+  async findPendingByEmergency(emergencyId: EmergencyId, filters?: NeedFilters): Promise<Need[]> {
     return [...this.store.values()]
-      .filter((s) => s.emergencyId === emergencyId.value && s.status === NeedStatus.Pending)
+      .filter((s) => {
+        if (s.emergencyId !== emergencyId.value) return false;
+        if (s.status !== NeedStatus.Pending) return false;
+        if (filters?.priority !== undefined && s.priority !== filters.priority) return false;
+        if (filters?.category !== undefined && !s.items.some((i) => i.category === filters.category)) return false;
+        return true;
+      })
       .map((s) => Need.fromSnapshot(s));
   }
 

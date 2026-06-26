@@ -6,6 +6,7 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -13,6 +14,7 @@ import {
   ApiTags,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiCreatedResponse,
   ApiNoContentResponse,
   ApiNotFoundResponse,
@@ -28,6 +30,7 @@ import { GetPublicNeeds } from '../../application/get-public-needs';
 import { GetNeedsQueue } from '../../application/get-needs-queue';
 import { AssignNeedManager } from '../../application/assign-need-manager';
 import { NeedView } from '../../application/need-view';
+import { NeedCategory, Priority } from '../../domain/need-enums';
 import { CreateNeedDto, AssignNeedManagerDto } from './dto';
 import { CreateNeedResponseDto, NeedViewDto } from './response.dto';
 import { JwtAuthGuard } from '../../../identity/infrastructure/http/jwt-auth.guard';
@@ -87,11 +90,26 @@ export class NeedsController {
   @Get('emergencies/:emergencyId/public/needs')
   @ApiOperation({ summary: 'List validated needs for an emergency (public)' })
   @ApiParam({ name: 'emergencyId', description: 'Emergency UUID', format: 'uuid' })
+  @ApiQuery({ name: 'category', enum: NeedCategory, required: false, description: 'Filter by item category (needs with at least one item of this category)' })
+  @ApiQuery({ name: 'priority', enum: Priority, required: false, description: 'Filter by need priority' })
   @ApiOkResponse({ description: 'List of validated needs', type: [NeedViewDto] })
   async listPublic(
     @Param('emergencyId', ParseUUIDPipe) emergencyId: string,
+    @Query('category') category?: string,
+    @Query('priority') priority?: string,
   ): Promise<NeedView[]> {
-    return this.getPublicNeeds.execute({ emergencyId });
+    const validCategory = Object.values(NeedCategory).includes(category as NeedCategory)
+      ? (category as NeedCategory)
+      : undefined;
+    const validPriority = Object.values(Priority).includes(priority as Priority)
+      ? (priority as Priority)
+      : undefined;
+
+    return this.getPublicNeeds.execute({
+      emergencyId,
+      ...(validCategory !== undefined && { category: validCategory }),
+      ...(validPriority !== undefined && { priority: validPriority }),
+    });
   }
 
   @Get('emergencies/:emergencyId/needs/queue')
@@ -99,13 +117,28 @@ export class NeedsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get pending needs queue for an emergency (coordinator only)' })
   @ApiParam({ name: 'emergencyId', description: 'Emergency UUID', format: 'uuid' })
+  @ApiQuery({ name: 'category', enum: NeedCategory, required: false, description: 'Filter by item category (needs with at least one item of this category)' })
+  @ApiQuery({ name: 'priority', enum: Priority, required: false, description: 'Filter by need priority' })
   @ApiOkResponse({ description: 'List of pending needs', type: [NeedViewDto] })
   @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
   @ApiForbiddenResponse({ description: 'Coordinator role required for this emergency' })
   async listQueue(
     @Param('emergencyId', ParseUUIDPipe) emergencyId: string,
+    @Query('category') category?: string,
+    @Query('priority') priority?: string,
   ): Promise<NeedView[]> {
-    return this.getNeedsQueue.execute({ emergencyId });
+    const validCategory = Object.values(NeedCategory).includes(category as NeedCategory)
+      ? (category as NeedCategory)
+      : undefined;
+    const validPriority = Object.values(Priority).includes(priority as Priority)
+      ? (priority as Priority)
+      : undefined;
+
+    return this.getNeedsQueue.execute({
+      emergencyId,
+      ...(validCategory !== undefined && { category: validCategory }),
+      ...(validPriority !== undefined && { priority: validPriority }),
+    });
   }
 
   @Post('needs/:needId/validate')

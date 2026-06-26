@@ -5,6 +5,7 @@ import { api } from '@/lib/api';
 import { getEmergencyBySlug } from '@/lib/emergencies';
 import { PublicResourceCard } from '@/app/public-resource-card';
 import { EmergencyMapWrapper } from '@/components/emergency-map-wrapper';
+import { NeedsFilter } from '@/components/needs-filter';
 import type { MapPoint } from '@/components/emergency-map';
 
 export const dynamic = 'force-dynamic';
@@ -57,8 +58,9 @@ const PRIORITY_LABELS: Record<string, string> = {
   urgent: 'Urgente',
 };
 
-export default async function EmergencyPage({ params }: Props) {
+export default async function EmergencyPage({ params, searchParams }: Props) {
   const { slug } = await params;
+  const resolvedSearchParams = await searchParams;
   const emergency = await getEmergencyBySlug(slug);
 
   if (!emergency) {
@@ -66,6 +68,18 @@ export default async function EmergencyPage({ params }: Props) {
   }
 
   const emergencyId = emergency.id;
+
+  const rawCategory = typeof resolvedSearchParams.category === 'string' ? resolvedSearchParams.category : undefined;
+  const rawPriority = typeof resolvedSearchParams.priority === 'string' ? resolvedSearchParams.priority : undefined;
+
+  const VALID_CATEGORIES = ['hygiene', 'water', 'food', 'medical', 'shelter', 'tools', 'other'] as const;
+  const VALID_PRIORITIES = ['low', 'medium', 'high', 'urgent'] as const;
+
+  type NeedCategory = typeof VALID_CATEGORIES[number];
+  type Priority = typeof VALID_PRIORITIES[number];
+
+  const category = VALID_CATEGORIES.includes(rawCategory as NeedCategory) ? rawCategory as NeedCategory : undefined;
+  const priority = VALID_PRIORITIES.includes(rawPriority as Priority) ? rawPriority as Priority : undefined;
 
   const [
     { data: resources },
@@ -76,7 +90,13 @@ export default async function EmergencyPage({ params }: Props) {
       params: { path: { emergencyId } },
     }),
     api.GET('/emergencies/{emergencyId}/public/needs', {
-      params: { path: { emergencyId } },
+      params: {
+        path: { emergencyId },
+        query: {
+          ...(category !== undefined && { category }),
+          ...(priority !== undefined && { priority }),
+        },
+      },
     }),
     api.GET('/emergencies/{emergencyId}/metrics', {
       params: { path: { emergencyId } },
@@ -319,6 +339,8 @@ export default async function EmergencyPage({ params }: Props) {
           >
             Necesidades validadas
           </h2>
+
+          <NeedsFilter />
 
           {validatedNeeds.length === 0 ? (
             <div className="rounded-lg border-2 border-dashed border-gray-300 px-6 py-10 text-center">

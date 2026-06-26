@@ -1219,7 +1219,12 @@ export interface operations {
     };
     NeedsController_listPublic: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Filter by item category (needs with at least one item of this category) */
+                category?: "hygiene" | "water" | "food" | "medical" | "shelter" | "tools" | "other";
+                /** @description Filter by need priority */
+                priority?: "low" | "medium" | "high" | "urgent";
+            };
             header?: never;
             path: {
                 /** @description Emergency UUID */
@@ -1242,7 +1247,12 @@ export interface operations {
     };
     NeedsController_listQueue: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Filter by item category (needs with at least one item of this category) */
+                category?: "hygiene" | "water" | "food" | "medical" | "shelter" | "tools" | "other";
+                /** @description Filter by need priority */
+                priority?: "low" | "medium" | "high" | "urgent";
+            };
             header?: never;
             path: {
                 /** @description Emergency UUID */

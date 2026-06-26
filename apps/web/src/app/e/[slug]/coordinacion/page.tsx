@@ -5,6 +5,7 @@ import { api } from '@/lib/api';
 import { getEmergencyBySlug } from '@/lib/emergencies';
 import { ResourceCard } from './resource-card';
 import { NeedCard } from './need-card';
+import { NeedsFilter } from '@/components/needs-filter';
 import { logout } from './actions';
 
 // Always fetch live data — never serve a stale cached page.
@@ -12,6 +13,7 @@ export const dynamic = 'force-dynamic';
 
 type Props = {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -24,8 +26,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function CoordinacionPage({ params }: Props) {
+export default async function CoordinacionPage({ params, searchParams }: Props) {
   const { slug } = await params;
+  const resolvedSearchParams = await searchParams;
 
   // --- Auth guard -------------------------------------------------------
   const token = await getToken();
@@ -42,6 +45,19 @@ export default async function CoordinacionPage({ params }: Props) {
   const emergencyId = emergency.id;
   const headers = authHeaders(token);
 
+  // --- Parse and validate filter params ---------------------------------
+  const rawCategory = typeof resolvedSearchParams.category === 'string' ? resolvedSearchParams.category : undefined;
+  const rawPriority = typeof resolvedSearchParams.priority === 'string' ? resolvedSearchParams.priority : undefined;
+
+  const VALID_CATEGORIES = ['hygiene', 'water', 'food', 'medical', 'shelter', 'tools', 'other'] as const;
+  const VALID_PRIORITIES = ['low', 'medium', 'high', 'urgent'] as const;
+
+  type NeedCategory = typeof VALID_CATEGORIES[number];
+  type Priority = typeof VALID_PRIORITIES[number];
+
+  const category = VALID_CATEGORIES.includes(rawCategory as NeedCategory) ? rawCategory as NeedCategory : undefined;
+  const priority = VALID_PRIORITIES.includes(rawPriority as Priority) ? rawPriority as Priority : undefined;
+
   // --- Fetch coordination queues ----------------------------------------
   const [queueResult, needsResult] = await Promise.all([
     api.GET('/emergencies/{emergencyId}/coordination/queue', {
@@ -49,7 +65,13 @@ export default async function CoordinacionPage({ params }: Props) {
       headers,
     }),
     api.GET('/emergencies/{emergencyId}/needs/queue', {
-      params: { path: { emergencyId } },
+      params: {
+        path: { emergencyId },
+        query: {
+          ...(category !== undefined && { category }),
+          ...(priority !== undefined && { priority }),
+        },
+      },
       headers,
     }),
   ]);
@@ -131,6 +153,8 @@ export default async function CoordinacionPage({ params }: Props) {
           >
             Peticiones pendientes
           </h2>
+
+          <NeedsFilter />
 
           {needsQueue.length === 0 ? (
             <div className="rounded-lg border-2 border-dashed border-gray-300 px-6 py-10 text-center">

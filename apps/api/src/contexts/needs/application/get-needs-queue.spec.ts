@@ -67,4 +67,124 @@ describe('GetNeedsQueue', () => {
     const result = await getNeedsQueue.execute({ emergencyId: EM });
     expect(result).toHaveLength(0);
   });
+
+  // ── Filter: category ────────────────────────────────────────────────────────
+
+  it('filters by category — returns only pending needs with at least one item of that category', async () => {
+    await createNeed.execute({
+      ...baseCmd,
+      title: 'Food need',
+      priority: Priority.High,
+      items: [{ name: 'Rice', quantity: 20, unit: null, category: NeedCategory.Food }],
+    });
+    await createNeed.execute({
+      ...baseCmd,
+      title: 'Water need',
+      priority: Priority.Medium,
+      items: [{ name: 'Bottles', quantity: 100, unit: null, category: NeedCategory.Water }],
+    });
+
+    const result = await getNeedsQueue.execute({ emergencyId: EM, category: NeedCategory.Food });
+    expect(result).toHaveLength(1);
+    expect(result[0].title).toBe('Food need');
+  });
+
+  it('filters by category — includes needs with mixed items if at least one matches', async () => {
+    const { id } = await createNeed.execute({
+      ...baseCmd,
+      title: 'Mixed need',
+      priority: Priority.High,
+      items: [
+        { name: 'Soap', quantity: 20, unit: null, category: NeedCategory.Hygiene },
+        { name: 'Rice', quantity: 10, unit: null, category: NeedCategory.Food },
+      ],
+    });
+
+    const result = await getNeedsQueue.execute({ emergencyId: EM, category: NeedCategory.Hygiene });
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe(id);
+  });
+
+  it('filters by category — returns empty when no pending needs match the category', async () => {
+    await createNeed.execute({
+      ...baseCmd,
+      title: 'Shelter need',
+      priority: Priority.Low,
+      items: [{ name: 'Tents', quantity: 5, unit: null, category: NeedCategory.Shelter }],
+    });
+
+    const result = await getNeedsQueue.execute({ emergencyId: EM, category: NeedCategory.Medical });
+    expect(result).toHaveLength(0);
+  });
+
+  // ── Filter: priority ────────────────────────────────────────────────────────
+
+  it('filters by priority — returns only pending needs matching that priority', async () => {
+    const { id: urgentId } = await createNeed.execute({
+      ...baseCmd,
+      title: 'Urgent need',
+      priority: Priority.Urgent,
+    });
+    await createNeed.execute({
+      ...baseCmd,
+      title: 'Low need',
+      priority: Priority.Low,
+    });
+
+    const result = await getNeedsQueue.execute({ emergencyId: EM, priority: Priority.Urgent });
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe(urgentId);
+  });
+
+  it('filters by priority — returns empty when no pending needs match', async () => {
+    await createNeed.execute({
+      ...baseCmd,
+      title: 'Medium need',
+      priority: Priority.Medium,
+    });
+
+    const result = await getNeedsQueue.execute({ emergencyId: EM, priority: Priority.High });
+    expect(result).toHaveLength(0);
+  });
+
+  // ── Filter: category + priority combined ────────────────────────────────────
+
+  it('filters by both category and priority — returns only matching pending needs', async () => {
+    const { id: matchId } = await createNeed.execute({
+      ...baseCmd,
+      title: 'Urgent food',
+      priority: Priority.Urgent,
+      items: [{ name: 'Canned food', quantity: 50, unit: null, category: NeedCategory.Food }],
+    });
+    await createNeed.execute({
+      ...baseCmd,
+      title: 'Low food',
+      priority: Priority.Low,
+      items: [{ name: 'Bread', quantity: 10, unit: null, category: NeedCategory.Food }],
+    });
+    await createNeed.execute({
+      ...baseCmd,
+      title: 'Urgent water',
+      priority: Priority.Urgent,
+      items: [{ name: 'Water', quantity: 100, unit: null, category: NeedCategory.Water }],
+    });
+
+    const result = await getNeedsQueue.execute({
+      emergencyId: EM,
+      category: NeedCategory.Food,
+      priority: Priority.Urgent,
+    });
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe(matchId);
+  });
+
+  // ── No filters: existing behaviour unchanged ────────────────────────────────
+
+  it('returns all pending needs when no filters are given', async () => {
+    await createNeed.execute({ ...baseCmd, title: 'Need 1', priority: Priority.Low });
+    await createNeed.execute({ ...baseCmd, title: 'Need 2', priority: Priority.High });
+
+    const result = await getNeedsQueue.execute({ emergencyId: EM });
+    expect(result).toHaveLength(2);
+  });
 });

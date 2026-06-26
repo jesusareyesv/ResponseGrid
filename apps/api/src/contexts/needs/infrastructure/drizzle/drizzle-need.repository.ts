@@ -1,8 +1,8 @@
-import { and, count, eq } from 'drizzle-orm';
+import { and, count, eq, exists, SQL } from 'drizzle-orm';
 import { randomUUID } from 'node:crypto';
 import { Db } from '../../../../shared/db';
 import { needsTable, needItemsTable } from './schema';
-import { NeedRepository } from '../../domain/ports/need.repository';
+import { NeedRepository, NeedFilters } from '../../domain/ports/need.repository';
 import { Need, NeedSnapshot } from '../../domain/need';
 import { NeedId } from '../../domain/need-id';
 import { EmergencyId } from '../../domain/emergency-id';
@@ -98,12 +98,12 @@ export class DrizzleNeedRepository implements NeedRepository {
     return Need.fromSnapshot(rowToSnapshot(rows[0], items));
   }
 
-  async findValidatedByEmergency(emergencyId: EmergencyId): Promise<Need[]> {
-    return this._findByEmergencyAndStatus(emergencyId, NeedStatus.Validated);
+  async findValidatedByEmergency(emergencyId: EmergencyId, filters?: NeedFilters): Promise<Need[]> {
+    return this._findByEmergencyAndStatus(emergencyId, NeedStatus.Validated, filters);
   }
 
-  async findPendingByEmergency(emergencyId: EmergencyId): Promise<Need[]> {
-    return this._findByEmergencyAndStatus(emergencyId, NeedStatus.Pending);
+  async findPendingByEmergency(emergencyId: EmergencyId, filters?: NeedFilters): Promise<Need[]> {
+    return this._findByEmergencyAndStatus(emergencyId, NeedStatus.Pending, filters);
   }
 
   async countByEmergencyGroupedByStatus(
@@ -134,16 +134,38 @@ export class DrizzleNeedRepository implements NeedRepository {
   private async _findByEmergencyAndStatus(
     emergencyId: EmergencyId,
     status: NeedStatus,
+    filters?: NeedFilters,
   ): Promise<Need[]> {
+    const conditions: SQL[] = [
+      eq(needsTable.emergencyId, emergencyId.value),
+      eq(needsTable.status, status),
+    ];
+
+    if (filters?.priority !== undefined) {
+      conditions.push(eq(needsTable.priority, filters.priority));
+    }
+
+    if (filters?.category !== undefined) {
+      const category = filters.category;
+      conditions.push(
+        exists(
+          this.db
+            .select({ one: needItemsTable.id })
+            .from(needItemsTable)
+            .where(
+              and(
+                eq(needItemsTable.needId, needsTable.id),
+                eq(needItemsTable.category, category),
+              ),
+            ),
+        ),
+      );
+    }
+
     const rows = await this.db
       .select()
       .from(needsTable)
-      .where(
-        and(
-          eq(needsTable.emergencyId, emergencyId.value),
-          eq(needsTable.status, status),
-        ),
-      );
+      .where(and(...conditions));
 
     if (rows.length === 0) return [];
 
