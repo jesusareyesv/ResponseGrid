@@ -116,13 +116,13 @@ export function TaskCard({ task, availableVolunteers, slug }: TaskCardProps) {
 
       {/* Meta */}
       <div className="flex flex-wrap gap-3 text-xs text-gray-500">
-        {task.requiredSkill !== undefined && (
+        {task.requiredSkill != null && (
           <span>
             <span className="font-medium">Habilidad requerida:</span>{' '}
             <Badge variant="role-member">{SKILL_LABELS[task.requiredSkill]}</Badge>
           </span>
         )}
-        {task.location !== undefined && (
+        {task.location != null && (
           <span className="truncate max-w-[220px]">
             <span className="font-medium">Ubicación:</span>{' '}
             {task.location.address}

@@ -88,7 +88,7 @@ export function TaskCard({ task, volunteerId, slug }: TaskCardProps) {
             {TASK_STATUS_LABELS[task.status] ?? task.status}
           </span>
         </span>
-        {task.requiredSkill !== undefined && (
+        {task.requiredSkill != null && (
           <span>
             Habilidad requerida:{' '}
             <span className="font-semibold text-gray-700">
@@ -96,7 +96,7 @@ export function TaskCard({ task, volunteerId, slug }: TaskCardProps) {
             </span>
           </span>
         )}
-        {task.location !== undefined && (
+        {task.location != null && (
           <span>
             Lugar:{' '}
             <span className="font-semibold text-gray-700">{task.location.address}</span>
