@@ -14,7 +14,7 @@
 //     npx ts-node --transpile-only scripts/seed-identity.ts
 
 import * as bcrypt from 'bcryptjs';
-import { eq, and } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { createDb } from '../src/shared/db';
 import { usersTable, membershipsTable } from '../src/contexts/identity/infrastructure/drizzle/schema';
 
@@ -73,31 +73,18 @@ async function seed(): Promise<void> {
       });
     console.log(`Seed: coordinator user upserted (${COORD_EMAIL})`);
 
-    // Upsert coordinator membership for venezuela emergency
-    const existingByUserAndEmergency = await db
-      .select()
-      .from(membershipsTable)
-      .where(eq(membershipsTable.userId, COORD_ID));
-
-    const alreadyHasMembership = existingByUserAndEmergency.some(
-      (m) => m.emergencyId === VENEZUELA_EM_ID && m.role === 'coordinator',
-    );
-
-    if (!alreadyHasMembership) {
-      await db
-        .insert(membershipsTable)
-        .values({
-          id: COORD_MEMBERSHIP_ID,
-          userId: COORD_ID,
-          emergencyId: VENEZUELA_EM_ID,
-          role: 'coordinator',
-        })
-        .onConflictDoUpdate({
-          target: [membershipsTable.userId, membershipsTable.emergencyId, membershipsTable.role],
-          set: { role: 'coordinator' },
-        });
-    }
-    console.log(`Seed: coordinator membership upserted for emergency ${VENEZUELA_EM_ID}`);
+    // (Re)create the coordinator membership for the venezuela emergency.
+    // Idempotent via delete+insert — does NOT rely on a composite unique
+    // constraint on (user_id, emergency_id, role), which the table does not have
+    // (the previous onConflictDoUpdate target failed and aborted the seed).
+    await db.delete(membershipsTable).where(eq(membershipsTable.userId, COORD_ID));
+    await db.insert(membershipsTable).values({
+      id: COORD_MEMBERSHIP_ID,
+      userId: COORD_ID,
+      emergencyId: VENEZUELA_EM_ID,
+      role: 'coordinator',
+    });
+    console.log(`Seed: coordinator membership created for emergency ${VENEZUELA_EM_ID}`);
 
     console.log('\nSeed complete.');
     console.log('  Admin:       admin@reliefhub.org / admin1234  (isAdmin=true)');
