@@ -1,4 +1,4 @@
-import { and, count, eq, exists, SQL } from 'drizzle-orm';
+import { and, count, eq, exists, inArray, SQL } from 'drizzle-orm';
 import { randomUUID } from 'node:crypto';
 import { Db } from '../../../../shared/db';
 import { needsTable, needItemsTable } from './schema';
@@ -171,32 +171,21 @@ export class DrizzleNeedRepository implements NeedRepository {
 
     const needIds = rows.map((r) => r.id);
 
-    // Load all items for these needs in one query
+    // Load ALL items for these needs in a single query, then group in JS
     const allItems = await this.db
       .select()
       .from(needItemsTable)
-      .where(
-        needIds.length === 1
-          ? eq(needItemsTable.needId, needIds[0])
-          : // For multiple needs we use multiple fetches grouped in JS (avoids complex OR/IN syntax drift)
-            eq(needItemsTable.needId, needIds[0]),
-      );
+      .where(inArray(needItemsTable.needId, needIds));
 
-    // If multiple needs, load items per need individually for simplicity
-    if (needIds.length > 1) {
-      const results: Need[] = [];
-      for (const row of rows) {
-        const items = await this.db
-          .select()
-          .from(needItemsTable)
-          .where(eq(needItemsTable.needId, row.id));
-        results.push(Need.fromSnapshot(rowToSnapshot(row, items)));
-      }
-      return results;
+    const itemsByNeedId = new Map<string, ItemsRow[]>();
+    for (const item of allItems) {
+      const bucket = itemsByNeedId.get(item.needId) ?? [];
+      bucket.push(item);
+      itemsByNeedId.set(item.needId, bucket);
     }
 
     return rows.map((r) =>
-      Need.fromSnapshot(rowToSnapshot(r, allItems.filter((i) => i.needId === r.id))),
+      Need.fromSnapshot(rowToSnapshot(r, itemsByNeedId.get(r.id) ?? [])),
     );
   }
 }
