@@ -1,7 +1,7 @@
 import { Controller, Get, Req, Res, UseGuards, Logger } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { ApiExcludeController } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
+import { OAuthInitiateGuard, OAuthCallbackGuard } from './oauth-state.guard';
 
 /**
  * OAuth 2.0 redirect-based endpoints for Google and Facebook login.
@@ -12,6 +12,12 @@ import type { Request, Response } from 'express';
  *   3. Passport strategy calls AuthenticateWithProvider which returns {accessToken}.
  *   4. We redirect the browser to the frontend with the token in the URL fragment
  *      (fragment is never sent to servers, reducing logging exposure).
+ *
+ * CSRF protection:
+ *   - OAuthInitiateGuard generates a random `state` UUID and stores it in an
+ *     httpOnly cookie (`rh_oauth_state`). Passport forwards it to the provider.
+ *   - OAuthCallbackGuard validates that `req.query.state` matches the cookie
+ *     before delegating to Passport's token exchange step.
  *
  * NOTE (production hardening): The fragment-based approach is convenient but the
  * client-side JS still reads the token. For production, replace with a short-lived
@@ -27,13 +33,13 @@ export class OAuthController {
   // ─── Google ───────────────────────────────────────────────────────────────
 
   @Get('google')
-  @UseGuards(AuthGuard('google'))
+  @UseGuards(OAuthInitiateGuard('google'))
   googleLogin(): void {
     // Passport handles the redirect to Google — this body is never reached.
   }
 
   @Get('google/callback')
-  @UseGuards(AuthGuard('google'))
+  @UseGuards(OAuthCallbackGuard('google'))
   googleCallback(@Req() req: Request, @Res() res: Response): void {
     const user = req.user as { accessToken: string } | undefined;
     if (!user?.accessToken) {
@@ -47,13 +53,13 @@ export class OAuthController {
   // ─── Facebook ─────────────────────────────────────────────────────────────
 
   @Get('facebook')
-  @UseGuards(AuthGuard('facebook'))
+  @UseGuards(OAuthInitiateGuard('facebook'))
   facebookLogin(): void {
     // Passport handles the redirect to Facebook — this body is never reached.
   }
 
   @Get('facebook/callback')
-  @UseGuards(AuthGuard('facebook'))
+  @UseGuards(OAuthCallbackGuard('facebook'))
   facebookCallback(@Req() req: Request, @Res() res: Response): void {
     const user = req.user as { accessToken: string } | undefined;
     if (!user?.accessToken) {
