@@ -620,6 +620,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/emergencies/{emergencyId}/volunteers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get volunteer roster for an emergency (coordinator only) */
+        get: operations["VolunteersController_getRosterForEmergency"];
+        put?: never;
+        /** Register as a volunteer for an emergency (requires authentication) */
+        post: operations["VolunteersController_registerVolunteer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/volunteers/{volunteerId}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Update volunteer status (coordinator of the volunteer's emergency only) */
+        post: operations["VolunteersController_updateVolunteerStatus"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/emergencies/{emergencyId}/volunteers/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get my volunteer profile for an emergency */
+        get: operations["VolunteersController_fetchMyProfile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1154,6 +1206,70 @@ export interface components {
              * @description The need to match this offer against
              */
             needId: string;
+        };
+        RegisterVolunteerDto: {
+            /** @example Ana García */
+            name: string;
+            /** @example ana@example.com */
+            contact: string;
+            /** @example Valencia */
+            municipality: string;
+            /**
+             * @example [
+             *       "medical",
+             *       "driving"
+             *     ]
+             */
+            skills: ("driving" | "medical" | "logistics" | "cooking" | "languages" | "admin" | "general")[];
+            /**
+             * @example immediate
+             * @enum {string}
+             */
+            availability: "immediate" | "this_week" | "flexible";
+            /**
+             * @example car
+             * @enum {string}
+             */
+            vehicle: "none" | "car" | "van" | "truck";
+            /**
+             * @description Must be true to register as a volunteer
+             * @example true
+             */
+            consentAccepted: boolean;
+        };
+        RegisterVolunteerResponseDto: {
+            /** Format: uuid */
+            id: string;
+        };
+        VolunteerViewDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            emergencyId: string;
+            /** Format: uuid */
+            userId: string;
+            name: string;
+            contact: string;
+            municipality: string;
+            skills: ("driving" | "medical" | "logistics" | "cooking" | "languages" | "admin" | "general")[];
+            /** @enum {string} */
+            availability: "immediate" | "this_week" | "flexible";
+            /** @enum {string} */
+            vehicle: "none" | "car" | "van" | "truck";
+            /** @enum {string} */
+            status: "available" | "assigned" | "inactive";
+            consentAccepted: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        UpdateVolunteerStatusDto: {
+            /**
+             * @example assigned
+             * @enum {string}
+             */
+            status: "available" | "assigned" | "inactive";
         };
     };
     responses: never;
@@ -2745,6 +2861,186 @@ export interface operations {
             };
             /** @description Offer cannot be cancelled in its current status */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    VolunteersController_getRosterForEmergency: {
+        parameters: {
+            query?: {
+                skill?: "driving" | "medical" | "logistics" | "cooking" | "languages" | "admin" | "general";
+                availability?: "immediate" | "this_week" | "flexible";
+                vehicle?: "none" | "car" | "van" | "truck";
+                status?: "available" | "assigned" | "inactive";
+            };
+            header?: never;
+            path: {
+                /** @description Emergency UUID */
+                emergencyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of volunteers */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VolunteerViewDto"][];
+                };
+            };
+            /** @description Missing or invalid token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Coordinator role required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    VolunteersController_registerVolunteer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Emergency UUID */
+                emergencyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegisterVolunteerDto"];
+            };
+        };
+        responses: {
+            /** @description Volunteer registered */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegisterVolunteerResponseDto"];
+                };
+            };
+            /** @description Invalid request body or UUID */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Missing or invalid token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Emergency not accepting volunteers (paused/closed) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    VolunteersController_updateVolunteerStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Volunteer UUID */
+                volunteerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateVolunteerStatusDto"];
+            };
+        };
+        responses: {
+            /** @description Status updated */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid status or UUID */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Missing or invalid token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Coordinator role required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Volunteer not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    VolunteersController_fetchMyProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Emergency UUID */
+                emergencyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description My volunteer profile */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VolunteerViewDto"];
+                };
+            };
+            /** @description Missing or invalid token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not registered as volunteer in this emergency */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -48,6 +48,12 @@ import {
   OfferEmergencyLookup,
 } from '../domain/ports/offer-emergency-lookup';
 import { RequireOfferCoordinatorGuard } from './http/require-offer-coordinator.guard';
+import { RequireVolunteerCoordinatorGuard } from './http/require-volunteer-coordinator.guard';
+import { DrizzleVolunteerEmergencyLookup } from './drizzle/drizzle-volunteer-emergency-lookup';
+import {
+  VOLUNTEER_EMERGENCY_LOOKUP,
+  VolunteerEmergencyLookup,
+} from '../domain/ports/volunteer-emergency-lookup';
 import { GoogleStrategy } from './http/google.strategy';
 import { FacebookStrategy } from './http/facebook.strategy';
 
@@ -101,6 +107,13 @@ const offerEmergencyLookupProvider = {
   inject: [DB],
   useFactory: (db: Db): OfferEmergencyLookup =>
     new DrizzleOfferEmergencyLookup(db),
+};
+
+const volunteerEmergencyLookupProvider = {
+  provide: VOLUNTEER_EMERGENCY_LOOKUP,
+  inject: [DB],
+  useFactory: (db: Db): VolunteerEmergencyLookup =>
+    new DrizzleVolunteerEmergencyLookup(db),
 };
 
 const loginProvider = {
@@ -158,12 +171,14 @@ const authenticateWithProviderProvider = {
     resourceEmergencyLookupProvider,
     needEmergencyLookupProvider,
     offerEmergencyLookupProvider,
+    volunteerEmergencyLookupProvider,
     JwtAuthGuard,
     RequireAdminGuard,
     RequireCoordinatorGuard,
     RequireResourceCoordinatorGuard,
     RequireNeedCoordinatorGuard,
     RequireOfferCoordinatorGuard,
+    RequireVolunteerCoordinatorGuard,
     GoogleStrategy,
     FacebookStrategy,
   ],
@@ -174,12 +189,14 @@ const authenticateWithProviderProvider = {
     RESOURCE_EMERGENCY_LOOKUP,
     NEED_EMERGENCY_LOOKUP,
     OFFER_EMERGENCY_LOOKUP,
+    VOLUNTEER_EMERGENCY_LOOKUP,
     JwtAuthGuard,
     RequireAdminGuard,
     RequireCoordinatorGuard,
     RequireResourceCoordinatorGuard,
     RequireNeedCoordinatorGuard,
     RequireOfferCoordinatorGuard,
+    RequireVolunteerCoordinatorGuard,
     JwtModule,
   ],
 })
