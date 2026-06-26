@@ -1,6 +1,6 @@
-import { Inject, Module, OnModuleDestroy } from '@nestjs/common';
-import { Pool } from 'pg';
-import { Db, createDb } from '../../../shared/db';
+import { Module } from '@nestjs/common';
+import { DB, DatabaseModule } from '../../../shared/database.module';
+import { Db } from '../../../shared/db';
 import { IdentityModule } from '../../identity/infrastructure/identity.module';
 import { ORGANIZATION_REPOSITORY, OrganizationRepository } from '../domain/ports/organization.repository';
 import { ORGANIZATION_MEMBER_REPOSITORY, OrganizationMemberRepository } from '../domain/ports/organization-member.repository';
@@ -16,41 +16,23 @@ import { RemoveOrganizationMember } from '../application/remove-organization-mem
 import { ListOrganizationMembers } from '../application/list-organization-members';
 import { OrganizationsController } from './http/organizations.controller';
 
-export const ORGANIZATIONS_DB_POOL = Symbol('ORGANIZATIONS_DB_POOL');
-
-interface DbPool {
-  db: Db;
-  pool: Pool;
-}
-
-const dbPoolProvider = {
-  provide: ORGANIZATIONS_DB_POOL,
-  useFactory: (): DbPool => {
-    const url = process.env.DATABASE_URL;
-    if (!url) throw new Error('DATABASE_URL is required');
-    return createDb(url);
-  },
-};
-
 const organizationRepositoryProvider = {
   provide: ORGANIZATION_REPOSITORY,
-  inject: [ORGANIZATIONS_DB_POOL],
-  useFactory: (dbPool: DbPool): OrganizationRepository =>
-    new DrizzleOrganizationRepository(dbPool.db),
+  inject: [DB],
+  useFactory: (db: Db): OrganizationRepository => new DrizzleOrganizationRepository(db),
 };
 
 const organizationMemberRepositoryProvider = {
   provide: ORGANIZATION_MEMBER_REPOSITORY,
-  inject: [ORGANIZATIONS_DB_POOL],
-  useFactory: (dbPool: DbPool): OrganizationMemberRepository =>
-    new DrizzleOrganizationMemberRepository(dbPool.db),
+  inject: [DB],
+  useFactory: (db: Db): OrganizationMemberRepository =>
+    new DrizzleOrganizationMemberRepository(db),
 };
 
 const userDirectoryProvider = {
   provide: USER_DIRECTORY,
-  inject: [ORGANIZATIONS_DB_POOL],
-  useFactory: (dbPool: DbPool): UserDirectory =>
-    new DrizzleUserDirectory(dbPool.db),
+  inject: [DB],
+  useFactory: (db: Db): UserDirectory => new DrizzleUserDirectory(db),
 };
 
 const createOrganizationProvider = {
@@ -96,10 +78,9 @@ const listOrganizationMembersProvider = {
 };
 
 @Module({
-  imports: [IdentityModule],
+  imports: [DatabaseModule, IdentityModule],
   controllers: [OrganizationsController],
   providers: [
-    dbPoolProvider,
     organizationRepositoryProvider,
     organizationMemberRepositoryProvider,
     userDirectoryProvider,
@@ -111,14 +92,4 @@ const listOrganizationMembersProvider = {
     listOrganizationMembersProvider,
   ],
 })
-export class OrganizationsModule implements OnModuleDestroy {
-  constructor(@Inject(ORGANIZATIONS_DB_POOL) private readonly dbPool: DbPool) {}
-
-  async onModuleDestroy(): Promise<void> {
-    try {
-      await this.dbPool.pool.end();
-    } catch (_) {
-      // ignore — let remaining teardown proceed
-    }
-  }
-}
+export class OrganizationsModule {}

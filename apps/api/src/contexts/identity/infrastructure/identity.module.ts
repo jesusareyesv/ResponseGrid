@@ -1,8 +1,8 @@
-import { Inject, Module, OnModuleDestroy } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { Pool } from 'pg';
-import { Db, createDb } from '../../../shared/db';
+import { DB, DatabaseModule } from '../../../shared/database.module';
+import { Db } from '../../../shared/db';
 import { AuthController } from './http/auth.controller';
 import { OAuthController } from './http/oauth.controller';
 import { Login } from '../application/login';
@@ -39,39 +39,22 @@ import {
 import { GoogleStrategy } from './http/google.strategy';
 import { FacebookStrategy } from './http/facebook.strategy';
 
-export const IDENTITY_DB_POOL = Symbol('IDENTITY_DB_POOL');
-
-interface DbPool {
-  db: Db;
-  pool: Pool;
-}
-
-const dbPoolProvider = {
-  provide: IDENTITY_DB_POOL,
-  useFactory: (): DbPool => {
-    const url = process.env.DATABASE_URL;
-    if (!url) throw new Error('DATABASE_URL is required');
-    return createDb(url);
-  },
-};
-
 const userRepositoryProvider = {
   provide: USER_REPOSITORY,
-  inject: [IDENTITY_DB_POOL],
-  useFactory: (dbPool: DbPool): UserRepository => new DrizzleUserRepository(dbPool.db),
+  inject: [DB],
+  useFactory: (db: Db): UserRepository => new DrizzleUserRepository(db),
 };
 
 const membershipRepositoryProvider = {
   provide: MEMBERSHIP_REPOSITORY,
-  inject: [IDENTITY_DB_POOL],
-  useFactory: (dbPool: DbPool): MembershipRepository => new DrizzleMembershipRepository(dbPool.db),
+  inject: [DB],
+  useFactory: (db: Db): MembershipRepository => new DrizzleMembershipRepository(db),
 };
 
 const userIdentityRepositoryProvider = {
   provide: USER_IDENTITY_REPOSITORY,
-  inject: [IDENTITY_DB_POOL],
-  useFactory: (dbPool: DbPool): UserIdentityRepository =>
-    new DrizzleUserIdentityRepository(dbPool.db),
+  inject: [DB],
+  useFactory: (db: Db): UserIdentityRepository => new DrizzleUserIdentityRepository(db),
 };
 
 const passwordHasherProvider = {
@@ -87,16 +70,14 @@ const tokenServiceProvider = {
 
 const resourceEmergencyLookupProvider = {
   provide: RESOURCE_EMERGENCY_LOOKUP,
-  inject: [IDENTITY_DB_POOL],
-  useFactory: (dbPool: DbPool): ResourceEmergencyLookup =>
-    new DrizzleResourceEmergencyLookup(dbPool.db),
+  inject: [DB],
+  useFactory: (db: Db): ResourceEmergencyLookup => new DrizzleResourceEmergencyLookup(db),
 };
 
 const needEmergencyLookupProvider = {
   provide: NEED_EMERGENCY_LOOKUP,
-  inject: [IDENTITY_DB_POOL],
-  useFactory: (dbPool: DbPool): NeedEmergencyLookup =>
-    new DrizzleNeedEmergencyLookup(dbPool.db),
+  inject: [DB],
+  useFactory: (db: Db): NeedEmergencyLookup => new DrizzleNeedEmergencyLookup(db),
 };
 
 const loginProvider = {
@@ -131,6 +112,7 @@ const authenticateWithProviderProvider = {
 
 @Module({
   imports: [
+    DatabaseModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       useFactory: () => {
@@ -142,7 +124,6 @@ const authenticateWithProviderProvider = {
   ],
   controllers: [AuthController, OAuthController],
   providers: [
-    dbPoolProvider,
     userRepositoryProvider,
     membershipRepositoryProvider,
     userIdentityRepositoryProvider,
@@ -175,14 +156,4 @@ const authenticateWithProviderProvider = {
     JwtModule,
   ],
 })
-export class IdentityModule implements OnModuleDestroy {
-  constructor(@Inject(IDENTITY_DB_POOL) private readonly dbPool: DbPool) {}
-
-  async onModuleDestroy(): Promise<void> {
-    try {
-      await this.dbPool.pool.end();
-    } catch (_) {
-      // ignore — let remaining teardown proceed
-    }
-  }
-}
+export class IdentityModule {}

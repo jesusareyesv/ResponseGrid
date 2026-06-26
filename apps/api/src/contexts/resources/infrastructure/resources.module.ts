@@ -1,7 +1,7 @@
 import { Inject, Module, OnModuleDestroy } from '@nestjs/common';
 import { Queue } from 'bullmq';
 import IORedis from 'ioredis';
-import { Pool } from 'pg';
+import { DB, DatabaseModule } from '../../../shared/database.module';
 import { Db } from '../../../shared/db';
 import { ResourcesController } from './http/resources.controller';
 import { CoordinationController } from './http/coordination.controller';
@@ -15,30 +15,14 @@ import { RESOURCE_REPOSITORY, ResourceRepository } from '../domain/ports/resourc
 import { EVENT_BUS, EventBus } from '../domain/ports/event-bus';
 import { DrizzleResourceRepository } from './drizzle/drizzle-resource.repository';
 import { BullMqEventBus } from './bullmq-event-bus';
-import { createDb } from '../../../shared/db';
 import { IdentityModule } from '../../identity/infrastructure/identity.module';
 
-export const DB_POOL = Symbol('DB_POOL');
-export const EVENT_QUEUE = Symbol('EVENT_QUEUE');
-
-interface DbPool {
-  db: Db;
-  pool: Pool;
-}
+export const EVENT_QUEUE = Symbol('ResourcesEventQueue');
 
 interface EventQueue {
   queue: Queue;
   connection: IORedis;
 }
-
-const dbPoolProvider = {
-  provide: DB_POOL,
-  useFactory: (): DbPool => {
-    const url = process.env.DATABASE_URL;
-    if (!url) throw new Error('DATABASE_URL is required');
-    return createDb(url);
-  },
-};
 
 const eventQueueProvider = {
   provide: EVENT_QUEUE,
@@ -51,10 +35,10 @@ const eventQueueProvider = {
   },
 };
 
-const dbProvider = {
+const resourceRepositoryProvider = {
   provide: RESOURCE_REPOSITORY,
-  inject: [DB_POOL],
-  useFactory: (dbPool: DbPool): ResourceRepository => new DrizzleResourceRepository(dbPool.db),
+  inject: [DB],
+  useFactory: (db: Db): ResourceRepository => new DrizzleResourceRepository(db),
 };
 
 const busProvider = {
@@ -90,12 +74,11 @@ const publicResourcesProvider = {
 };
 
 @Module({
-  imports: [IdentityModule],
+  imports: [DatabaseModule, IdentityModule],
   controllers: [ResourcesController, CoordinationController, PublicController],
   providers: [
-    dbPoolProvider,
     eventQueueProvider,
-    dbProvider,
+    resourceRepositoryProvider,
     busProvider,
     registerProvider,
     queueProvider,
@@ -105,10 +88,7 @@ const publicResourcesProvider = {
   ],
 })
 export class ResourcesModule implements OnModuleDestroy {
-  constructor(
-    @Inject(DB_POOL) private readonly dbPool: DbPool,
-    @Inject(EVENT_QUEUE) private readonly eventQueue: EventQueue,
-  ) {}
+  constructor(@Inject(EVENT_QUEUE) private readonly eventQueue: EventQueue) {}
 
   async onModuleDestroy(): Promise<void> {
     try {
@@ -118,11 +98,6 @@ export class ResourcesModule implements OnModuleDestroy {
     }
     try {
       await this.eventQueue.connection.quit();
-    } catch (_) {
-      // ignore
-    }
-    try {
-      await this.dbPool.pool.end();
     } catch (_) {
       // ignore
     }

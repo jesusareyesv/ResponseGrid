@@ -1,8 +1,8 @@
 import { Inject, Module, OnModuleDestroy } from '@nestjs/common';
 import { Queue } from 'bullmq';
 import IORedis from 'ioredis';
-import { Pool } from 'pg';
-import { Db, createDb } from '../../../shared/db';
+import { DB, DatabaseModule } from '../../../shared/database.module';
+import { Db } from '../../../shared/db';
 import { NeedsController } from './http/needs.controller';
 import { CreateNeed } from '../application/create-need';
 import { ValidateNeed } from '../application/validate-need';
@@ -15,27 +15,12 @@ import { DrizzleNeedRepository } from './drizzle/drizzle-need.repository';
 import { BullMqEventBus } from './bullmq-event-bus';
 import { IdentityModule } from '../../identity/infrastructure/identity.module';
 
-export const DB_POOL = Symbol('NeedsDbPool');
 export const EVENT_QUEUE = Symbol('NeedsEventQueue');
-
-interface DbPool {
-  db: Db;
-  pool: Pool;
-}
 
 interface EventQueue {
   queue: Queue;
   connection: IORedis;
 }
-
-const dbPoolProvider = {
-  provide: DB_POOL,
-  useFactory: (): DbPool => {
-    const url = process.env.DATABASE_URL;
-    if (!url) throw new Error('DATABASE_URL is required');
-    return createDb(url);
-  },
-};
 
 const eventQueueProvider = {
   provide: EVENT_QUEUE,
@@ -50,8 +35,8 @@ const eventQueueProvider = {
 
 const needRepositoryProvider = {
   provide: NEED_REPOSITORY,
-  inject: [DB_POOL],
-  useFactory: (dbPool: DbPool): NeedRepository => new DrizzleNeedRepository(dbPool.db),
+  inject: [DB],
+  useFactory: (db: Db): NeedRepository => new DrizzleNeedRepository(db),
 };
 
 const eventBusProvider = {
@@ -91,10 +76,9 @@ const assignNeedManagerProvider = {
 };
 
 @Module({
-  imports: [IdentityModule],
+  imports: [DatabaseModule, IdentityModule],
   controllers: [NeedsController],
   providers: [
-    dbPoolProvider,
     eventQueueProvider,
     needRepositoryProvider,
     eventBusProvider,
@@ -106,10 +90,7 @@ const assignNeedManagerProvider = {
   ],
 })
 export class NeedsModule implements OnModuleDestroy {
-  constructor(
-    @Inject(DB_POOL) private readonly dbPool: DbPool,
-    @Inject(EVENT_QUEUE) private readonly eventQueue: EventQueue,
-  ) {}
+  constructor(@Inject(EVENT_QUEUE) private readonly eventQueue: EventQueue) {}
 
   async onModuleDestroy(): Promise<void> {
     try {
@@ -119,11 +100,6 @@ export class NeedsModule implements OnModuleDestroy {
     }
     try {
       await this.eventQueue.connection.quit();
-    } catch (_) {
-      // ignore
-    }
-    try {
-      await this.dbPool.pool.end();
     } catch (_) {
       // ignore
     }
