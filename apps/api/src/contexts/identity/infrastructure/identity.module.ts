@@ -25,6 +25,18 @@ import { JwtAuthGuard } from './http/jwt-auth.guard';
 import { RequireAdminGuard } from './http/require-admin.guard';
 import { RequireCoordinatorGuard } from './http/require-coordinator.guard';
 import { RequireAnyCoordinatorGuard } from './http/require-any-coordinator.guard';
+import { RequireResourceCoordinatorGuard } from './http/require-resource-coordinator.guard';
+import { RequireNeedCoordinatorGuard } from './http/require-need-coordinator.guard';
+import { DrizzleResourceEmergencyLookup } from './drizzle/drizzle-resource-emergency-lookup';
+import { DrizzleNeedEmergencyLookup } from './drizzle/drizzle-need-emergency-lookup';
+import {
+  RESOURCE_EMERGENCY_LOOKUP,
+  ResourceEmergencyLookup,
+} from '../domain/ports/resource-emergency-lookup';
+import {
+  NEED_EMERGENCY_LOOKUP,
+  NeedEmergencyLookup,
+} from '../domain/ports/need-emergency-lookup';
 import { GoogleStrategy } from './http/google.strategy';
 import { FacebookStrategy } from './http/facebook.strategy';
 
@@ -72,6 +84,20 @@ const tokenServiceProvider = {
   provide: TOKEN_SERVICE,
   inject: [JwtService],
   useFactory: (jwtService: JwtService) => new JwtTokenService(jwtService),
+};
+
+const resourceEmergencyLookupProvider = {
+  provide: RESOURCE_EMERGENCY_LOOKUP,
+  inject: [IDENTITY_DB_POOL],
+  useFactory: (dbPool: DbPool): ResourceEmergencyLookup =>
+    new DrizzleResourceEmergencyLookup(dbPool.db),
+};
+
+const needEmergencyLookupProvider = {
+  provide: NEED_EMERGENCY_LOOKUP,
+  inject: [IDENTITY_DB_POOL],
+  useFactory: (dbPool: DbPool): NeedEmergencyLookup =>
+    new DrizzleNeedEmergencyLookup(dbPool.db),
 };
 
 const loginProvider = {
@@ -126,10 +152,14 @@ const authenticateWithProviderProvider = {
     loginProvider,
     registerUserProvider,
     authenticateWithProviderProvider,
+    resourceEmergencyLookupProvider,
+    needEmergencyLookupProvider,
     JwtAuthGuard,
     RequireAdminGuard,
     RequireCoordinatorGuard,
     RequireAnyCoordinatorGuard,
+    RequireResourceCoordinatorGuard,
+    RequireNeedCoordinatorGuard,
     GoogleStrategy,
     FacebookStrategy,
   ],
@@ -137,10 +167,14 @@ const authenticateWithProviderProvider = {
     USER_REPOSITORY,
     MEMBERSHIP_REPOSITORY,
     TOKEN_SERVICE,
+    RESOURCE_EMERGENCY_LOOKUP,
+    NEED_EMERGENCY_LOOKUP,
     JwtAuthGuard,
     RequireAdminGuard,
     RequireCoordinatorGuard,
     RequireAnyCoordinatorGuard,
+    RequireResourceCoordinatorGuard,
+    RequireNeedCoordinatorGuard,
     JwtModule,
   ],
 })

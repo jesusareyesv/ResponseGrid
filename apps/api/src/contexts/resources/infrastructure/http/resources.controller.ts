@@ -19,7 +19,7 @@ import { PublishResource } from '../../application/publish-resource';
 import { RegisterResourceDto, VerifyResourceDto } from './dto';
 import { RegisterResourceResponseDto } from './response.dto';
 import { JwtAuthGuard, AuthenticatedUser } from '../../../identity/infrastructure/http/jwt-auth.guard';
-import { RequireAnyCoordinatorGuard } from '../../../identity/infrastructure/http/require-any-coordinator.guard';
+import { RequireResourceCoordinatorGuard } from '../../../identity/infrastructure/http/require-resource-coordinator.guard';
 
 @ApiTags('resources')
 @Controller()
@@ -59,9 +59,9 @@ export class ResourcesController {
 
   @Post('resources/:resourceId/verify')
   @HttpCode(204)
-  @UseGuards(JwtAuthGuard, RequireAnyCoordinatorGuard)
+  @UseGuards(JwtAuthGuard, RequireResourceCoordinatorGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Verify a resource (coordinator only)' })
+  @ApiOperation({ summary: 'Verify a resource (coordinator of the resource\'s emergency only)' })
   @ApiParam({ name: 'resourceId', description: 'Resource UUID', format: 'uuid' })
   @ApiNoContentResponse({ description: 'Resource verified' })
   @ApiNotFoundResponse({ description: 'Resource not found' })
@@ -79,9 +79,9 @@ export class ResourcesController {
 
   @Post('resources/:resourceId/publish')
   @HttpCode(204)
-  @UseGuards(JwtAuthGuard, RequireAnyCoordinatorGuard)
+  @UseGuards(JwtAuthGuard, RequireResourceCoordinatorGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Publish a resource (coordinator only)' })
+  @ApiOperation({ summary: 'Publish a resource (coordinator of the resource\'s emergency only)' })
   @ApiParam({ name: 'resourceId', description: 'Resource UUID', format: 'uuid' })
   @ApiNoContentResponse({ description: 'Resource published' })
   @ApiNotFoundResponse({ description: 'Resource not found' })

@@ -35,7 +35,7 @@ import { CreateNeedDto, AssignNeedManagerDto } from './dto';
 import { CreateNeedResponseDto, NeedViewDto } from './response.dto';
 import { JwtAuthGuard } from '../../../identity/infrastructure/http/jwt-auth.guard';
 import { RequireCoordinatorGuard } from '../../../identity/infrastructure/http/require-coordinator.guard';
-import { RequireAnyCoordinatorGuard } from '../../../identity/infrastructure/http/require-any-coordinator.guard';
+import { RequireNeedCoordinatorGuard } from '../../../identity/infrastructure/http/require-need-coordinator.guard';
 
 interface AuthenticatedRequest extends Express.Request {
   user: { id: string; email: string; isAdmin: boolean };
@@ -143,9 +143,9 @@ export class NeedsController {
 
   @Post('needs/:needId/validate')
   @HttpCode(204)
-  @UseGuards(JwtAuthGuard, RequireAnyCoordinatorGuard)
+  @UseGuards(JwtAuthGuard, RequireNeedCoordinatorGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Validate a need (coordinator only)' })
+  @ApiOperation({ summary: 'Validate a need (coordinator of the need\'s emergency only)' })
   @ApiParam({ name: 'needId', description: 'Need UUID', format: 'uuid' })
   @ApiNoContentResponse({ description: 'Need validated' })
   @ApiNotFoundResponse({ description: 'Need not found' })
@@ -158,9 +158,9 @@ export class NeedsController {
 
   @Post('needs/:needId/assign-manager')
   @HttpCode(204)
-  @UseGuards(JwtAuthGuard, RequireAnyCoordinatorGuard)
+  @UseGuards(JwtAuthGuard, RequireNeedCoordinatorGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Assign a managing organization to a need (coordinator only)' })
+  @ApiOperation({ summary: 'Assign a managing organization to a need (coordinator of the need\'s emergency only)' })
   @ApiParam({ name: 'needId', description: 'Need UUID', format: 'uuid' })
   @ApiNoContentResponse({ description: 'Manager assigned' })
   @ApiNotFoundResponse({ description: 'Need not found' })
