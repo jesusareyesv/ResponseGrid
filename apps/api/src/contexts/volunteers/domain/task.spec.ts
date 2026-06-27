@@ -129,6 +129,20 @@ describe('Task aggregate', () => {
       t.checkIn(VOL_A);
       expect(() => t.checkIn(VOL_A)).toThrow(TaskCheckInError);
     });
+
+    it('throws TaskClosedError when task is cancelled (bug fix)', () => {
+      const t = makeTask();
+      t.assign(VOL_A);
+      t.cancel();
+      expect(() => t.checkIn(VOL_A)).toThrow(TaskClosedError);
+    });
+
+    it('throws TaskClosedError when task is completed (bug fix)', () => {
+      const t = makeTask();
+      t.assign(VOL_A);
+      t.complete();
+      expect(() => t.checkIn(VOL_A)).toThrow(TaskClosedError);
+    });
   });
 
   describe('checkOut', () => {

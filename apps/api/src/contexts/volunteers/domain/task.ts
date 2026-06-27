@@ -258,6 +258,7 @@ export class Task {
   }
 
   checkIn(volunteerId: string): void {
+    this.assertOpen();
     const assignment = this._assignments.find(
       (a) => a.volunteerId === volunteerId,
     );
