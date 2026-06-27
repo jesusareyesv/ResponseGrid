@@ -16,6 +16,15 @@ import { EmptyState } from '@/components/molecules/empty-state';
 import type { Messages } from '@/i18n/messages/es';
 import type { Locale } from '@/i18n';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? '';
+if (!API_URL) {
+  // eslint-disable-next-line no-console
+  console.error(
+    '[ResourceList] NEXT_PUBLIC_API_URL is not set — ' +
+      '"Load more" will fail. Set this env var in your deployment.',
+  );
+}
+
 type ResourceViewDto = components['schemas']['ResourceViewDto'];
 
 const LIMIT = 50;
@@ -46,15 +55,15 @@ export function ResourceList({
   const [items, setItems] = useState<ResourceViewDto[]>(initialItems);
   const [page, setPage] = useState(1);
   const [isPending, startTransition] = useTransition();
+  const [loadMoreError, setLoadMoreError] = useState(false);
 
   const hasMore = items.length < total;
 
   function handleLoadMore() {
+    setLoadMoreError(false);
     startTransition(async () => {
       const nextPage = page + 1;
-      const client = createResponseGridClient(
-        process.env.NEXT_PUBLIC_API_URL ?? '',
-      );
+      const client = createResponseGridClient(API_URL);
       const { data } = await client.GET(
         '/emergencies/{emergencyId}/public/resources',
         {
@@ -67,6 +76,8 @@ export function ResourceList({
       if (data != null) {
         setItems((prev) => [...prev, ...data.items]);
         setPage(nextPage);
+      } else {
+        setLoadMoreError(true);
       }
     });
   }
@@ -104,7 +115,19 @@ export function ResourceList({
         ))}
       </ul>
 
-      {hasMore && (
+      {loadMoreError && (
+        <p role="alert" className="text-center text-sm text-red-600">
+          <button
+            type="button"
+            onClick={handleLoadMore}
+            className="underline hover:no-underline focus:outline-none"
+          >
+            {tList.load_more_error}
+          </button>
+        </p>
+      )}
+
+      {hasMore && !loadMoreError && (
         <button
           type="button"
           onClick={handleLoadMore}

@@ -200,6 +200,8 @@ export const en = {
     meta_schedule: 'Hours:',
     meta_manager: 'Manager:',
     meta_source: 'Source:',
+    // aria-label for the card article element
+    aria_label: 'Active point: {name}',
   },
 
   resource_list: {
@@ -207,6 +209,7 @@ export const en = {
     showing: 'Showing {shown} of {total}',
     load_more: 'Load more',
     loading: 'Loading…',
+    load_more_error: 'Could not load more. Retry',
   },
 
   verification_badge: {

@@ -42,7 +42,7 @@ export function PublicResourceCard({
 
   return (
     <article
-      aria-label={`Punto activo: ${resource.name}`}
+      aria-label={t.aria_label.replace('{name}', resource.name)}
       className="flex flex-col gap-2 rounded-lg border-2 border-gray-900 bg-white p-3"
     >
       {/* ── Header: name + badges ───────────────────────────────────── */}
@@ -68,9 +68,9 @@ export function PublicResourceCard({
       </p>
 
       {/* ── Accepts chips ───────────────────────────────────────────── */}
-      {resource.accepts.length > 0 && (
+      {(resource.accepts ?? []).length > 0 && (
         <div className="flex flex-wrap gap-1" role="list" aria-label={t.accepts_label}>
-          {resource.accepts.map((slug) => (
+          {(resource.accepts ?? []).map((slug) => (
             <span
               key={slug}
               role="listitem"

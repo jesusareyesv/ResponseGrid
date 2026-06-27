@@ -217,6 +217,8 @@ export const es = {
     meta_schedule: 'Horario:',
     meta_manager: 'Responsable:',
     meta_source: 'Fuente:',
+    // aria-label for the card article element
+    aria_label: 'Punto activo: {name}',
   },
 
   // ── ResourceList ──────────────────────────────────────────────────────────
@@ -225,6 +227,7 @@ export const es = {
     showing: 'Mostrando {shown} de {total}',
     load_more: 'Cargar más',
     loading: 'Cargando…',
+    load_more_error: 'No se pudo cargar más. Reintentar',
   },
 
   // ── VerificationBadge ─────────────────────────────────────────────────────
