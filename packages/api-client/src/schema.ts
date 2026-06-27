@@ -1540,6 +1540,12 @@ export interface components {
             description?: string | null;
             location: components["schemas"]["NeedLocationResponseDto"];
             /**
+             * @description When "approximate", the coordinates in location are jittered for privacy. Coordinators always receive exact coordinates regardless of this value.
+             * @example approximate
+             * @enum {string}
+             */
+            locationSensitivity: "public" | "approximate";
+            /**
              * @example high
              * @enum {string}
              */
