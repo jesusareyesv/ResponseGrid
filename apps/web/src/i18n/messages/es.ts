@@ -111,6 +111,10 @@ export const es = {
     category_shelter: 'Refugio',
     category_tools: 'Herramientas',
     category_other: 'Otro',
+    category_medicines: '💊 Medicamentos',
+    category_medical_equipment: '🩺 Equipos médicos',
+    category_medical_supplies: '📦 Insumos médicos',
+    category_medical_personnel: '🧑‍⚕️ Personal sanitario',
 
     // Priority labels
     priority_low: 'Baja',
@@ -306,6 +310,10 @@ export const es = {
     category_shelter: 'Refugio',
     category_tools: 'Herramientas',
     category_other: 'Otro',
+    category_medicines: '💊 Medicamentos',
+    category_medical_equipment: '🩺 Equipos médicos',
+    category_medical_supplies: '📦 Insumos médicos',
+    category_medical_personnel: '🧑‍⚕️ Personal sanitario',
   },
 
   // ── Donar form ────────────────────────────────────────────────────────────

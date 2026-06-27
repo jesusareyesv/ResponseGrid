@@ -18,6 +18,10 @@ const CATEGORY_LABELS: Record<ItemCategory, string> = {
   shelter: 'Refugio',
   tools: 'Herramientas',
   other: 'Otro',
+  medicines: '💊 Medicamentos',
+  medical_equipment: '🩺 Equipos médicos',
+  medical_supplies: '📦 Insumos médicos',
+  medical_personnel: '🧑‍⚕️ Personal sanitario',
 };
 
 const PRIORITY_LABELS: Record<NeedView['priority'], string> = {

@@ -102,6 +102,10 @@ export const en = {
     category_shelter: 'Shelter',
     category_tools: 'Tools',
     category_other: 'Other',
+    category_medicines: '💊 Medicines',
+    category_medical_equipment: '🩺 Medical equipment',
+    category_medical_supplies: '📦 Medical supplies',
+    category_medical_personnel: '🧑‍⚕️ Medical personnel',
 
     priority_low: 'Low',
     priority_medium: 'Medium',
@@ -284,6 +288,10 @@ export const en = {
     category_shelter: 'Shelter',
     category_tools: 'Tools',
     category_other: 'Other',
+    category_medicines: '💊 Medicines',
+    category_medical_equipment: '🩺 Medical equipment',
+    category_medical_supplies: '📦 Medical supplies',
+    category_medical_personnel: '🧑‍⚕️ Medical personnel',
   },
 
   donar: {

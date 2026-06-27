@@ -41,7 +41,10 @@ export async function generateMetadata(
   };
 }
 
-const VALID_CATEGORIES = ['hygiene', 'water', 'food', 'medical', 'shelter', 'tools', 'other'] as const;
+const VALID_CATEGORIES = [
+  'hygiene', 'water', 'food', 'medical', 'shelter', 'tools', 'other',
+  'medicines', 'medical_equipment', 'medical_supplies', 'medical_personnel',
+] as const;
 const VALID_PRIORITIES = ['low', 'medium', 'high', 'urgent'] as const;
 
 type NeedCategory = typeof VALID_CATEGORIES[number];

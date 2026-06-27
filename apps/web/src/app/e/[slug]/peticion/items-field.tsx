@@ -3,7 +3,10 @@
 import { useEffect, useState } from 'react';
 import type { Messages } from '@/i18n/messages/es';
 
-const CATEGORY_VALUES = ['hygiene', 'water', 'food', 'medical', 'shelter', 'tools', 'other'] as const;
+const CATEGORY_VALUES = [
+  'hygiene', 'water', 'food', 'medical', 'shelter', 'tools', 'other',
+  'medicines', 'medical_equipment', 'medical_supplies', 'medical_personnel',
+] as const;
 type Category = (typeof CATEGORY_VALUES)[number];
 
 interface Item {
@@ -35,6 +38,10 @@ export function ItemsField({ t }: ItemsFieldProps) {
     { value: 'shelter' as Category, label: t.category_shelter },
     { value: 'tools' as Category, label: t.category_tools },
     { value: 'other' as Category, label: t.category_other },
+    { value: 'medicines' as Category, label: t.category_medicines },
+    { value: 'medical_equipment' as Category, label: t.category_medical_equipment },
+    { value: 'medical_supplies' as Category, label: t.category_medical_supplies },
+    { value: 'medical_personnel' as Category, label: t.category_medical_personnel },
   ];
 
   // Serialize to hidden input on every change

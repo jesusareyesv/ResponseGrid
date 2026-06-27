@@ -25,6 +25,10 @@ export function NeedsFilter({ t = es.needs_filter, te = es.emergency }: NeedsFil
     { value: 'shelter', label: te.category_shelter },
     { value: 'tools', label: te.category_tools },
     { value: 'other', label: te.category_other },
+    { value: 'medicines', label: te.category_medicines },
+    { value: 'medical_equipment', label: te.category_medical_equipment },
+    { value: 'medical_supplies', label: te.category_medical_supplies },
+    { value: 'medical_personnel', label: te.category_medical_personnel },
   ];
 
   const priorityOptions = [

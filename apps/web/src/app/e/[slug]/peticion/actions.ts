@@ -22,6 +22,10 @@ const VALID_CATEGORIES: NeedCategory[] = [
   'shelter',
   'tools',
   'other',
+  'medicines',
+  'medical_equipment',
+  'medical_supplies',
+  'medical_personnel',
 ];
 
 const VALID_PRIORITIES: NeedPriority[] = ['low', 'medium', 'high', 'urgent'];
