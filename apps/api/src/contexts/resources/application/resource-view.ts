@@ -1,15 +1,21 @@
 import { Resource } from '../domain/resource';
+import {
+  ResourceType,
+  ResourceStage,
+  VerificationLevel,
+  PublicStatus,
+} from '../domain/resource-enums';
 import { LocationProps } from '../../../shared/domain/location';
 
 export interface ResourceView {
   id: string;
-  type: string;
-  stage: string;
+  type: ResourceType;
+  stage: ResourceStage;
   name: string;
   description: string | null;
   location: LocationProps;
-  verificationLevel: string;
-  publicStatus: string;
+  verificationLevel: VerificationLevel;
+  publicStatus: PublicStatus;
   ownerOrganizationId: string | null;
   // enriched fields
   accepts: string[];

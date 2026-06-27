@@ -24,7 +24,12 @@ export class GetPublicResources {
 
     const { items, total } = await this.repo.findVisiblePaged(
       EmergencyId.fromString(q.emergencyId),
-      { page, limit, category: q.category, country: q.country },
+      {
+        page,
+        limit,
+        ...(q.category !== undefined && { category: q.category }),
+        ...(q.country !== undefined && { country: q.country }),
+      },
     );
 
     return {

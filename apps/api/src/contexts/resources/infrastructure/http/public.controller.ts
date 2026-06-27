@@ -38,10 +38,10 @@ export class PublicController {
   ): Promise<PagedResourcesDto> {
     return this.getPublicResources.execute({
       emergencyId,
-      page: query.page,
-      limit: query.limit,
-      category: query.category,
-      country: query.country,
+      page: query.page ?? 1,
+      limit: query.limit ?? 50,
+      ...(query.category !== undefined && { category: query.category }),
+      ...(query.country !== undefined && { country: query.country }),
     });
   }
 
