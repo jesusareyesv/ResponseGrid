@@ -1,4 +1,4 @@
-import { Need, NeedItemsRequiredError } from './need';
+import { Need, NeedItemsRequiredError, NEED_VALIDITY_HOURS } from './need';
 import { NeedId } from './need-id';
 import { EmergencyId } from '../../../shared/domain/emergency-id';
 import { Priority, NeedCategory, NeedStatus } from './need-enums';
@@ -182,6 +182,118 @@ describe('Need aggregate', () => {
     const need = makeNeed();
     need.pullDomainEvents();
     expect(need.pullDomainEvents()).toHaveLength(0);
+  });
+
+  // F04 — Medical categories
+  it('accepts medicines as a NeedCategory enum value', () => {
+    const need = Need.create({
+      id: NeedId.create(),
+      emergencyId: EmergencyId.fromString(EM),
+      title: 'Medicines need',
+      description: null,
+      location: makeLocation(),
+      priority: Priority.Urgent,
+      requesterUserId: USER_ID,
+      requesterOrganizationId: null,
+      items: [
+        NeedItem.create({
+          name: 'Paracetamol',
+          quantity: 500,
+          unit: 'tablets',
+          category: NeedCategory.Medicines,
+        }),
+      ],
+    });
+    expect(need.items[0].category).toBe(NeedCategory.Medicines);
+    expect(NeedCategory.Medicines).toBe('medicines');
+    expect(NeedCategory.MedicalEquipment).toBe('medical_equipment');
+    expect(NeedCategory.MedicalSupplies).toBe('medical_supplies');
+    expect(NeedCategory.MedicalPersonnel).toBe('medical_personnel');
+  });
+
+  it('Medical (retrocompat) still exists alongside new health categories', () => {
+    expect(NeedCategory.Medical).toBe('medical');
+  });
+
+  // F06 — Expiry/freshness
+  it('create() sets expiresAt and lastVerifiedAt to null initially', () => {
+    const need = makeNeed();
+    expect(need.expiresAt).toBeNull();
+    expect(need.lastVerifiedAt).toBeNull();
+  });
+
+  it('validate() sets expiresAt to now+48h and lastVerifiedAt to now', () => {
+    const before = new Date();
+    const need = makeNeed();
+    need.validate();
+    const after = new Date();
+
+    expect(need.expiresAt).not.toBeNull();
+    expect(need.lastVerifiedAt).not.toBeNull();
+
+    const expectedExpiry = new Date(
+      before.getTime() + NEED_VALIDITY_HOURS * 60 * 60 * 1000,
+    );
+    // expiresAt should be approximately now+48h
+    expect(need.expiresAt!.getTime()).toBeGreaterThanOrEqual(
+      expectedExpiry.getTime() - 1000,
+    );
+    expect(need.expiresAt!.getTime()).toBeLessThanOrEqual(
+      after.getTime() + NEED_VALIDITY_HOURS * 60 * 60 * 1000 + 1000,
+    );
+    expect(need.lastVerifiedAt!.getTime()).toBeGreaterThanOrEqual(
+      before.getTime(),
+    );
+    expect(need.lastVerifiedAt!.getTime()).toBeLessThanOrEqual(
+      after.getTime() + 1000,
+    );
+  });
+
+  it('renew() resets expiresAt to now+48h and updates lastVerifiedAt', () => {
+    const need = makeNeed();
+    need.validate();
+    const originalExpiry = need.expiresAt;
+
+    // wait a tick to ensure timestamps differ
+    const before = new Date();
+    need.renew();
+    const after = new Date();
+
+    expect(need.expiresAt).not.toBeNull();
+    expect(need.expiresAt!.getTime()).toBeGreaterThanOrEqual(
+      before.getTime() + NEED_VALIDITY_HOURS * 60 * 60 * 1000 - 1000,
+    );
+    expect(need.lastVerifiedAt!.getTime()).toBeGreaterThanOrEqual(
+      before.getTime(),
+    );
+    // expiresAt should be same or later than original (could be same ms in fast tests)
+    expect(need.expiresAt!.getTime()).toBeGreaterThanOrEqual(
+      originalExpiry!.getTime() - 1,
+    );
+    expect(after).toBeDefined(); // ensure after is used
+  });
+
+  it('fromSnapshot preserves expiresAt and lastVerifiedAt', () => {
+    const need = makeNeed();
+    need.validate();
+    const snap = need.toSnapshot();
+    const restored = Need.fromSnapshot(snap);
+
+    expect(restored.expiresAt?.toISOString()).toBe(
+      need.expiresAt?.toISOString(),
+    );
+    expect(restored.lastVerifiedAt?.toISOString()).toBe(
+      need.lastVerifiedAt?.toISOString(),
+    );
+  });
+
+  it('fromSnapshot handles null expiresAt (legacy rows)', () => {
+    const need = makeNeed();
+    const snap = need.toSnapshot();
+    expect(snap.expiresAt).toBeNull();
+    const restored = Need.fromSnapshot(snap);
+    expect(restored.expiresAt).toBeNull();
+    expect(restored.lastVerifiedAt).toBeNull();
   });
 
   it('toSnapshot/fromSnapshot round-trip preserves all fields including items and location', () => {

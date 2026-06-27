@@ -448,6 +448,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/needs/{needId}/renew": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Renew a need (reset expiresAt to now+48h) — coordinator only */
+        post: operations["NeedsController_renew"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/emergencies/{emergencyId}/needs/expired": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List expired needs for an emergency (coordinator only) */
+        get: operations["NeedsController_listExpired"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/organizations": {
         parameters: {
             query?: never;
@@ -1302,7 +1336,7 @@ export interface components {
              * @example water
              * @enum {string}
              */
-            category: "hygiene" | "water" | "food" | "medical" | "shelter" | "tools" | "other";
+            category: "hygiene" | "water" | "food" | "medical" | "shelter" | "tools" | "other" | "medicines" | "medical_equipment" | "medical_supplies" | "medical_personnel";
         };
         CreateNeedDto: {
             /** @example Alimentos para 50 familias */
@@ -1350,7 +1384,7 @@ export interface components {
              * @example water
              * @enum {string}
              */
-            category: "hygiene" | "water" | "food" | "medical" | "shelter" | "tools" | "other";
+            category: "hygiene" | "water" | "food" | "medical" | "shelter" | "tools" | "other" | "medicines" | "medical_equipment" | "medical_supplies" | "medical_personnel";
         };
         NeedViewDto: {
             /**
@@ -1385,6 +1419,16 @@ export interface components {
             status: "pending" | "validated" | "rejected" | "fulfilled";
             /** @example 2024-01-01T00:00:00.000Z */
             createdAt: string;
+            /**
+             * @description Timestamp when the need expires (48 h after validation). Null for legacy needs.
+             * @example 2024-01-03T00:00:00.000Z
+             */
+            expiresAt?: string | null;
+            /**
+             * @description Timestamp when the need was last verified by a coordinator.
+             * @example 2024-01-01T12:00:00.000Z
+             */
+            lastVerifiedAt?: string | null;
         };
         AssignNeedManagerDto: {
             /**
@@ -1536,7 +1580,7 @@ export interface components {
              * @example food
              * @enum {string}
              */
-            category: "hygiene" | "water" | "food" | "medical" | "shelter" | "tools" | "other";
+            category: "hygiene" | "water" | "food" | "medical" | "shelter" | "tools" | "other" | "medicines" | "medical_equipment" | "medical_supplies" | "medical_personnel";
             /**
              * @description Description of the item being offered
              * @example Rice bags 25kg
@@ -1597,7 +1641,7 @@ export interface components {
              * @example food
              * @enum {string}
              */
-            category: "hygiene" | "water" | "food" | "medical" | "shelter" | "tools" | "other";
+            category: "hygiene" | "water" | "food" | "medical" | "shelter" | "tools" | "other" | "medicines" | "medical_equipment" | "medical_supplies" | "medical_personnel";
             /** @example Rice bags 25kg */
             description: string;
             /** @example 50 */
@@ -1844,6 +1888,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Rate limit exceeded — try again later */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
     };
     AuthController_registerRoute: {
@@ -1877,6 +1928,13 @@ export interface operations {
             };
             /** @description Email already registered */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Rate limit exceeded — try again later */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2778,7 +2836,7 @@ export interface operations {
         parameters: {
             query?: {
                 /** @description Filter by item category (needs with at least one item of this category) */
-                category?: "hygiene" | "water" | "food" | "medical" | "shelter" | "tools" | "other";
+                category?: "hygiene" | "water" | "food" | "medical" | "shelter" | "tools" | "other" | "medicines" | "medical_equipment" | "medical_supplies" | "medical_personnel";
                 /** @description Filter by need priority */
                 priority?: "low" | "medium" | "high" | "urgent";
             };
@@ -2806,7 +2864,7 @@ export interface operations {
         parameters: {
             query?: {
                 /** @description Filter by item category (needs with at least one item of this category) */
-                category?: "hygiene" | "water" | "food" | "medical" | "shelter" | "tools" | "other";
+                category?: "hygiene" | "water" | "food" | "medical" | "shelter" | "tools" | "other" | "medicines" | "medical_equipment" | "medical_supplies" | "medical_personnel";
                 /** @description Filter by need priority */
                 priority?: "low" | "medium" | "high" | "urgent";
             };
@@ -2932,6 +2990,87 @@ export interface operations {
             };
             /** @description Need not found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    NeedsController_renew: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Need UUID */
+                needId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Need renewed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NeedViewDto"];
+                };
+            };
+            /** @description Missing or invalid token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Coordinator role required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Need not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    NeedsController_listExpired: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Emergency UUID */
+                emergencyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of expired validated needs */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NeedViewDto"][];
+                };
+            };
+            /** @description Missing or invalid token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Coordinator role required */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

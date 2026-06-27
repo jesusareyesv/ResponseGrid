@@ -1,4 +1,15 @@
-import { and, count, eq, exists, inArray, SQL } from 'drizzle-orm';
+import {
+  and,
+  count,
+  eq,
+  exists,
+  gt,
+  inArray,
+  isNull,
+  lt,
+  or,
+  SQL,
+} from 'drizzle-orm';
 import { randomUUID } from 'node:crypto';
 import { Db } from '../../../../shared/db';
 import { needsTable, needItemsTable } from './schema';
@@ -40,6 +51,8 @@ function rowToSnapshot(row: NeedsRow, items: ItemsRow[]): NeedSnapshot {
     ),
     status: row.status as NeedStatus,
     createdAt: row.createdAt,
+    expiresAt: row.expiresAt ?? null,
+    lastVerifiedAt: row.lastVerifiedAt ?? null,
   };
 }
 
@@ -66,12 +79,16 @@ export class DrizzleNeedRepository implements NeedRepository {
           managingOrganizationId: s.managingOrganizationId,
           status: s.status,
           createdAt: s.createdAt,
+          expiresAt: s.expiresAt,
+          lastVerifiedAt: s.lastVerifiedAt,
         })
         .onConflictDoUpdate({
           target: needsTable.id,
           set: {
             status: s.status,
             managingOrganizationId: s.managingOrganizationId,
+            expiresAt: s.expiresAt,
+            lastVerifiedAt: s.lastVerifiedAt,
           },
         });
 
@@ -111,10 +128,34 @@ export class DrizzleNeedRepository implements NeedRepository {
     emergencyId: EmergencyId,
     filters?: NeedFilters,
   ): Promise<Need[]> {
+    // Exclude expired needs: rows with expires_at NOT NULL AND expires_at < now.
+    // Rows with expires_at = NULL (legacy/retrocompat) are always included.
+    const now = new Date();
+    // Include: expires_at IS NULL  OR  expires_at > now
+    const notExpired = or(
+      isNull(needsTable.expiresAt),
+      gt(needsTable.expiresAt, now),
+    ) as SQL;
     return this._findByEmergencyAndStatus(
       emergencyId,
       NeedStatus.Validated,
       filters,
+      [notExpired],
+    );
+  }
+
+  async findExpiredByEmergency(
+    emergencyId: EmergencyId,
+    filters?: NeedFilters,
+  ): Promise<Need[]> {
+    const now = new Date();
+    // Validated needs where expires_at IS NOT NULL AND expires_at <= now
+    const isExpired = lt(needsTable.expiresAt, now);
+    return this._findByEmergencyAndStatus(
+      emergencyId,
+      NeedStatus.Validated,
+      filters,
+      [isExpired],
     );
   }
 
@@ -158,10 +199,12 @@ export class DrizzleNeedRepository implements NeedRepository {
     emergencyId: EmergencyId,
     status: NeedStatus,
     filters?: NeedFilters,
+    extraConditions: SQL[] = [],
   ): Promise<Need[]> {
     const conditions: SQL[] = [
       eq(needsTable.emergencyId, emergencyId.value),
       eq(needsTable.status, status),
+      ...extraConditions,
     ];
 
     if (filters?.priority !== undefined) {

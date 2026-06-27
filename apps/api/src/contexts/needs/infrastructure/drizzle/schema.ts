@@ -21,6 +21,8 @@ export const needsTable = pgTable('needs', {
   managingOrganizationId: uuid('managing_organization_id'),
   status: text('status').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+  expiresAt: timestamp('expires_at', { withTimezone: true }),
+  lastVerifiedAt: timestamp('last_verified_at', { withTimezone: true }),
 });
 
 export const needItemsTable = pgTable('need_items', {

@@ -17,6 +17,11 @@ export interface NeedRepository {
     emergencyId: EmergencyId,
     filters?: NeedFilters,
   ): Promise<Need[]>;
+  /** Returns validated needs that have expired (expiresAt IS NOT NULL AND expiresAt <= now). */
+  findExpiredByEmergency(
+    emergencyId: EmergencyId,
+    filters?: NeedFilters,
+  ): Promise<Need[]>;
   findPendingByEmergency(
     emergencyId: EmergencyId,
     filters?: NeedFilters,

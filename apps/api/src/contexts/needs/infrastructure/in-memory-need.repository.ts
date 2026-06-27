@@ -21,10 +21,42 @@ export class InMemoryNeedRepository implements NeedRepository {
     emergencyId: EmergencyId,
     filters?: NeedFilters,
   ): Promise<Need[]> {
+    const now = new Date();
     const result = [...this.store.values()]
       .filter((s) => {
         if (s.emergencyId !== emergencyId.value) return false;
         if (s.status !== NeedStatus.Validated) return false;
+        // Exclude expired: expiresAt IS NOT NULL AND expiresAt <= now
+        if (
+          s.expiresAt !== null &&
+          s.expiresAt !== undefined &&
+          s.expiresAt <= now
+        )
+          return false;
+        if (filters?.priority !== undefined && s.priority !== filters.priority)
+          return false;
+        if (
+          filters?.category !== undefined &&
+          !s.items.some((i) => i.category === filters.category)
+        )
+          return false;
+        return true;
+      })
+      .map((s) => Need.fromSnapshot(s));
+    return Promise.resolve(result);
+  }
+
+  findExpiredByEmergency(
+    emergencyId: EmergencyId,
+    filters?: NeedFilters,
+  ): Promise<Need[]> {
+    const now = new Date();
+    const result = [...this.store.values()]
+      .filter((s) => {
+        if (s.emergencyId !== emergencyId.value) return false;
+        if (s.status !== NeedStatus.Validated) return false;
+        // Only expired: expiresAt IS NOT NULL AND expiresAt <= now
+        if (!s.expiresAt || s.expiresAt > now) return false;
         if (filters?.priority !== undefined && s.priority !== filters.priority)
           return false;
         if (

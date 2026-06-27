@@ -29,6 +29,7 @@ import { ValidateNeed } from '../../application/validate-need';
 import { GetPublicNeeds } from '../../application/get-public-needs';
 import { GetNeedsQueue } from '../../application/get-needs-queue';
 import { AssignNeedManager } from '../../application/assign-need-manager';
+import { RenewNeed, GetExpiredNeeds } from '../../application/renew-need';
 import { NeedView } from '../../application/need-view';
 import { NeedCategory, Priority } from '../../domain/need-enums';
 import { CreateNeedDto, AssignNeedManagerDto } from './dto';
@@ -50,6 +51,8 @@ export class NeedsController {
     private readonly getPublicNeeds: GetPublicNeeds,
     private readonly getNeedsQueue: GetNeedsQueue,
     private readonly assignNeedManager: AssignNeedManager,
+    private readonly renewNeed: RenewNeed,
+    private readonly getExpiredNeeds: GetExpiredNeeds,
   ) {}
 
   @Post('emergencies/:emergencyId/needs')
@@ -231,5 +234,46 @@ export class NeedsController {
       needId,
       organizationId: dto.organizationId,
     });
+  }
+
+  @Post('needs/:needId/renew')
+  @HttpCode(200)
+  @UseGuards(JwtAuthGuard, RequireNeedCoordinatorGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Renew a need (reset expiresAt to now+48h) — coordinator only',
+  })
+  @ApiParam({ name: 'needId', description: 'Need UUID', format: 'uuid' })
+  @ApiOkResponse({ description: 'Need renewed', type: NeedViewDto })
+  @ApiNotFoundResponse({ description: 'Need not found' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
+  @ApiForbiddenResponse({ description: 'Coordinator role required' })
+  async renew(
+    @Param('needId', ParseUUIDPipe) needId: string,
+  ): Promise<NeedView> {
+    return this.renewNeed.execute({ needId });
+  }
+
+  @Get('emergencies/:emergencyId/needs/expired')
+  @UseGuards(JwtAuthGuard, RequireCoordinatorGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'List expired needs for an emergency (coordinator only)',
+  })
+  @ApiParam({
+    name: 'emergencyId',
+    description: 'Emergency UUID',
+    format: 'uuid',
+  })
+  @ApiOkResponse({
+    description: 'List of expired validated needs',
+    type: [NeedViewDto],
+  })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
+  @ApiForbiddenResponse({ description: 'Coordinator role required' })
+  async listExpired(
+    @Param('emergencyId', ParseUUIDPipe) emergencyId: string,
+  ): Promise<NeedView[]> {
+    return this.getExpiredNeeds.execute({ emergencyId });
   }
 }

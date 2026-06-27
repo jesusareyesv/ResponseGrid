@@ -9,6 +9,7 @@ import { ValidateNeed } from '../application/validate-need';
 import { GetPublicNeeds } from '../application/get-public-needs';
 import { GetNeedsQueue } from '../application/get-needs-queue';
 import { AssignNeedManager } from '../application/assign-need-manager';
+import { RenewNeed, GetExpiredNeeds } from '../application/renew-need';
 import {
   NEED_REPOSITORY,
   NeedRepository,
@@ -96,6 +97,18 @@ const assignNeedManagerProvider = {
   useFactory: (repo: NeedRepository) => new AssignNeedManager(repo),
 };
 
+const renewNeedProvider = {
+  provide: RenewNeed,
+  inject: [NEED_REPOSITORY],
+  useFactory: (repo: NeedRepository) => new RenewNeed(repo),
+};
+
+const getExpiredNeedsProvider = {
+  provide: GetExpiredNeeds,
+  inject: [NEED_REPOSITORY],
+  useFactory: (repo: NeedRepository) => new GetExpiredNeeds(repo),
+};
+
 @Module({
   imports: [DatabaseModule, IdentityModule],
   controllers: [NeedsController],
@@ -109,6 +122,8 @@ const assignNeedManagerProvider = {
     getPublicNeedsProvider,
     getNeedsQueueProvider,
     assignNeedManagerProvider,
+    renewNeedProvider,
+    getExpiredNeedsProvider,
   ],
 })
 export class NeedsModule implements OnModuleDestroy {

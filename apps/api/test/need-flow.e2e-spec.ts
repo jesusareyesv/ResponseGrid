@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import type { Server } from 'node:http';
 import request from 'supertest';
+import { eq } from 'drizzle-orm';
 import { AppModule } from '../src/app.module';
 import { DomainExceptionFilter } from '../src/contexts/resources/infrastructure/http/domain-exception.filter';
 import { NeedsDomainExceptionFilter } from '../src/contexts/needs/infrastructure/http/domain-exception.filter';
@@ -423,5 +424,220 @@ describe('Need flow (e2e)', () => {
     expect((filtered.body as unknown[]).length).toBe(
       (all.body as unknown[]).length,
     );
+  });
+
+  // F04 — Medical categories (health vertical)
+  it('category medicines is a valid NeedCategory (accepted by create + validate)', async () => {
+    const created = await request(server)
+      .post(`/emergencies/${EM}/needs`)
+      .set('Authorization', `Bearer ${coordToken}`)
+      .send({
+        title: 'Medicines for patients',
+        location: { address: 'Hospital, Caracas', latitude: 10.48, longitude: -66.9 },
+        priority: 'urgent',
+        items: [
+          { name: 'Paracetamol', quantity: 500, unit: 'tablets', category: 'medicines' },
+          { name: 'Ventilator', quantity: 2, unit: null, category: 'medical_equipment' },
+        ],
+      })
+      .expect(201);
+
+    const id: string = bodyId(created);
+
+    await request(server)
+      .post(`/needs/${id}/validate`)
+      .set('Authorization', `Bearer ${coordToken}`)
+      .expect(204);
+
+    const publicNeeds = await request(server)
+      .get(`/emergencies/${EM}/public/needs`)
+      .expect(200);
+
+    const found = bodyList(publicNeeds).find((n) => n.id === id);
+    expect(found).toBeDefined();
+    expect(
+      (found?.items as Array<{ category: string }>).some(
+        (i) => i.category === 'medicines',
+      ),
+    ).toBe(true);
+    expect(
+      (found?.items as Array<{ category: string }>).some(
+        (i) => i.category === 'medical_equipment',
+      ),
+    ).toBe(true);
+  });
+
+  it('medical_supplies and medical_personnel are valid NeedCategory values', async () => {
+    const created = await request(server)
+      .post(`/emergencies/${EM}/needs`)
+      .set('Authorization', `Bearer ${coordToken}`)
+      .send({
+        title: 'Health vertical supplies',
+        location: { address: 'Clinic, Caracas', latitude: 10.48, longitude: -66.9 },
+        priority: 'high',
+        items: [
+          { name: 'Gloves', quantity: 1000, unit: 'units', category: 'medical_supplies' },
+          { name: 'Nurses', quantity: 5, unit: null, category: 'medical_personnel' },
+        ],
+      })
+      .expect(201);
+
+    const id: string = bodyId(created);
+    expect(id).toBeDefined();
+  });
+
+  // F06 — Expiry / freshness
+  it('create→validate sets expiresAt ~48h and lastVerifiedAt in public view', async () => {
+    const created = await request(server)
+      .post(`/emergencies/${EM}/needs`)
+      .set('Authorization', `Bearer ${coordToken}`)
+      .send({
+        title: 'Expiry test need',
+        location: { address: 'Caracas', latitude: 10.48, longitude: -66.9 },
+        priority: 'high',
+        items: [{ name: 'Water', quantity: 100, unit: 'liters', category: 'water' }],
+      })
+      .expect(201);
+
+    const id: string = bodyId(created);
+    const beforeValidation = new Date();
+
+    await request(server)
+      .post(`/needs/${id}/validate`)
+      .set('Authorization', `Bearer ${coordToken}`)
+      .expect(204);
+
+    const publicNeeds = await request(server)
+      .get(`/emergencies/${EM}/public/needs`)
+      .expect(200);
+
+    const found = bodyList(publicNeeds).find((n) => n.id === id) as
+      | (NeedItem & { expiresAt: string | null; lastVerifiedAt: string | null })
+      | undefined;
+
+    expect(found).toBeDefined();
+    expect(found!.expiresAt).not.toBeNull();
+    expect(found!.lastVerifiedAt).not.toBeNull();
+
+    const expiresAt = new Date(found!.expiresAt!);
+    const expectedMin = new Date(
+      beforeValidation.getTime() + 47 * 60 * 60 * 1000,
+    );
+    const expectedMax = new Date(
+      beforeValidation.getTime() + 49 * 60 * 60 * 1000,
+    );
+    expect(expiresAt.getTime()).toBeGreaterThanOrEqual(expectedMin.getTime());
+    expect(expiresAt.getTime()).toBeLessThanOrEqual(expectedMax.getTime());
+  });
+
+  it('expired need (expires_at in past) is excluded from public list but appears in /expired', async () => {
+    // Create and validate a need
+    const created = await request(server)
+      .post(`/emergencies/${EM}/needs`)
+      .set('Authorization', `Bearer ${coordToken}`)
+      .send({
+        title: 'Soon to expire',
+        location: { address: 'Caracas', latitude: 10.48, longitude: -66.9 },
+        priority: 'medium',
+        items: [{ name: 'Bread', quantity: 50, unit: 'loaves', category: 'food' }],
+      })
+      .expect(201);
+
+    const id: string = bodyId(created);
+
+    await request(server)
+      .post(`/needs/${id}/validate`)
+      .set('Authorization', `Bearer ${coordToken}`)
+      .expect(204);
+
+    // Force expires_at to the past via direct DB update
+    const { db, pool } = createDb(
+      process.env.DATABASE_URL ??
+        'postgres://reliefhub:reliefhub@localhost:5433/reliefhub',
+    );
+    try {
+      const pastExpiry = new Date(Date.now() - 1000 * 60 * 60); // 1 hour ago
+      await db
+        .update(needsTable)
+        .set({ expiresAt: pastExpiry })
+        .where(eq(needsTable.id, id));
+    } finally {
+      await pool.end();
+    }
+
+    // Should NOT appear in public list
+    const publicNeeds = await request(server)
+      .get(`/emergencies/${EM}/public/needs`)
+      .expect(200);
+    expect(bodyList(publicNeeds).find((n) => n.id === id)).toBeUndefined();
+
+    // Should appear in /expired list (coordinator only)
+    const expiredList = await request(server)
+      .get(`/emergencies/${EM}/needs/expired`)
+      .set('Authorization', `Bearer ${coordToken}`)
+      .expect(200);
+    expect(bodyList(expiredList).find((n) => n.id === id)).toBeDefined();
+  });
+
+  it('renew revives an expired need into the public list', async () => {
+    // Create and validate a need
+    const created = await request(server)
+      .post(`/emergencies/${EM}/needs`)
+      .set('Authorization', `Bearer ${coordToken}`)
+      .send({
+        title: 'Renewable need',
+        location: { address: 'Caracas', latitude: 10.48, longitude: -66.9 },
+        priority: 'low',
+        items: [{ name: 'Blankets', quantity: 20, unit: null, category: 'shelter' }],
+      })
+      .expect(201);
+
+    const id: string = bodyId(created);
+
+    await request(server)
+      .post(`/needs/${id}/validate`)
+      .set('Authorization', `Bearer ${coordToken}`)
+      .expect(204);
+
+    // Force expires_at to the past
+    const { db, pool } = createDb(
+      process.env.DATABASE_URL ??
+        'postgres://reliefhub:reliefhub@localhost:5433/reliefhub',
+    );
+    try {
+      const pastExpiry = new Date(Date.now() - 1000 * 60 * 60);
+      await db
+        .update(needsTable)
+        .set({ expiresAt: pastExpiry })
+        .where(eq(needsTable.id, id));
+    } finally {
+      await pool.end();
+    }
+
+    // Renew it
+    const renewRes = await request(server)
+      .post(`/needs/${id}/renew`)
+      .set('Authorization', `Bearer ${coordToken}`)
+      .expect(200);
+
+    const renewed = renewRes.body as {
+      expiresAt: string | null;
+      lastVerifiedAt: string | null;
+    };
+    expect(renewed.expiresAt).not.toBeNull();
+    const newExpiry = new Date(renewed.expiresAt!);
+    expect(newExpiry.getTime()).toBeGreaterThan(Date.now() + 47 * 60 * 60 * 1000);
+
+    // Should now appear in public list
+    const publicNeeds = await request(server)
+      .get(`/emergencies/${EM}/public/needs`)
+      .expect(200);
+    expect(bodyList(publicNeeds).find((n) => n.id === id)).toBeDefined();
+  });
+
+  it('/emergencies/:id/needs/expired requires coordinator auth', async () => {
+    await request(server)
+      .get(`/emergencies/${EM}/needs/expired`)
+      .expect(401);
   });
 });

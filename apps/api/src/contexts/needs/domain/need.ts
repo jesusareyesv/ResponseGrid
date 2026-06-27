@@ -9,6 +9,9 @@ import { NeedRejected } from './events/need-rejected.event';
 import { Location, LocationProps } from '../../../shared/domain/location';
 import { NeedItem, NeedItemSnapshot } from './need-item';
 
+/** Hours a validated need stays visible before it expires. */
+export const NEED_VALIDITY_HOURS = 48;
+
 export class NeedItemsRequiredError extends Error {
   constructor() {
     super('A need must have at least one item');
@@ -41,6 +44,8 @@ export interface NeedSnapshot {
   items: NeedItemSnapshot[];
   status: NeedStatus;
   createdAt: Date;
+  expiresAt: Date | null;
+  lastVerifiedAt: Date | null;
 }
 
 export class Need {
@@ -59,6 +64,8 @@ export class Need {
     public readonly items: NeedItem[],
     private _status: NeedStatus,
     public readonly createdAt: Date,
+    private _expiresAt: Date | null,
+    private _lastVerifiedAt: Date | null,
   ) {}
 
   static create(props: CreateNeedProps): Need {
@@ -78,6 +85,8 @@ export class Need {
       props.items,
       NeedStatus.Pending,
       new Date(),
+      null,
+      null,
     );
     need.events.push(
       new NeedCreated(need.id.value, {
@@ -102,6 +111,8 @@ export class Need {
       s.items.map((i) => NeedItem.fromSnapshot(i)),
       s.status,
       s.createdAt,
+      s.expiresAt ?? null,
+      s.lastVerifiedAt ?? null,
     );
   }
 
@@ -113,13 +124,38 @@ export class Need {
     return this._managingOrganizationId;
   }
 
+  get expiresAt(): Date | null {
+    return this._expiresAt;
+  }
+
+  get lastVerifiedAt(): Date | null {
+    return this._lastVerifiedAt;
+  }
+
   validate(): void {
     if (this._status !== NeedStatus.Pending) {
       throw new NeedNotPendingError();
     }
     this._status = NeedStatus.Validated;
+    const now = new Date();
+    this._lastVerifiedAt = now;
+    this._expiresAt = new Date(
+      now.getTime() + NEED_VALIDITY_HOURS * 60 * 60 * 1000,
+    );
     this.events.push(
       new NeedValidated(this.id.value, { emergencyId: this.emergencyId.value }),
+    );
+  }
+
+  /**
+   * Renew: coordinator confirms the need is still active.
+   * Resets expiresAt to now + 48 h and updates lastVerifiedAt.
+   */
+  renew(): void {
+    const now = new Date();
+    this._lastVerifiedAt = now;
+    this._expiresAt = new Date(
+      now.getTime() + NEED_VALIDITY_HOURS * 60 * 60 * 1000,
     );
   }
 
@@ -166,6 +202,8 @@ export class Need {
       items: this.items.map((i) => i.toSnapshot()),
       status: this._status,
       createdAt: this.createdAt,
+      expiresAt: this._expiresAt,
+      lastVerifiedAt: this._lastVerifiedAt,
     };
   }
 

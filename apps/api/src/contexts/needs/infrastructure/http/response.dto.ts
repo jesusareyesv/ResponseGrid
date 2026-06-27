@@ -77,4 +77,21 @@ export class NeedViewDto {
 
   @ApiProperty({ example: '2024-01-01T00:00:00.000Z' })
   createdAt!: string;
+
+  @ApiPropertyOptional({
+    example: '2024-01-03T00:00:00.000Z',
+    nullable: true,
+    type: String,
+    description:
+      'Timestamp when the need expires (48 h after validation). Null for legacy needs.',
+  })
+  expiresAt!: string | null;
+
+  @ApiPropertyOptional({
+    example: '2024-01-01T12:00:00.000Z',
+    nullable: true,
+    type: String,
+    description: 'Timestamp when the need was last verified by a coordinator.',
+  })
+  lastVerifiedAt!: string | null;
 }

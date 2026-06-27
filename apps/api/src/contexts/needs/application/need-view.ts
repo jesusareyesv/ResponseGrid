@@ -14,6 +14,8 @@ export interface NeedView {
   items: NeedItemSnapshot[];
   status: string;
   createdAt: string;
+  expiresAt: string | null;
+  lastVerifiedAt: string | null;
 }
 
 export function toNeedView(n: Need): NeedView {
@@ -29,5 +31,7 @@ export function toNeedView(n: Need): NeedView {
     items: n.items.map((i) => i.toSnapshot()),
     status: n.status,
     createdAt: n.createdAt.toISOString(),
+    expiresAt: n.expiresAt ? n.expiresAt.toISOString() : null,
+    lastVerifiedAt: n.lastVerifiedAt ? n.lastVerifiedAt.toISOString() : null,
   };
 }

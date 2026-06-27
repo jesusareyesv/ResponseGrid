@@ -1,3 +1,4 @@
+import { eq } from 'drizzle-orm';
 import { createDb, Db } from '../../../../shared/db';
 import { needsTable, needItemsTable } from './schema';
 import { DrizzleNeedRepository } from './drizzle-need.repository';
@@ -305,6 +306,119 @@ describe('DrizzleNeedRepository (integration)', () => {
     expect(counts[NeedStatus.Validated]).toBe(1);
     expect(counts[NeedStatus.Rejected]).toBe(1);
     expect(counts[NeedStatus.Fulfilled]).toBe(1);
+  });
+
+  // F04 — Medical categories round-trip
+  it('round-trips a need with medicines category', async () => {
+    const need = Need.create({
+      id: NeedId.create(),
+      emergencyId: EmergencyId.fromString(EM),
+      title: 'Medicines need',
+      description: null,
+      location: makeLocation(),
+      priority: Priority.Urgent,
+      requesterUserId: USER_ID,
+      requesterOrganizationId: null,
+      items: [
+        NeedItem.create({
+          name: 'Paracetamol',
+          quantity: 200,
+          unit: 'tablets',
+          category: NeedCategory.Medicines,
+        }),
+      ],
+    });
+    await repo.save(need);
+    const found = await repo.findById(need.id);
+    expect(found!.items[0].category).toBe(NeedCategory.Medicines);
+    expect(found!.items[0].category).toBe('medicines');
+  });
+
+  // F06 — Expiry/freshness round-trip
+  it('round-trips expiresAt and lastVerifiedAt after validate()', async () => {
+    const need = makeNeed({ title: 'Expiry test' });
+    need.validate();
+    await repo.save(need);
+
+    const found = await repo.findById(need.id);
+    expect(found!.expiresAt).not.toBeNull();
+    expect(found!.lastVerifiedAt).not.toBeNull();
+    // expiresAt should be ~48h after validation
+    const diffMs =
+      found!.expiresAt!.getTime() - found!.lastVerifiedAt!.getTime();
+    const diffHours = diffMs / (1000 * 60 * 60);
+    expect(diffHours).toBeCloseTo(48, 0);
+  });
+
+  it('round-trips null expiresAt (legacy row)', async () => {
+    const need = makeNeed({ title: 'Legacy null expiry' });
+    await repo.save(need);
+    const found = await repo.findById(need.id);
+    expect(found!.expiresAt).toBeNull();
+    expect(found!.lastVerifiedAt).toBeNull();
+  });
+
+  it('findValidatedByEmergency excludes expired needs but not null-expiresAt', async () => {
+    // Fresh validated need (not expired)
+    const fresh = makeNeed({ title: 'Fresh' });
+    fresh.validate();
+    await repo.save(fresh);
+
+    // Expired: save as validated but with expiresAt in the past via raw SQL
+    const expired = makeNeed({ title: 'Expired' });
+    expired.validate();
+    await repo.save(expired);
+
+    // Back-date expires_at via raw update
+    const pastExpiry = new Date(Date.now() - 1000 * 60 * 60); // 1 hour ago
+    await db
+      .update(needsTable)
+      .set({ expiresAt: pastExpiry })
+      .where(eq(needsTable.id, expired.id.value));
+
+    // Legacy: null expiresAt
+    const legacy = makeNeed({ title: 'Legacy' });
+    legacy.validate();
+    const legacySnap = {
+      ...legacy.toSnapshot(),
+      expiresAt: null,
+      lastVerifiedAt: null,
+    };
+    const legacyNeed = Need.fromSnapshot(legacySnap);
+    await repo.save(legacyNeed);
+
+    const result = await repo.findValidatedByEmergency(
+      EmergencyId.fromString(EM),
+    );
+    const ids = result.map((n) => n.id.value);
+
+    expect(ids).toContain(fresh.id.value); // fresh → included
+    expect(ids).not.toContain(expired.id.value); // expired → excluded
+    expect(ids).toContain(legacyNeed.id.value); // null → included (retrocompat)
+  });
+
+  it('findExpiredByEmergency returns only expired needs', async () => {
+    const fresh = makeNeed({ title: 'Not expired' });
+    fresh.validate();
+    await repo.save(fresh);
+
+    const expired = makeNeed({ title: 'Will expire' });
+    expired.validate();
+    await repo.save(expired);
+
+    const pastExpiry = new Date(Date.now() - 1000 * 60 * 60);
+    await db
+      .update(needsTable)
+      .set({ expiresAt: pastExpiry })
+      .where(eq(needsTable.id, expired.id.value));
+
+    const result = await repo.findExpiredByEmergency(
+      EmergencyId.fromString(EM),
+    );
+    const ids = result.map((n) => n.id.value);
+
+    expect(ids).toContain(expired.id.value);
+    expect(ids).not.toContain(fresh.id.value);
   });
 
   it('countByEmergencyGroupedByStatus ignores other emergencies', async () => {
