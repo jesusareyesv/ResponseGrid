@@ -14,6 +14,7 @@ import { FilesModule } from './contexts/files/infrastructure/files.module';
 import { ReportsModule } from './contexts/reports/infrastructure/reports.module';
 import { TemplatesModule } from './contexts/templates/infrastructure/templates.module';
 import { NotificationsModule } from './contexts/notifications/infrastructure/notifications.module';
+import { AuditModule } from './contexts/audit/infrastructure/audit.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { NotificationsModule } from './contexts/notifications/infrastructure/not
     VolunteersModule,
     FilesModule,
     ReportsModule,
+    AuditModule,
   ],
 })
 export class AppModule {}

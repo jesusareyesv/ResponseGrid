@@ -1,0 +1,65 @@
+import { Controller, Get, Inject, Query, UseGuards } from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiForbiddenResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
+import { JwtAuthGuard } from '../../../identity/infrastructure/http/jwt-auth.guard';
+import { RequireAdminGuard } from '../../../identity/infrastructure/http/require-admin.guard';
+import {
+  AUDIT_REPOSITORY,
+  type AuditRepository,
+  type AuditQueryFilters,
+} from '../../domain/ports/audit.repository';
+import {
+  AuditEntryDto,
+  AuditListResponseDto,
+  AuditQueryDto,
+} from './audit.dto';
+
+@ApiTags('audit')
+@Controller('audit')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard, RequireAdminGuard)
+@ApiUnauthorizedResponse({ description: 'Unauthorized' })
+@ApiForbiddenResponse({ description: 'Admin access required' })
+export class AuditController {
+  constructor(
+    @Inject(AUDIT_REPOSITORY) private readonly auditRepo: AuditRepository,
+  ) {}
+
+  @Get()
+  @ApiOperation({ summary: 'List audit log entries (admin only)' })
+  @ApiOkResponse({ type: AuditListResponseDto })
+  async list(@Query() query: AuditQueryDto): Promise<AuditListResponseDto> {
+    const filters: AuditQueryFilters = {
+      limit: query.limit ?? 100,
+      offset: query.offset ?? 0,
+    };
+    if (query.emergencyId !== undefined)
+      filters.emergencyId = query.emergencyId;
+    if (query.actorUserId !== undefined)
+      filters.actorUserId = query.actorUserId;
+    if (query.entityType !== undefined) filters.entityType = query.entityType;
+
+    const entries = await this.auditRepo.findAll(filters);
+
+    const mapped: AuditEntryDto[] = entries.map((e) => ({
+      id: e.id,
+      actorUserId: e.actorUserId,
+      action: e.action,
+      entityType: e.entityType,
+      entityId: e.entityId,
+      emergencyId: e.emergencyId,
+      method: e.method,
+      path: e.path,
+      statusCode: e.statusCode,
+      createdAt: e.createdAt,
+    }));
+
+    return { entries: mapped, total: mapped.length };
+  }
+}
