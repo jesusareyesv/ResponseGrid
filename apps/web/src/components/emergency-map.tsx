@@ -231,6 +231,16 @@ function ApproximateCirclesLayer({ points }: { points: MapPoint[] }) {
   return null;
 }
 
+// ── XSS helper ───────────────────────────────────────────────────────────────
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // ── Inner component that renders clustered resource/need markers ──────────────
 function ClusteredMarkersLayer({ points }: { points: MapPoint[] }) {
   const map = useMap();
@@ -254,29 +264,29 @@ function ClusteredMarkersLayer({ points }: { points: MapPoint[] }) {
       const icon =
         point.kind === 'resource' ? resourceIcon(point.status) : ICONS.red;
 
-      // Build rich popup HTML
+      // Build rich popup HTML — all free-text values are escaped to prevent XSS
       const kindLabel = point.kind === 'resource' ? 'Recurso' : 'Petición';
       const typeLabel =
         point.resourceType != null && point.resourceType !== ''
-          ? `<br/><span style="font-size:11px;color:#555;">${point.resourceType}</span>`
+          ? `<br/><span style="font-size:11px;color:#555;">${escapeHtml(point.resourceType)}</span>`
           : '';
       const locationParts: string[] = [];
-      if (point.city != null && point.city !== '') locationParts.push(point.city);
-      if (point.country != null && point.country !== '') locationParts.push(point.country);
+      if (point.city != null && point.city !== '') locationParts.push(escapeHtml(point.city));
+      if (point.country != null && point.country !== '') locationParts.push(escapeHtml(point.country));
       const locationLabel =
         locationParts.length > 0
           ? `<br/><span style="font-size:11px;color:#555;">${locationParts.join(', ')}</span>`
           : '';
       const acceptsLabel =
         point.accepts != null && point.accepts.length > 0
-          ? `<br/><span style="font-size:11px;color:#555;">Acepta: ${point.accepts.join(', ')}</span>`
+          ? `<br/><span style="font-size:11px;color:#555;">Acepta: ${point.accepts.map(escapeHtml).join(', ')}</span>`
           : '';
       const approximateLabel =
         point.kind === 'need' && point.approximate === true
           ? '<br/><span style="font-size:11px;color:#b45309;">📍 Ubicación aproximada</span>'
           : '';
 
-      const popupHtml = `<strong>${point.label}</strong><br/><span style="font-size:11px;color:#6b7280;">${kindLabel}</span>${typeLabel}${locationLabel}${acceptsLabel}${approximateLabel}`;
+      const popupHtml = `<strong>${escapeHtml(point.label)}</strong><br/><span style="font-size:11px;color:#6b7280;">${kindLabel}</span>${typeLabel}${locationLabel}${acceptsLabel}${approximateLabel}`;
 
       L.marker([point.lat, point.lng], { icon })
         .bindPopup(popupHtml)
@@ -288,12 +298,13 @@ function ClusteredMarkersLayer({ points }: { points: MapPoint[] }) {
     };
   }, [map, points]);
 
-  // Remove the cluster group when the component unmounts
+  // Remove the cluster group when the component unmounts.
+  // Read clusterRef.current INSIDE the cleanup so we always get the value
+  // set by the other effect, not the null captured at registration time.
   useEffect(() => {
-    const group = clusterRef.current;
     return () => {
-      if (group !== null) {
-        map.removeLayer(group);
+      if (clusterRef.current !== null) {
+        map.removeLayer(clusterRef.current);
         clusterRef.current = null;
       }
     };

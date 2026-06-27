@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { MapPoint, DamageMapFeature } from './emergency-map';
 import type { DamageLevel } from '@/components/atoms/damage-level-badge';
 import { createResponseGridClient } from '@reliefhub/api-client';
@@ -61,6 +61,11 @@ export function EmergencyMapWrapper({ points, emergencyId }: EmergencyMapWrapper
   // and merge them with the needs already in `points`.
   // While fetching, the map shows the initial SSR points so it's never blank.
   const needPoints = points.filter((p) => p.kind === 'need');
+  // Keep a ref always pointing at the current needPoints so the fetch effect
+  // can read the latest value without being re-triggered on every render.
+  const needPointsRef = useRef<MapPoint[]>(needPoints);
+  needPointsRef.current = needPoints;
+
   const [allMapPoints, setAllMapPoints] = useState<MapPoint[]>(points);
 
   useEffect(() => {
@@ -75,45 +80,52 @@ export function EmergencyMapWrapper({ points, emergencyId }: EmergencyMapWrapper
       let total = Infinity;
 
       while (accumulated.length < total) {
-        // eslint-disable-next-line no-await-in-loop
-        const { data } = await client.GET(
-          '/emergencies/{emergencyId}/public/resources',
-          {
-            params: {
-              path: { emergencyId: emergencyId as string },
-              query: { page, limit: MAP_FETCH_LIMIT },
+        try {
+          // eslint-disable-next-line no-await-in-loop
+          const { data } = await client.GET(
+            '/emergencies/{emergencyId}/public/resources',
+            {
+              params: {
+                path: { emergencyId: emergencyId as string },
+                query: { page, limit: MAP_FETCH_LIMIT },
+              },
             },
-          },
-        );
+          );
 
-        if (cancelled) return;
-        if (data == null) break;
+          if (cancelled) return;
+          if (data == null) break;
 
-        total = data.total;
+          total = data.total;
 
-        for (const r of data.items) {
-          if (r.location.latitude === 0 && r.location.longitude === 0) continue;
-          accumulated.push({
-            id: r.id,
-            lat: r.location.latitude,
-            lng: r.location.longitude,
-            label: r.name,
-            kind: 'resource',
-            status: r.publicStatus,
-            resourceType: r.type,
-            city: r.city,
-            country: r.country,
-            accepts: r.accepts,
-          });
+          for (const r of data.items) {
+            if (r.location.latitude === 0 && r.location.longitude === 0) continue;
+            accumulated.push({
+              id: r.id,
+              lat: r.location.latitude,
+              lng: r.location.longitude,
+              label: r.name,
+              kind: 'resource',
+              status: r.publicStatus,
+              resourceType: r.type,
+              city: r.city,
+              country: r.country,
+              accepts: r.accepts,
+            });
+          }
+
+          if (data.items.length === 0) break;
+          page += 1;
+        } catch (err) {
+          console.error('[EmergencyMapWrapper] resource fetch error (page', page, '):', err);
+          break;
         }
-
-        if (data.items.length === 0) break;
-        page += 1;
       }
 
       if (!cancelled) {
-        // Merge all resource points with the need points from SSR
-        setAllMapPoints([...accumulated, ...needPoints]);
+        // Merge all resource points with the CURRENT need points (via ref so we
+        // always pick up the latest value even if the prop changed since the
+        // effect first fired).
+        setAllMapPoints([...accumulated, ...needPointsRef.current]);
       }
     }
 
@@ -121,8 +133,8 @@ export function EmergencyMapWrapper({ points, emergencyId }: EmergencyMapWrapper
     return () => {
       cancelled = true;
     };
-    // needPoints reference changes every render; intentionally depend only on
-    // emergencyId so we fetch once per emergency, not on every parent re-render.
+    // needPointsRef is stable; intentionally depend only on emergencyId so we
+    // fetch once per emergency, not on every parent re-render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [emergencyId]);
 
