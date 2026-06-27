@@ -36,10 +36,18 @@ type ResourceViewDto = components['schemas']['ResourceViewDto'];
 
 const LIMIT = 50;
 
-/** Country code for Venezuela */
-const VE_CODE = 'VE';
+/**
+ * Returns true when a country value represents Venezuela.
+ * The ingested data stores the source's `pais` field as a full Spanish name
+ * (e.g. "Venezuela"), not an ISO code — so we match case-insensitively on
+ * the full name and also accept the ISO 3166-1 alpha-2 fallback "VE".
+ */
+function isVenezuela(country: string): boolean {
+  const c = country.trim().toLowerCase();
+  return c === 'venezuela' || c === 've';
+}
 
-/** Groups items into: Venezuela, Diaspora (non-VE with country), Others (no country). */
+/** Groups items into: Venezuela, Diaspora (non-Venezuela with country), Others (no country). */
 function groupByCountry(items: ResourceViewDto[]): {
   venezuela: ResourceViewDto[];
   diaspora: ResourceViewDto[];
@@ -50,7 +58,7 @@ function groupByCountry(items: ResourceViewDto[]): {
   const other: ResourceViewDto[] = [];
 
   for (const item of items) {
-    if (item.country === VE_CODE) {
+    if (item.country != null && item.country !== '' && isVenezuela(item.country)) {
       venezuela.push(item);
     } else if (item.country != null && item.country !== '') {
       diaspora.push(item);

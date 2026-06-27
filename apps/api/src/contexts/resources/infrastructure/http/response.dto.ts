@@ -81,7 +81,14 @@ export class ResourceViewDto {
   })
   externalUpdatedAt!: string | null;
 
-  @ApiProperty({ example: 'VE', nullable: true, type: String })
+  @ApiProperty({
+    example: 'Venezuela',
+    description:
+      'Country string as stored by the ingestion source (e.g. full Spanish name "Venezuela"). ' +
+      'NOT guaranteed to be an ISO 3166-1 alpha-2 code — value depends on the source `pais` field.',
+    nullable: true,
+    type: String,
+  })
   country!: string | null;
 
   @ApiProperty({ example: 'Caracas', nullable: true, type: String })

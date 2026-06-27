@@ -18,6 +18,7 @@ export interface ResourceView {
   manager: string | null;
   sourceName: string | null;
   externalUpdatedAt: string | null; // ISO string
+  /** Country string from the source's `pais` field — often a full Spanish name (e.g. "Venezuela"), NOT an ISO code. */
   country: string | null;
   city: string | null;
 }
