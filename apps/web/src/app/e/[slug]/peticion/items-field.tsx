@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { Messages } from '@/i18n/messages/es';
+import { PersonnelNeedFields } from '@/components/molecules/personnel-need-fields';
 
 type Category =
   | 'hygiene'
@@ -36,6 +37,9 @@ interface ItemsFieldProps {
 
 export function ItemsField({ t }: ItemsFieldProps) {
   const [items, setItems] = useState<Item[]>([makeItem()]);
+
+  // Show personnel fields when at least one item is in the medical_personnel category
+  const hasPersonnelCategory = items.some((item) => item.category === 'medical_personnel');
 
   const categories = [
     { value: 'hygiene' as Category, label: t.category_hygiene },
@@ -206,6 +210,9 @@ export function ItemsField({ t }: ItemsFieldProps) {
 
       {/* Hidden input carries serialized items to the server action */}
       <input type="hidden" name="items" value={serialized} />
+
+      {/* Personnel detail fields — visible when at least one item is medical_personnel */}
+      {hasPersonnelCategory && <PersonnelNeedFields />}
     </div>
   );
 }
