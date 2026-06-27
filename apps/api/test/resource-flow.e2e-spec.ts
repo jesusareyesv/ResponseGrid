@@ -158,6 +158,7 @@ describe('Resource flow (e2e)', () => {
     const publicResources = await request(server)
       .get(`/emergencies/${EM}/public/resources`)
       .expect(200);
+    expect(publicResources.body.items).toHaveLength(1);
     expect(publicResources.body.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -170,7 +171,7 @@ describe('Resource flow (e2e)', () => {
         }),
       ]),
     );
-    expect(publicResources.body.total).toBeGreaterThanOrEqual(1);
+    expect(publicResources.body.total).toBe(1);
     expect(publicResources.body.page).toBe(1);
   });
 

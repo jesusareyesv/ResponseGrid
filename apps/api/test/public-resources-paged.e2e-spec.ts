@@ -244,4 +244,48 @@ describe('Public resources paged (e2e)', () => {
     expect(item.country).toBe('VE');
     expect(item.city).toBe('Maracaibo');
   });
+
+  it('GET /emergencies/:id/public/resources?limit=200 returns 400 (exceeds @Max(100))', async () => {
+    await request(server)
+      .get(`/emergencies/${EM}/public/resources?limit=200`)
+      .expect(400);
+  });
+
+  it('ResourceViewDto returns provenance fields when resource has sourceName + externalUpdatedAt', async () => {
+    const provenanceDate = new Date('2026-06-25T12:00:00.000Z');
+    await withCleanRepo(async (repo) => {
+      const r = Resource.fromSnapshot({
+        ...Resource.register({
+          id: ResourceId.create(),
+          emergencyId: EmergencyId.fromString(EM),
+          type: ResourceType.CollectionPoint,
+          stage: ResourceStage.Origin,
+          name: 'Provenance Resource',
+          location: baseLocation,
+          ownerUserId: OWNER_ID,
+          accepts: [],
+        }).toSnapshot(),
+        verificationLevel: VerificationLevel.Verified,
+        publicStatus: PublicStatus.Active,
+        createdAt: new Date(),
+        provenance: {
+          sourceName: 'acopiove.org',
+          externalId: 'ext-001',
+          externalUpdatedAt: provenanceDate,
+          raw: null,
+        },
+      });
+      await repo.save(r);
+    });
+
+    const res = await request(server)
+      .get(`/emergencies/${EM}/public/resources`)
+      .expect(200);
+
+    const item = res.body.items[0];
+    expect(typeof item.sourceName).toBe('string');
+    expect(item.sourceName).toBe('acopiove.org');
+    expect(typeof item.externalUpdatedAt).toBe('string');
+    expect(item.externalUpdatedAt).toBe(provenanceDate.toISOString());
+  });
 });

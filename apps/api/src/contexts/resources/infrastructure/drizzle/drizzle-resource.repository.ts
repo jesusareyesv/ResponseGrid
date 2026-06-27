@@ -238,20 +238,21 @@ export class DrizzleResourceRepository implements ResourceRepository {
       inArray(resourcesTable.publicStatus, VISIBLE),
     );
 
+    const visibleArr = sql.join(VISIBLE.map((v) => sql`${v}`), sql`, `);
     const [totalRows, categoryRows, countryRows] = await Promise.all([
       this.db.select({ cnt: count() }).from(resourcesTable).where(visibleWhere),
       this.db.execute<{ cat: string; cnt: string }>(sql`
         SELECT unnest(accepts) AS cat, count(*)::int AS cnt
         FROM resources
         WHERE emergency_id = ${emergencyId.value}
-          AND public_status IN ('active', 'saturated', 'paused')
+          AND public_status = ANY(ARRAY[${visibleArr}])
         GROUP BY cat
       `),
       this.db.execute<{ country: string; cnt: string }>(sql`
         SELECT country, count(*)::int AS cnt
         FROM resources
         WHERE emergency_id = ${emergencyId.value}
-          AND public_status IN ('active', 'saturated', 'paused')
+          AND public_status = ANY(ARRAY[${visibleArr}])
           AND country IS NOT NULL
         GROUP BY country
       `),
