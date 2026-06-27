@@ -12,7 +12,7 @@ import { EmptyState } from '@/components/molecules/empty-state';
 import { MetricCard } from '@/components/molecules/metric-card';
 import { StatusBanner } from '@/components/molecules/status-banner';
 import { AnnouncementCard } from '@/components/molecules/announcement-card';
-import { LanguageSwitcher } from '@/components/atoms/language-switcher';
+import { LanguageSwitcher } from '@/components/molecules/language-switcher';
 import type { MapPoint } from '@/components/emergency-map';
 import { getT } from '@/i18n/server';
 

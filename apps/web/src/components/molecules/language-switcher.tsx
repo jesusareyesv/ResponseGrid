@@ -1,10 +1,11 @@
 'use client';
 
 /**
- * LanguageSwitcher — atom component.
+ * LanguageSwitcher — molecule component.
  *
  * Sets the `rh_locale` cookie and reloads the current page to apply the new locale.
  * Uses a pair of <button> elements (not a <select>) for clarity and accessibility.
+ * Classified as a molecule: it composes multiple button atoms with cookie/locale logic.
  *
  * Visibility: shown on home and emergency landing pages.
  */

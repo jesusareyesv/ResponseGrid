@@ -4,7 +4,7 @@ import { api } from '@/lib/api';
 import { getToken, authHeaders } from '@/lib/auth';
 import { Badge } from '@/components/atoms/badge';
 import { EmptyState } from '@/components/molecules/empty-state';
-import { LanguageSwitcher } from '@/components/atoms/language-switcher';
+import { LanguageSwitcher } from '@/components/molecules/language-switcher';
 import { getT } from '@/i18n/server';
 
 // Emergency list must reflect live backend state on every request.

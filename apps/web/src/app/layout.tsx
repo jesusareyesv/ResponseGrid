@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import { SwRegister } from '@/components/atoms/sw-register';
+import { SwRegister } from '@/components/providers/sw-register';
 import { getT } from '@/i18n/server';
 import { LocaleProvider } from '@/i18n/locale-context';
 
