@@ -212,6 +212,22 @@ export const en = {
     load_more_error: 'Could not load more. Retry',
   },
 
+  // ── ResourceFilterBar ─────────────────────────────────────────────────────
+  resource_filter: {
+    aria_label: 'Active points filters',
+    category_label: 'Category',
+    country_label: 'Country',
+    search_label: 'Search',
+    search_placeholder: 'Search by name, city…',
+    all_categories: 'All',
+    all_countries: 'All',
+    active_filters_label: 'Active filters',
+    remove_filter: 'Remove filter {label}',
+    group_venezuela: 'Venezuela',
+    group_diaspora: 'Diaspora',
+    group_other: 'Other',
+  },
+
   verification_badge: {
     official: 'Official',
     verified: 'Verified',

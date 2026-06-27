@@ -230,6 +230,22 @@ export const es = {
     load_more_error: 'No se pudo cargar más. Reintentar',
   },
 
+  // ── ResourceFilterBar ─────────────────────────────────────────────────────
+  resource_filter: {
+    aria_label: 'Filtros de puntos activos',
+    category_label: 'Categoría',
+    country_label: 'País',
+    search_label: 'Buscar',
+    search_placeholder: 'Buscar por nombre, ciudad…',
+    all_categories: 'Todas',
+    all_countries: 'Todos',
+    active_filters_label: 'Filtros activos',
+    remove_filter: 'Quitar filtro {label}',
+    group_venezuela: 'Venezuela',
+    group_diaspora: 'Diáspora',
+    group_other: 'Otros',
+  },
+
   // ── VerificationBadge ─────────────────────────────────────────────────────
   verification_badge: {
     official: 'Oficial',

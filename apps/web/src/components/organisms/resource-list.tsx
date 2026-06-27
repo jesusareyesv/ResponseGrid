@@ -6,12 +6,19 @@
  * Starts with the `initialItems` fetched server-side (page 1).
  * Each "Cargar más" click fetches the next page from the client using the
  * typed API client and appends results (no full page reload).
+ *
+ * Supports:
+ *  - Category + country filter props: re-fetches page 1 and resets
+ *    accumulated items whenever they change.
+ *  - Client-side text search over the already-loaded items.
+ *  - Geographic grouping: Venezuela first, diaspora/others after.
  */
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect, useMemo } from 'react';
 import { createResponseGridClient } from '@reliefhub/api-client';
 import type { components } from '@reliefhub/api-client';
 import { PublicResourceCard } from '@/components/organisms/public-resource-card';
+import { ResourceFilterBar } from '@/components/molecules/resource-filter-bar';
 import { EmptyState } from '@/components/molecules/empty-state';
 import type { Messages } from '@/i18n/messages/es';
 import type { Locale } from '@/i18n';
@@ -29,14 +36,45 @@ type ResourceViewDto = components['schemas']['ResourceViewDto'];
 
 const LIMIT = 50;
 
+/** Country code for Venezuela */
+const VE_CODE = 'VE';
+
+/** Groups items into: Venezuela, Diaspora (non-VE with country), Others (no country). */
+function groupByCountry(items: ResourceViewDto[]): {
+  venezuela: ResourceViewDto[];
+  diaspora: ResourceViewDto[];
+  other: ResourceViewDto[];
+} {
+  const venezuela: ResourceViewDto[] = [];
+  const diaspora: ResourceViewDto[] = [];
+  const other: ResourceViewDto[] = [];
+
+  for (const item of items) {
+    if (item.country === VE_CODE) {
+      venezuela.push(item);
+    } else if (item.country != null && item.country !== '') {
+      diaspora.push(item);
+    } else {
+      other.push(item);
+    }
+  }
+
+  return { venezuela, diaspora, other };
+}
+
 interface ResourceListProps {
   emergencyId: string;
   initialItems: ResourceViewDto[];
   total: number;
+  /** Facet counts keyed by category slug */
+  facetsByCategory: Record<string, number>;
+  /** Facet counts keyed by country code */
+  facetsByCountry: Record<string, number>;
   t: Messages['resource_card'];
   tVerification: Messages['verification_badge'];
   tStatusLight: Messages['status_light'];
   tList: Messages['resource_list'];
+  tFilter: Messages['resource_filter'];
   tEmpty: { title: string; description?: string };
   locale: Locale;
 }
@@ -44,20 +82,75 @@ interface ResourceListProps {
 export function ResourceList({
   emergencyId,
   initialItems,
-  total,
+  total: initialTotal,
+  facetsByCategory,
+  facetsByCountry,
   t,
   tVerification,
   tStatusLight,
   tList,
+  tFilter,
   tEmpty,
   locale,
 }: ResourceListProps) {
+  // ── Filter state (category/country) → triggers re-fetch ──────────────────
+  const [activeCategory, setActiveCategory] = useState('');
+  const [activeCountry, setActiveCountry] = useState('');
+
+  // ── Search state (client-side only, no re-fetch) ──────────────────────────
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // ── Accumulated list state ────────────────────────────────────────────────
   const [items, setItems] = useState<ResourceViewDto[]>(initialItems);
+  const [total, setTotal] = useState(initialTotal);
   const [page, setPage] = useState(1);
   const [isPending, startTransition] = useTransition();
   const [loadMoreError, setLoadMoreError] = useState(false);
 
-  const hasMore = items.length < total;
+  // ── Re-fetch page 1 whenever category or country changes ──────────────────
+  useEffect(() => {
+    // Skip the first render (we already have initialItems for default filters)
+    if (activeCategory === '' && activeCountry === '' && page === 1) {
+      return;
+    }
+
+    setLoadMoreError(false);
+    startTransition(async () => {
+      const client = createResponseGridClient(API_URL);
+      const { data } = await client.GET(
+        '/emergencies/{emergencyId}/public/resources',
+        {
+          params: {
+            path: { emergencyId },
+            query: {
+              page: 1,
+              limit: LIMIT,
+              ...(activeCategory !== '' && { category: activeCategory }),
+              ...(activeCountry !== '' && { country: activeCountry }),
+            },
+          },
+        },
+      );
+      if (data != null) {
+        setItems(data.items);
+        setTotal(data.total);
+        setPage(1);
+      } else {
+        setLoadMoreError(true);
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeCategory, activeCountry]);
+
+  function handleCategoryChange(category: string) {
+    setActiveCategory(category);
+    setSearchQuery('');
+  }
+
+  function handleCountryChange(country: string) {
+    setActiveCountry(country);
+    setSearchQuery('');
+  }
 
   function handleLoadMore() {
     setLoadMoreError(false);
@@ -69,7 +162,12 @@ export function ResourceList({
         {
           params: {
             path: { emergencyId },
-            query: { page: nextPage, limit: LIMIT },
+            query: {
+              page: nextPage,
+              limit: LIMIT,
+              ...(activeCategory !== '' && { category: activeCategory }),
+              ...(activeCountry !== '' && { country: activeCountry }),
+            },
           },
         },
       );
@@ -82,39 +180,151 @@ export function ResourceList({
     });
   }
 
-  if (items.length === 0) {
+  // ── Client-side search filter ─────────────────────────────────────────────
+  const filteredItems = useMemo(() => {
+    if (searchQuery.trim() === '') return items;
+    const q = searchQuery.toLowerCase();
+    return items.filter(
+      (r) =>
+        r.name.toLowerCase().includes(q) ||
+        (r.city != null && r.city.toLowerCase().includes(q)) ||
+        (r.location.address.toLowerCase().includes(q)),
+    );
+  }, [items, searchQuery]);
+
+  // ── Geographic grouping ───────────────────────────────────────────────────
+  const { venezuela, diaspora, other } = useMemo(
+    () => groupByCountry(filteredItems),
+    [filteredItems],
+  );
+
+  const hasMore = items.length < total;
+
+  if (items.length === 0 && !isPending) {
     return (
-      <EmptyState title={tEmpty.title} description={tEmpty.description} />
+      <div className="flex flex-col gap-4">
+        <ResourceFilterBar
+          byCategory={facetsByCategory}
+          byCountry={facetsByCountry}
+          activeCategory={activeCategory}
+          activeCountry={activeCountry}
+          searchQuery={searchQuery}
+          onCategoryChange={handleCategoryChange}
+          onCountryChange={handleCountryChange}
+          onSearchChange={setSearchQuery}
+          t={tFilter}
+          locale={locale}
+        />
+        <EmptyState title={tEmpty.title} description={tEmpty.description} />
+      </div>
     );
   }
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Summary line */}
+      {/* ── Filter bar ──────────────────────────────────────────────────── */}
+      <ResourceFilterBar
+        byCategory={facetsByCategory}
+        byCountry={facetsByCountry}
+        activeCategory={activeCategory}
+        activeCountry={activeCountry}
+        searchQuery={searchQuery}
+        onCategoryChange={handleCategoryChange}
+        onCountryChange={handleCountryChange}
+        onSearchChange={setSearchQuery}
+        t={tFilter}
+        locale={locale}
+      />
+
+      {/* ── Summary line ────────────────────────────────────────────────── */}
       <p className="text-xs text-gray-500">
         {tList.showing
-          .replace('{shown}', String(items.length))
+          .replace('{shown}', String(filteredItems.length))
           .replace('{total}', String(total))}
       </p>
 
-      <ul
-        className="flex flex-col gap-3"
-        aria-label={tList.aria_label}
-        role="list"
-      >
-        {items.map((resource) => (
-          <li key={resource.id}>
-            <PublicResourceCard
-              resource={resource}
-              t={t}
-              tVerification={tVerification}
-              tStatusLight={tStatusLight}
-              locale={locale}
-            />
-          </li>
-        ))}
-      </ul>
+      {filteredItems.length === 0 ? (
+        <EmptyState title={tEmpty.title} description={tEmpty.description} />
+      ) : (
+        <div className="flex flex-col gap-6">
+          {/* Venezuela group */}
+          {venezuela.length > 0 && (
+            <section aria-labelledby="group-ve-heading">
+              <h3
+                id="group-ve-heading"
+                className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500"
+              >
+                {tFilter.group_venezuela}
+              </h3>
+              <ul className="flex flex-col gap-3" role="list">
+                {venezuela.map((resource) => (
+                  <li key={resource.id}>
+                    <PublicResourceCard
+                      resource={resource}
+                      t={t}
+                      tVerification={tVerification}
+                      tStatusLight={tStatusLight}
+                      locale={locale}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
+          {/* Diaspora group */}
+          {diaspora.length > 0 && (
+            <section aria-labelledby="group-diaspora-heading">
+              <h3
+                id="group-diaspora-heading"
+                className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500"
+              >
+                {tFilter.group_diaspora}
+              </h3>
+              <ul className="flex flex-col gap-3" role="list">
+                {diaspora.map((resource) => (
+                  <li key={resource.id}>
+                    <PublicResourceCard
+                      resource={resource}
+                      t={t}
+                      tVerification={tVerification}
+                      tStatusLight={tStatusLight}
+                      locale={locale}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {/* Other group (no country) */}
+          {other.length > 0 && (
+            <section aria-labelledby="group-other-heading">
+              <h3
+                id="group-other-heading"
+                className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500"
+              >
+                {tFilter.group_other}
+              </h3>
+              <ul className="flex flex-col gap-3" role="list">
+                {other.map((resource) => (
+                  <li key={resource.id}>
+                    <PublicResourceCard
+                      resource={resource}
+                      t={t}
+                      tVerification={tVerification}
+                      tStatusLight={tStatusLight}
+                      locale={locale}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+        </div>
+      )}
+
+      {/* ── Load more / errors ──────────────────────────────────────────── */}
       {loadMoreError && (
         <p role="alert" className="text-center text-sm text-red-600">
           <button

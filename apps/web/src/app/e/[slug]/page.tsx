@@ -101,8 +101,11 @@ export default async function EmergencyPage({ params, searchParams }: Props) {
 
   const activeResources = resourcesPage?.items ?? [];
   const resourcesTotal = resourcesPage?.total ?? 0;
-  // facets are ready for Task 7 (filter UI); not rendered yet
-  void facets;
+  // Facets: the schema types byCategory/byCountry as Record<string, never> due
+  // to OpenAPI's additionalProperties representation, but at runtime they are
+  // Record<string, number>. We cast here and default to empty objects.
+  const facetsByCategory = (facets?.byCategory ?? {}) as Record<string, number>;
+  const facetsByCountry = (facets?.byCountry ?? {}) as Record<string, number>;
   const validatedNeeds = needs ?? [];
 
   // Build map points from resources and needs that have valid coordinates
@@ -312,10 +315,13 @@ export default async function EmergencyPage({ params, searchParams }: Props) {
             emergencyId={emergencyId}
             initialItems={activeResources}
             total={resourcesTotal}
+            facetsByCategory={facetsByCategory}
+            facetsByCountry={facetsByCountry}
             t={t.resource_card}
             tVerification={t.verification_badge}
             tStatusLight={t.status_light}
             tList={t.resource_list}
+            tFilter={t.resource_filter}
             tEmpty={{
               title: te.points_empty_title,
               description: te.points_empty_description,
