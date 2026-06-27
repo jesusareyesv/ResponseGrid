@@ -1,7 +1,6 @@
 'use client';
 
 import { useActionState, useState, useEffect } from 'react';
-import Link from 'next/link';
 import type { ReactNode } from 'react';
 import type { OfferState } from './actions';
 import { Button } from '@/components/atoms/button';
@@ -10,6 +9,7 @@ import { Input } from '@/components/atoms/input';
 import { Textarea } from '@/components/atoms/textarea';
 import { ErrorMessage } from '@/components/atoms/error-message';
 import { FormField } from '@/components/molecules/form-field';
+import { FormSuccessScreen } from '@/components/molecules/form-success-screen';
 import { DraftRestoredBanner } from '@/components/atoms/draft-restored-banner';
 import { useFormDraft } from '@/lib/use-form-draft';
 import type { Messages } from '@/i18n/messages/es';
@@ -84,32 +84,13 @@ export function DonarForm({
 
   if (state.status === 'success') {
     return (
-      <section
-        role="alert"
-        aria-live="polite"
-        className="flex flex-col gap-6 rounded-lg border-2 border-gray-900 bg-white p-6"
-      >
-        <p className="text-lg font-semibold text-gray-900 leading-snug">
-          {t.success_message}
-        </p>
-        <div className="flex flex-col gap-3">
-          <Link
-            href={`/e/${slug}/donar`}
-            className="flex items-center justify-center w-full py-4 px-6 text-base font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 transition-colors"
-            onClick={() => {
-              window.location.href = `/e/${slug}/donar`;
-            }}
-          >
-            {t.success_donate_again}
-          </Link>
-          <Link
-            href={`/e/${slug}`}
-            className="flex items-center justify-center w-full py-4 px-6 text-base font-semibold text-gray-900 bg-white border-2 border-gray-900 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 transition-colors"
-          >
-            {backToEmergencyLabel}
-          </Link>
-        </div>
-      </section>
+      <FormSuccessScreen
+        message={t.success_message}
+        primaryHref={`/e/${slug}/donar`}
+        primaryLabel={t.success_donate_again}
+        secondaryHref={`/e/${slug}`}
+        secondaryLabel={backToEmergencyLabel}
+      />
     );
   }
 
