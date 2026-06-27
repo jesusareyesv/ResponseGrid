@@ -3,11 +3,18 @@
 import { useEffect, useState } from 'react';
 import type { Messages } from '@/i18n/messages/es';
 
-const CATEGORY_VALUES = [
-  'hygiene', 'water', 'food', 'medical', 'shelter', 'tools', 'other',
-  'medicines', 'medical_equipment', 'medical_supplies', 'medical_personnel',
-] as const;
-type Category = (typeof CATEGORY_VALUES)[number];
+type Category =
+  | 'hygiene'
+  | 'water'
+  | 'food'
+  | 'medical'
+  | 'shelter'
+  | 'tools'
+  | 'other'
+  | 'medicines'
+  | 'medical_equipment'
+  | 'medical_supplies'
+  | 'medical_personnel';
 
 interface Item {
   id: number;

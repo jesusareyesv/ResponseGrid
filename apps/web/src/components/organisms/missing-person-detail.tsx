@@ -6,7 +6,6 @@ import type {
   AddSightingState,
 } from '@/app/e/[slug]/coordinacion/reunificacion/actions';
 import { Button } from '@/components/atoms/button';
-import { Input } from '@/components/atoms/input';
 import { Textarea } from '@/components/atoms/textarea';
 import { Select } from '@/components/atoms/select';
 import { ErrorMessage } from '@/components/atoms/error-message';

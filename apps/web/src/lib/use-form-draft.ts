@@ -70,6 +70,10 @@ export function useFormDraft<T extends StringRecord>(
           }
         }
       }
+      // Intentional one-time restore from localStorage — a platform API that is
+      // unavailable during SSR, so a lazy state initializer isn't an option. The
+      // field setters above are the same on-mount sync pattern.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (didRestore) setWasRestored(true);
     } catch {
       // Malformed draft or unavailable storage — ignore

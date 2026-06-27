@@ -31,7 +31,6 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { slug } = await params;
   const emergency = await getEmergencyBySlug(slug);
-  const { t } = await getT();
 
   if (!emergency) {
     return { title: 'Emergencia no encontrada · ReliefHub' };
