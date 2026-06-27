@@ -24,9 +24,9 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const emergency = await getEmergencyBySlug(slug);
-  if (!emergency) return { title: 'Emergencia no encontrada · ReliefHub' };
+  if (!emergency) return { title: 'Emergencia no encontrada · ResponseGrid' };
   return {
-    title: `Coordinación — ${emergency.name} · ReliefHub`,
+    title: `Coordinación — ${emergency.name} · ResponseGrid`,
     description: `Panel de coordinación de ${emergency.name}.`,
   };
 }

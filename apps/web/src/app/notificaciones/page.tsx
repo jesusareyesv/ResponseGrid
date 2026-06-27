@@ -11,8 +11,8 @@ import { MarkAllReadButton } from './mark-all-read-button';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Notificaciones — ReliefHub',
-  description: 'Tus notificaciones en ReliefHub.',
+  title: 'Notificaciones — ResponseGrid',
+  description: 'Tus notificaciones en ResponseGrid.',
 };
 
 export default async function NotificacionesPage() {

@@ -5,7 +5,7 @@ import { getT } from '@/i18n/server';
 import { LocaleProvider } from '@/i18n/locale-context';
 
 export const metadata: Metadata = {
-  title: 'ReliefHub',
+  title: 'ResponseGrid',
   description: 'Coordinación de recursos en emergencias',
 };
 

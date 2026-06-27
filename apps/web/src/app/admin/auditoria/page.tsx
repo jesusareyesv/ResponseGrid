@@ -11,7 +11,7 @@ import { EmptyState } from '@/components/molecules/empty-state';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Registro de auditoría — Admin · ReliefHub',
+  title: 'Registro de auditoría — Admin · ResponseGrid',
   description: 'Registro de actividad del sistema. Solo administradores.',
 };
 

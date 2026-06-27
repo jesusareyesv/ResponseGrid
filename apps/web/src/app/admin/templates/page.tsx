@@ -13,7 +13,7 @@ import { EmptyState } from '@/components/molecules/empty-state';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Plantillas de emergencia — Admin · ReliefHub',
+  title: 'Plantillas de emergencia — Admin · ResponseGrid',
   description: 'Gestión de plantillas de emergencia.',
 };
 

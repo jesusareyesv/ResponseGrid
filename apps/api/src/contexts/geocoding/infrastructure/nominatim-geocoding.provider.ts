@@ -11,7 +11,7 @@ interface NominatimItem {
 }
 
 const NOMINATIM_BASE = 'https://nominatim.openstreetmap.org';
-const USER_AGENT = 'ReliefHub/0.1 (emergency-aid-coordination)';
+const USER_AGENT = 'ResponseGrid/0.1 (emergency-aid-coordination)';
 
 /**
  * Adapter that calls Nominatim (OpenStreetMap) to geocode text queries.

@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!emergency) {
     return {
-      title: 'Emergencia no encontrada · ReliefHub',
+      title: 'Emergencia no encontrada · ResponseGrid',
       robots: { index: false, follow: false },
     };
   }

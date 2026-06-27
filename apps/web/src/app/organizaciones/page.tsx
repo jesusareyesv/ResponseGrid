@@ -9,8 +9,8 @@ import { EmptyState } from '@/components/molecules/empty-state';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Mis organizaciones — ReliefHub',
-  description: 'Gestión de organizaciones en ReliefHub.',
+  title: 'Mis organizaciones — ResponseGrid',
+  description: 'Gestión de organizaciones en ResponseGrid.',
 };
 
 export default async function OrganizacionesPage() {

@@ -21,7 +21,7 @@ async function generate(): Promise<void> {
   const app = await NestFactory.create(AppModule, { logger: false });
 
   const config = new DocumentBuilder()
-    .setTitle('ReliefHub API')
+    .setTitle('ResponseGrid API')
     .setDescription('API for humanitarian emergency resource coordination')
     .setVersion('0.1')
     .addTag('resources')

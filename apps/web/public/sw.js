@@ -1,5 +1,5 @@
 /**
- * ReliefHub Service Worker — pragmatic offline support.
+ * ResponseGrid Service Worker — pragmatic offline support.
  *
  * Strategy:
  *  - Navigation requests: network-first with offline-page fallback.

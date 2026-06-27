@@ -68,7 +68,7 @@ describe('NominatimGeocodingProvider', () => {
     expect(mockFetch).toHaveBeenCalledTimes(1);
     const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
     expect((init.headers as Record<string, string>)['User-Agent']).toBe(
-      'ReliefHub/0.1 (emergency-aid-coordination)',
+      'ResponseGrid/0.1 (emergency-aid-coordination)',
     );
   });
 

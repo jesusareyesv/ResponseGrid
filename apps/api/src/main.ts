@@ -69,7 +69,7 @@ async function bootstrap(): Promise<void> {
   app.enableShutdownHooks();
 
   const config = new DocumentBuilder()
-    .setTitle('ReliefHub API')
+    .setTitle('ResponseGrid API')
     .setDescription('API for humanitarian emergency resource coordination')
     .setVersion('0.1')
     .addTag('resources')

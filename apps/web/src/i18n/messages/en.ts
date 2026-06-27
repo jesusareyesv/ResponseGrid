@@ -6,7 +6,7 @@ import type { Messages } from './es';
 
 export const en = {
   common: {
-    reliefhub: 'ReliefHub',
+    reliefhub: 'ResponseGrid',
     loading: 'Loading…',
     back: '←',
     optional: '(optional)',
@@ -21,7 +21,7 @@ export const en = {
   },
 
   home: {
-    title: 'ReliefHub',
+    title: 'ResponseGrid',
     subtitle: 'Emergency resource coordination.',
     active_emergencies: 'Active emergencies',
     no_emergencies_title: 'No active emergencies at the moment.',
@@ -35,14 +35,14 @@ export const en = {
     templates: 'Templates',
     audit: 'Audit',
     aria_emergency_list: 'List of active emergencies',
-    meta_title: 'ReliefHub — Active emergencies',
+    meta_title: 'ResponseGrid — Active emergencies',
     meta_description:
       'Emergency aid coordination platform. Check active emergencies and how you can help.',
   },
 
   emergency: {
     back_all: '← All emergencies',
-    official_source: 'Official source · ReliefHub',
+    official_source: 'Official source · ResponseGrid',
     status_active: 'Active emergency',
     status_active_aria: 'Status: active emergency',
 
@@ -153,13 +153,13 @@ export const en = {
     no_account: "Don't have an account?",
     create_account: 'Create account',
     error_fallback: 'Login error',
-    meta_title: 'Sign in — ReliefHub',
-    meta_description: 'Sign in to ReliefHub.',
+    meta_title: 'Sign in — ResponseGrid',
+    meta_description: 'Sign in to ResponseGrid.',
   },
 
   signup: {
     title: 'Create account',
-    subtitle: 'Join ReliefHub to coordinate emergency resources.',
+    subtitle: 'Join ResponseGrid to coordinate emergency resources.',
     name_label: 'Full name',
     email_label: 'Email address',
     password_label: 'Password',
@@ -169,8 +169,8 @@ export const en = {
     already_account: 'Already have an account?',
     login_link: 'Sign in',
     error_fallback: 'Error creating account',
-    meta_title: 'Create account — ReliefHub',
-    meta_description: 'Sign up to ReliefHub to coordinate emergencies.',
+    meta_title: 'Create account — ResponseGrid',
+    meta_description: 'Sign up to ResponseGrid to coordinate emergencies.',
   },
 
   needs_filter: {
@@ -217,7 +217,7 @@ export const en = {
   registrar: {
     page_title: 'Offer a resource',
     page_subtitle: '{emergencyName} · Fill in the form. We will validate you before activating.',
-    meta_title: 'Offer a resource — {emergencyName} · ReliefHub',
+    meta_title: 'Offer a resource — {emergencyName} · ResponseGrid',
     meta_description: 'Register as an available resource for {emergencyName}.',
 
     type_label: 'Resource type',
@@ -254,7 +254,7 @@ export const en = {
   peticion: {
     page_title: 'Submit a request',
     page_subtitle: '{emergencyName} · Describe the need so the coordination team can validate it.',
-    meta_title: 'Submit a request — {emergencyName} · ReliefHub',
+    meta_title: 'Submit a request — {emergencyName} · ResponseGrid',
     meta_description: 'Register an aid need for {emergencyName}.',
 
     title_label: 'Title',
@@ -308,7 +308,7 @@ export const en = {
   donar: {
     page_title: 'Donate supplies',
     page_subtitle: '{emergencyName} · Describe the supplies you can provide.',
-    meta_title: 'Donate supplies — {emergencyName} · ReliefHub',
+    meta_title: 'Donate supplies — {emergencyName} · ResponseGrid',
     meta_description: 'Offer aid supplies for {emergencyName}.',
 
     directed_offer_label: 'Offering for:',
@@ -344,7 +344,7 @@ export const en = {
   voluntario: {
     page_title: 'Sign up as a volunteer',
     page_subtitle: '{emergencyName} · Fill in your details to join the volunteering team.',
-    meta_title: 'Sign up as a volunteer — {emergencyName} · ReliefHub',
+    meta_title: 'Sign up as a volunteer — {emergencyName} · ResponseGrid',
     meta_description: 'Register as a volunteer to help with {emergencyName}.',
 
     already_registered:
@@ -392,7 +392,7 @@ export const en = {
 
   reportar: {
     page_title: 'Submit field report',
-    meta_title: 'Submit report — {emergencyName} · ReliefHub',
+    meta_title: 'Submit report — {emergencyName} · ResponseGrid',
     meta_description: 'Submit a field report for {emergencyName}.',
 
     type_label: 'Type',

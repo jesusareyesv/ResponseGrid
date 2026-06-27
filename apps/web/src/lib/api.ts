@@ -1,9 +1,9 @@
-import { createReliefHubClient } from '@reliefhub/api-client';
+import { createResponseGridClient } from '@reliefhub/api-client';
 
 /**
  * Pre-configured API client — use ONLY in Server Components or Server Actions.
  * Never import this in Client Components ('use client').
  */
-export const api = createReliefHubClient(
+export const api = createResponseGridClient(
   process.env.API_URL ?? 'http://localhost:3000',
 );

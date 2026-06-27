@@ -2,8 +2,8 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'ReliefHub',
-    short_name: 'ReliefHub',
+    name: 'ResponseGrid',
+    short_name: 'ResponseGrid',
     description: 'Coordinación de recursos en emergencias',
     start_url: '/',
     display: 'standalone',

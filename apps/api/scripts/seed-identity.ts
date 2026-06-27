@@ -47,12 +47,12 @@ async function seed(): Promise<void> {
         id: ADMIN_ID,
         email: ADMIN_EMAIL,
         passwordHash: adminHash,
-        name: 'Admin ReliefHub',
+        name: 'Admin ResponseGrid',
         isAdmin: true,
       })
       .onConflictDoUpdate({
         target: usersTable.id,
-        set: { name: 'Admin ReliefHub', isAdmin: true },
+        set: { name: 'Admin ResponseGrid', isAdmin: true },
       });
     console.log(`Seed: admin user upserted (${ADMIN_EMAIL})`);
 

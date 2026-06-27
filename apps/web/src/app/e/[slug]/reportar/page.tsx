@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const emergency = await getEmergencyBySlug(slug);
   const { t } = await getT();
-  if (!emergency) return { title: 'Emergencia no encontrada · ReliefHub' };
+  if (!emergency) return { title: 'Emergencia no encontrada · ResponseGrid' };
   return {
     title: t.reportar.meta_title.replace('{emergencyName}', emergency.name),
     description: t.reportar.meta_description.replace('{emergencyName}', emergency.name),

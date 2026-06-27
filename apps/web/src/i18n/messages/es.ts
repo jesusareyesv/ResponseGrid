@@ -5,7 +5,7 @@
 export const es = {
   // ── Common ───────────────────────────────────────────────────────────────
   common: {
-    reliefhub: 'ReliefHub',
+    reliefhub: 'ResponseGrid',
     loading: 'Cargando…',
     back: '←',
     optional: '(opcional)',
@@ -21,7 +21,7 @@ export const es = {
 
   // ── Home page ─────────────────────────────────────────────────────────────
   home: {
-    title: 'ReliefHub',
+    title: 'ResponseGrid',
     subtitle: 'Coordinación de recursos en emergencias.',
     active_emergencies: 'Emergencias activas',
     no_emergencies_title: 'No hay emergencias activas en este momento.',
@@ -35,7 +35,7 @@ export const es = {
     templates: 'Plantillas',
     audit: 'Auditoría',
     aria_emergency_list: 'Lista de emergencias activas',
-    meta_title: 'ReliefHub — Emergencias activas',
+    meta_title: 'ResponseGrid — Emergencias activas',
     meta_description:
       'Plataforma de coordinación de ayuda en emergencias. Consulta las emergencias activas y cómo puedes colaborar.',
   },
@@ -43,7 +43,7 @@ export const es = {
   // ── Emergency landing (e/[slug]) ──────────────────────────────────────────
   emergency: {
     back_all: '← Todas las emergencias',
-    official_source: 'Fuente oficial · ReliefHub',
+    official_source: 'Fuente oficial · ResponseGrid',
     status_active: 'Emergencia activa',
     status_active_aria: 'Estado: emergencia activa',
 
@@ -167,14 +167,14 @@ export const es = {
     no_account: '¿No tienes cuenta?',
     create_account: 'Crear cuenta',
     error_fallback: 'Error al iniciar sesión',
-    meta_title: 'Iniciar sesión — ReliefHub',
-    meta_description: 'Inicia sesión en ReliefHub.',
+    meta_title: 'Iniciar sesión — ResponseGrid',
+    meta_description: 'Inicia sesión en ResponseGrid.',
   },
 
   // ── Signup page ───────────────────────────────────────────────────────────
   signup: {
     title: 'Crear cuenta',
-    subtitle: 'Únete a ReliefHub para coordinar recursos en emergencias.',
+    subtitle: 'Únete a ResponseGrid para coordinar recursos en emergencias.',
     name_label: 'Nombre completo',
     email_label: 'Correo electrónico',
     password_label: 'Contraseña',
@@ -184,8 +184,8 @@ export const es = {
     already_account: '¿Ya tienes cuenta?',
     login_link: 'Inicia sesión',
     error_fallback: 'Error al crear la cuenta',
-    meta_title: 'Crear cuenta — ReliefHub',
-    meta_description: 'Regístrate en ReliefHub para coordinar emergencias.',
+    meta_title: 'Crear cuenta — ResponseGrid',
+    meta_description: 'Regístrate en ResponseGrid para coordinar emergencias.',
   },
 
   // ── Needs filter ──────────────────────────────────────────────────────────
@@ -238,7 +238,7 @@ export const es = {
   registrar: {
     page_title: 'Ofrecer un recurso',
     page_subtitle: '{emergencyName} · Rellena el formulario. Te validaremos antes de activarte.',
-    meta_title: 'Ofrecer un recurso — {emergencyName} · ReliefHub',
+    meta_title: 'Ofrecer un recurso — {emergencyName} · ResponseGrid',
     meta_description: 'Regístrate como recurso disponible para {emergencyName}.',
 
     type_label: 'Tipo de recurso',
@@ -276,7 +276,7 @@ export const es = {
   peticion: {
     page_title: 'Poner una petición',
     page_subtitle: '{emergencyName} · Describe la necesidad para que el equipo de coordinación pueda validarla.',
-    meta_title: 'Poner una petición — {emergencyName} · ReliefHub',
+    meta_title: 'Poner una petición — {emergencyName} · ResponseGrid',
     meta_description: 'Registra una necesidad de ayuda para {emergencyName}.',
 
     title_label: 'Título',
@@ -332,7 +332,7 @@ export const es = {
   donar: {
     page_title: 'Donar material',
     page_subtitle: '{emergencyName} · Describe el material que puedes aportar.',
-    meta_title: 'Donar material — {emergencyName} · ReliefHub',
+    meta_title: 'Donar material — {emergencyName} · ResponseGrid',
     meta_description: 'Ofrece material de ayuda para {emergencyName}.',
 
     directed_offer_label: 'Ofreces para:',
@@ -369,7 +369,7 @@ export const es = {
   voluntario: {
     page_title: 'Apuntarme como voluntario',
     page_subtitle: '{emergencyName} · Rellena tus datos para unirte al equipo de voluntariado.',
-    meta_title: 'Apuntarme como voluntario — {emergencyName} · ReliefHub',
+    meta_title: 'Apuntarme como voluntario — {emergencyName} · ResponseGrid',
     meta_description: 'Regístrate como voluntario para colaborar en {emergencyName}.',
 
     already_registered:
@@ -420,7 +420,7 @@ export const es = {
     page_title: 'Buscar familiar',
     page_subtitle:
       '{emergencyName} · Si buscas a alguien, rellena el formulario. Personal autorizado gestionará tu solicitud.',
-    meta_title: 'Buscar familiar — {emergencyName} · ReliefHub',
+    meta_title: 'Buscar familiar — {emergencyName} · ResponseGrid',
     meta_description:
       'Registra una búsqueda de familiar en {emergencyName}. Datos estrictamente privados.',
 
@@ -478,7 +478,7 @@ export const es = {
   // ── Mi búsqueda (vista personal) ─────────────────────────────────────────
   mi_busqueda: {
     page_title: 'Mi búsqueda',
-    meta_title: 'Mi búsqueda — {emergencyName} · ReliefHub',
+    meta_title: 'Mi búsqueda — {emergencyName} · ResponseGrid',
     no_reports_title: 'No tienes búsquedas registradas.',
     no_reports_description:
       'Si registraste una búsqueda sin iniciar sesión, no podrás verla aquí.',
@@ -494,7 +494,7 @@ export const es = {
   // ── Coordinación / reunificación ─────────────────────────────────────────
   coord_reunificacion: {
     page_title: 'Reunificación familiar',
-    meta_title: 'Reunificación — {emergencyName} · ReliefHub',
+    meta_title: 'Reunificación — {emergencyName} · ResponseGrid',
     queue_heading: 'Cola de solicitudes',
     filter_label: 'Filtrar por estado',
     filter_all: 'Todos los estados',
@@ -544,7 +544,7 @@ export const es = {
   // ── Reportar form ─────────────────────────────────────────────────────────
   reportar: {
     page_title: 'Enviar parte de campo',
-    meta_title: 'Enviar parte — {emergencyName} · ReliefHub',
+    meta_title: 'Enviar parte — {emergencyName} · ResponseGrid',
     meta_description: 'Envía un parte de campo para {emergencyName}.',
 
     type_label: 'Tipo',

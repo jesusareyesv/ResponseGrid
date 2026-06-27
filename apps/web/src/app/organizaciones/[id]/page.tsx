@@ -10,7 +10,7 @@ import { Badge } from '@/components/atoms/badge';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Organización — ReliefHub',
+  title: 'Organización — ResponseGrid',
 };
 
 type Props = {

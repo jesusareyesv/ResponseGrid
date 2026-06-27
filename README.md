@@ -1,4 +1,4 @@
-# ReliefHub
+# ResponseGrid
 
 **Plataforma de coordinación de ayuda en emergencias.** Conecta a ciudadanía, organizaciones y coordinación durante una catástrofe: publica los puntos logísticos verificados, recoge y valida necesidades, casa ofertas de material con quien las pide, organiza voluntariado y partes de campo, y mantiene todo en un mapa en tiempo real — minimizando el ruido y los desplazamientos inútiles.
 
@@ -27,7 +27,7 @@
 Monorepo **pnpm** con arquitectura **hexagonal / DDD** (puertos y adaptadores, bounded contexts) en el backend y **Atomic Design** en el frontend.
 
 ```
-ReliefHub/
+ResponseGrid/
 ├─ apps/
 │  ├─ api/      NestJS 11 · hexagonal/DDD · Drizzle ORM · Postgres + Redis (BullMQ)
 │  └─ web/      Next.js 16 · React 19 · App Router · Tailwind · Leaflet · PWA

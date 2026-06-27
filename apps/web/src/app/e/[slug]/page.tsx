@@ -33,11 +33,11 @@ export async function generateMetadata(
   const emergency = await getEmergencyBySlug(slug);
 
   if (!emergency) {
-    return { title: 'Emergencia no encontrada · ReliefHub' };
+    return { title: 'Emergencia no encontrada · ResponseGrid' };
   }
 
   return {
-    title: `${emergency.name} · ReliefHub`,
+    title: `${emergency.name} · ResponseGrid`,
     description: `Información oficial y puntos activos de ayuda para ${emergency.name}. Coordina la ayuda material: ofrece recursos, consulta las necesidades validadas y evita saturar la logística.`,
   };
 }

@@ -22,12 +22,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const emergency = await getEmergencyBySlug(slug);
   if (!emergency) {
     return {
-      title: 'Emergencia no encontrada · ReliefHub',
+      title: 'Emergencia no encontrada · ResponseGrid',
       robots: { index: false, follow: false },
     };
   }
   return {
-    title: `Detalle solicitud — ${emergency.name} · ReliefHub`,
+    title: `Detalle solicitud — ${emergency.name} · ResponseGrid`,
     // Sensitive — must not be indexed
     robots: { index: false, follow: false },
   };

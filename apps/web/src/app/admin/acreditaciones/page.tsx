@@ -11,7 +11,7 @@ import { EmptyState } from '@/components/molecules/empty-state';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Acreditaciones — Admin · ReliefHub',
+  title: 'Acreditaciones — Admin · ResponseGrid',
   description: 'Gestión de acreditaciones de organizaciones.',
 };
 
