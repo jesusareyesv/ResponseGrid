@@ -32,6 +32,11 @@ import { DrizzleVolunteerRepository } from './drizzle/drizzle-volunteer.reposito
 import { DrizzleTaskRepository } from './drizzle/drizzle-task.repository';
 import { DrizzleEmergencyStatusReader } from '../../../shared/drizzle-emergency-status-reader';
 import { IdentityModule } from '../../identity/infrastructure/identity.module';
+import {
+  NOTIFICATIONS_PORT,
+  NotificationsPort,
+} from '../../notifications/domain/ports/notifications.port';
+import { NotificationsModule } from '../../notifications/infrastructure/notifications.module';
 
 // ── Volunteer providers ──────────────────────────────────────────────────────
 
@@ -99,9 +104,12 @@ const getTasksProvider = {
 
 const assignVolunteerToTaskProvider = {
   provide: AssignVolunteerToTask,
-  inject: [TASK_REPOSITORY, VOLUNTEER_REPOSITORY],
-  useFactory: (taskRepo: TaskRepository, volunteerRepo: VolunteerRepository) =>
-    new AssignVolunteerToTask(taskRepo, volunteerRepo),
+  inject: [TASK_REPOSITORY, VOLUNTEER_REPOSITORY, NOTIFICATIONS_PORT],
+  useFactory: (
+    taskRepo: TaskRepository,
+    volunteerRepo: VolunteerRepository,
+    notifications: NotificationsPort,
+  ) => new AssignVolunteerToTask(taskRepo, volunteerRepo, notifications),
 };
 
 const unassignVolunteerFromTaskProvider = {
@@ -143,7 +151,7 @@ const getMyTasksProvider = {
 };
 
 @Module({
-  imports: [DatabaseModule, IdentityModule],
+  imports: [DatabaseModule, IdentityModule, NotificationsModule],
   controllers: [VolunteersController, TasksController],
   providers: [
     // Volunteer

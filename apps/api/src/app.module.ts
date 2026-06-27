@@ -13,11 +13,13 @@ import { VolunteersModule } from './contexts/volunteers/infrastructure/volunteer
 import { FilesModule } from './contexts/files/infrastructure/files.module';
 import { ReportsModule } from './contexts/reports/infrastructure/reports.module';
 import { TemplatesModule } from './contexts/templates/infrastructure/templates.module';
+import { NotificationsModule } from './contexts/notifications/infrastructure/notifications.module';
 
 @Module({
   imports: [
     DatabaseModule,
     IdentityModule,
+    NotificationsModule,
     ResourcesModule,
     TemplatesModule,
     EmergenciesModule,

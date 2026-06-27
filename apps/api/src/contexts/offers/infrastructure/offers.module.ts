@@ -27,6 +27,11 @@ import { DrizzleEmergencyStatusReader } from '../../../shared/drizzle-emergency-
 import { BullMqOfferEventBus } from './bullmq-event-bus';
 import { DrizzleNeedLookup } from './drizzle/drizzle-need-lookup';
 import { IdentityModule } from '../../identity/infrastructure/identity.module';
+import {
+  NOTIFICATIONS_PORT,
+  NotificationsPort,
+} from '../../notifications/domain/ports/notifications.port';
+import { NotificationsModule } from '../../notifications/infrastructure/notifications.module';
 // MEMBERSHIP_REPOSITORY and OFFER_EMERGENCY_LOOKUP are exported by IdentityModule
 // and consumed by OffersController via @Inject — no factory needed here.
 
@@ -91,9 +96,12 @@ const submitOfferProvider = {
 
 const matchOfferProvider = {
   provide: MatchOffer,
-  inject: [OFFER_REPOSITORY, OFFER_EVENT_BUS],
-  useFactory: (repo: OfferRepository, bus: EventBus) =>
-    new MatchOffer(repo, bus),
+  inject: [OFFER_REPOSITORY, OFFER_EVENT_BUS, NOTIFICATIONS_PORT],
+  useFactory: (
+    repo: OfferRepository,
+    bus: EventBus,
+    notifications: NotificationsPort,
+  ) => new MatchOffer(repo, bus, notifications),
 };
 
 const markOfferFulfilledProvider = {
@@ -136,7 +144,7 @@ const getMyOffersProvider = {
 };
 
 @Module({
-  imports: [DatabaseModule, IdentityModule],
+  imports: [DatabaseModule, IdentityModule, NotificationsModule],
   controllers: [OffersController],
   providers: [
     eventQueueProvider,

@@ -4,6 +4,8 @@ import { OrganizationAccreditationReader } from '../domain/ports/organization-ac
 import { ResourceId } from '../domain/resource-id';
 import { VerificationLevel } from '../domain/resource-enums';
 import { ResourceNotFoundError } from './resource-not-found.error';
+import { NotificationsPort } from '../../notifications/domain/ports/notifications.port';
+import { NotificationType } from '../../notifications/domain/notification-type';
 
 export interface VerifyResourceCommand {
   resourceId: string;
@@ -15,6 +17,7 @@ export class VerifyResource {
     private readonly repo: ResourceRepository,
     private readonly bus: EventBus,
     private readonly accreditationReader: OrganizationAccreditationReader,
+    private readonly notifications?: NotificationsPort,
   ) {}
 
   async execute(cmd: VerifyResourceCommand): Promise<void> {
@@ -28,6 +31,16 @@ export class VerifyResource {
     resource.verify(level, cmd.coordinatorId);
     await this.repo.save(resource);
     await this.bus.publish(resource.pullDomainEvents());
+
+    if (this.notifications && resource.ownerUserId) {
+      await this.notifications.create({
+        userId: resource.ownerUserId,
+        emergencyId: resource.emergencyId.value,
+        type: NotificationType.ResourceVerified,
+        message: 'Tu punto ha sido verificado',
+        link: `/resources/${resource.id.value}`,
+      });
+    }
   }
 
   private async resolveLevel(resource: {

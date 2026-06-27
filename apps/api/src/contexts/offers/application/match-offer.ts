@@ -2,6 +2,8 @@ import { OfferRepository } from '../domain/ports/offer.repository';
 import { EventBus } from '../domain/ports/event-bus';
 import { OfferId } from '../domain/offer-id';
 import { OfferNotFoundError } from './offer-not-found.error';
+import { NotificationsPort } from '../../notifications/domain/ports/notifications.port';
+import { NotificationType } from '../../notifications/domain/notification-type';
 
 export class OfferNeedEmergencyMismatchError extends Error {
   constructor(offerId: string, needId: string) {
@@ -23,6 +25,7 @@ export class MatchOffer {
   constructor(
     private readonly repo: OfferRepository,
     private readonly bus: EventBus,
+    private readonly notifications?: NotificationsPort,
   ) {}
 
   async execute(cmd: MatchOfferCommand): Promise<void> {
@@ -36,5 +39,15 @@ export class MatchOffer {
     offer.matchTo(cmd.needId);
     await this.repo.save(offer);
     await this.bus.publish(offer.pullDomainEvents());
+
+    if (this.notifications && offer.donorUserId) {
+      await this.notifications.create({
+        userId: offer.donorUserId,
+        emergencyId: offer.emergencyId.value,
+        type: NotificationType.OfferMatched,
+        message: 'Tu oferta de material ha sido asignada a una necesidad',
+        link: `/offers/${offer.id.value}`,
+      });
+    }
   }
 }

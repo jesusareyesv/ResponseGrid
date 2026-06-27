@@ -7,6 +7,8 @@ import {
   VolunteerWrongEmergencyError,
 } from '../domain/task-errors';
 import { VolunteerNotFoundError } from '../domain/volunteer-errors';
+import { NotificationsPort } from '../../notifications/domain/ports/notifications.port';
+import { NotificationType } from '../../notifications/domain/notification-type';
 
 export interface AssignVolunteerToTaskCommand {
   taskId: string;
@@ -17,6 +19,7 @@ export class AssignVolunteerToTask {
   constructor(
     private readonly taskRepo: TaskRepository,
     private readonly volunteerRepo: VolunteerRepository,
+    private readonly notifications?: NotificationsPort,
   ) {}
 
   async execute(cmd: AssignVolunteerToTaskCommand): Promise<void> {
@@ -35,5 +38,15 @@ export class AssignVolunteerToTask {
 
     task.assign(cmd.volunteerId);
     await this.taskRepo.save(task);
+
+    if (this.notifications && volunteer.userId) {
+      await this.notifications.create({
+        userId: volunteer.userId,
+        emergencyId: task.emergencyId.value,
+        type: NotificationType.TaskAssigned,
+        message: 'Se te ha asignado una tarea',
+        link: `/tasks/${task.id.value}`,
+      });
+    }
   }
 }

@@ -18,6 +18,10 @@ import {
   VolunteerWrongEmergencyError,
 } from '../domain/task-errors';
 import { VolunteerNotFoundError } from '../domain/volunteer-errors';
+import {
+  NotificationsPort,
+  CreateNotificationParams,
+} from '../../notifications/domain/ports/notifications.port';
 
 const EM = '11111111-1111-4111-8111-111111111111';
 const OTHER_EM = '22222222-2222-4222-8222-222222222222';
@@ -35,11 +39,14 @@ function makeTask(emergencyId: string = EM): Task {
   });
 }
 
-function makeVolunteer(emergencyId: string = EM): Volunteer {
+function makeVolunteer(
+  emergencyId: string = EM,
+  userId = 'user-' + Math.random(),
+): Volunteer {
   return Volunteer.register({
     id: VolunteerId.create(),
     emergencyId: EmergencyId.fromString(emergencyId),
-    userId: 'user-' + Math.random(),
+    userId,
     name: 'Test Volunteer',
     contact: 'test@example.com',
     municipality: 'Valencia',
@@ -48,6 +55,14 @@ function makeVolunteer(emergencyId: string = EM): Volunteer {
     vehicle: Vehicle.Car,
     consentAccepted: true,
   });
+}
+
+class FakeNotificationsPort implements NotificationsPort {
+  calls: CreateNotificationParams[] = [];
+  create(params: CreateNotificationParams): Promise<void> {
+    this.calls.push(params);
+    return Promise.resolve();
+  }
 }
 
 describe('AssignVolunteerToTask use case', () => {
@@ -141,5 +156,27 @@ describe('AssignVolunteerToTask use case', () => {
 
     const updated = await taskRepo.findById(task.id);
     expect(updated!.status).toBe(TaskStatus.Open);
+  });
+
+  it('calls NotificationsPort with volunteer userId after assignment', async () => {
+    const notifications = new FakeNotificationsPort();
+    const ucWithNotif = new AssignVolunteerToTask(
+      taskRepo,
+      volunteerRepo,
+      notifications,
+    );
+    const task = makeTask(EM);
+    const vol = makeVolunteer(EM, 'specific-user-id');
+    await taskRepo.save(task);
+    await volunteerRepo.save(vol);
+
+    await ucWithNotif.execute({
+      taskId: task.id.value,
+      volunteerId: vol.id.value,
+    });
+
+    expect(notifications.calls).toHaveLength(1);
+    expect(notifications.calls[0].userId).toBe('specific-user-id');
+    expect(notifications.calls[0].emergencyId).toBe(EM);
   });
 });

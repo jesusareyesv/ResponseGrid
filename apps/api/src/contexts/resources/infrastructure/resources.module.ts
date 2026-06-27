@@ -36,6 +36,11 @@ import {
   ResourceMembershipReader,
 } from '../domain/ports/membership-reader';
 import { DrizzleMembershipReader } from './drizzle/drizzle-membership-reader';
+import {
+  NOTIFICATIONS_PORT,
+  NotificationsPort,
+} from '../../notifications/domain/ports/notifications.port';
+import { NotificationsModule } from '../../notifications/infrastructure/notifications.module';
 
 export const EVENT_QUEUE = Symbol('ResourcesEventQueue');
 
@@ -98,12 +103,18 @@ const organizationAccreditationReaderProvider = {
 
 const verifyProvider = {
   provide: VerifyResource,
-  inject: [RESOURCE_REPOSITORY, EVENT_BUS, ORGANIZATION_ACCREDITATION_READER],
+  inject: [
+    RESOURCE_REPOSITORY,
+    EVENT_BUS,
+    ORGANIZATION_ACCREDITATION_READER,
+    NOTIFICATIONS_PORT,
+  ],
   useFactory: (
     repo: ResourceRepository,
     bus: EventBus,
     accreditationReader: OrganizationAccreditationReader,
-  ) => new VerifyResource(repo, bus, accreditationReader),
+    notifications: NotificationsPort,
+  ) => new VerifyResource(repo, bus, accreditationReader, notifications),
 };
 const publishProvider = {
   provide: PublishResource,
@@ -140,7 +151,7 @@ const getMyResourcesProvider = {
 };
 
 @Module({
-  imports: [DatabaseModule, IdentityModule],
+  imports: [DatabaseModule, IdentityModule, NotificationsModule],
   controllers: [ResourcesController, CoordinationController, PublicController],
   providers: [
     eventQueueProvider,

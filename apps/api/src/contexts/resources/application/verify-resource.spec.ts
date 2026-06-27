@@ -11,6 +11,10 @@ import {
 } from '../domain/resource-enums';
 import { ResourceEmergencyStatusReader } from '../domain/ports/emergency-status-reader';
 import { OrganizationAccreditationReader } from '../domain/ports/organization-accreditation-reader';
+import {
+  NotificationsPort,
+  CreateNotificationParams,
+} from '../../notifications/domain/ports/notifications.port';
 
 const EM = '11111111-1111-4111-8111-111111111111';
 const ORG = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
@@ -33,6 +37,14 @@ const accreditedReader: OrganizationAccreditationReader = {
 const notAccreditedReader: OrganizationAccreditationReader = {
   isAccredited: () => Promise.resolve(false),
 };
+
+class FakeNotificationsPort implements NotificationsPort {
+  calls: CreateNotificationParams[] = [];
+  create(params: CreateNotificationParams): Promise<void> {
+    this.calls.push(params);
+    return Promise.resolve();
+  }
+}
 
 describe('VerifyResource — Official derivation', () => {
   it('yields Official when resource belongs to an accredited org', async () => {
@@ -116,5 +128,54 @@ describe('VerifyResource — Official derivation', () => {
         },
       ),
     ).rejects.toBeInstanceOf(ResourceNotFoundError);
+  });
+
+  it('calls NotificationsPort with owner userId after verification', async () => {
+    const repo = new InMemoryResourceRepository();
+    const bus = new FakeEventBus();
+    const notifications = new FakeNotificationsPort();
+    const { id } = await new RegisterResource(repo, bus, activeReader).execute({
+      emergencyId: EM,
+      type: ResourceType.Venue,
+      stage: ResourceStage.Destination,
+      name: 'Local',
+      location: baseLocation,
+      ownerUserId: 'owner-user',
+    });
+    bus.published = [];
+
+    await new VerifyResource(
+      repo,
+      bus,
+      accreditedReader,
+      notifications,
+    ).execute({
+      resourceId: id,
+      coordinatorId: 'c1',
+    });
+
+    expect(notifications.calls).toHaveLength(1);
+    expect(notifications.calls[0].userId).toBe('owner-user');
+    expect(notifications.calls[0].emergencyId).toBe(EM);
+  });
+
+  it('does not throw when NotificationsPort is not provided', async () => {
+    const repo = new InMemoryResourceRepository();
+    const bus = new FakeEventBus();
+    const { id } = await new RegisterResource(repo, bus, activeReader).execute({
+      emergencyId: EM,
+      type: ResourceType.Venue,
+      stage: ResourceStage.Destination,
+      name: 'Local',
+      location: baseLocation,
+      ownerUserId: 'owner-user',
+    });
+
+    await expect(
+      new VerifyResource(repo, bus, accreditedReader).execute({
+        resourceId: id,
+        coordinatorId: 'c1',
+      }),
+    ).resolves.not.toThrow();
   });
 });

@@ -6,6 +6,10 @@ import { NeedCategory, OfferStatus } from '../domain/offer-enums';
 import { OfferNotFoundError } from './offer-not-found.error';
 import { OfferEmergencyStatusReader } from '../domain/ports/emergency-status-reader';
 import { NeedLookup } from '../domain/ports/need-lookup';
+import {
+  NotificationsPort,
+  CreateNotificationParams,
+} from '../../notifications/domain/ports/notifications.port';
 
 const EM = '11111111-1111-4111-8111-111111111111';
 const OTHER_EM = '22222222-2222-4222-8222-222222222222';
@@ -30,6 +34,14 @@ class FakeNullNeedLookup implements NeedLookup {
     emergencyId: string;
   } | null> {
     return Promise.resolve(null);
+  }
+}
+
+class FakeNotificationsPort implements NotificationsPort {
+  calls: CreateNotificationParams[] = [];
+  create(params: CreateNotificationParams): Promise<void> {
+    this.calls.push(params);
+    return Promise.resolve();
   }
 }
 
@@ -99,5 +111,19 @@ describe('MatchOffer', () => {
     await expect(
       useCase.execute({ offerId, needId: NEED_ID, needEmergencyId: OTHER_EM }),
     ).rejects.toThrow(OfferNeedEmergencyMismatchError);
+  });
+
+  it('calls NotificationsPort with donorUserId after matching', async () => {
+    const notifications = new FakeNotificationsPort();
+    const ucWithNotif = new MatchOffer(repo, bus, notifications);
+    const offerId = await createOpenOffer(repo, bus);
+    await ucWithNotif.execute({
+      offerId,
+      needId: NEED_ID,
+      needEmergencyId: EM,
+    });
+    expect(notifications.calls).toHaveLength(1);
+    expect(notifications.calls[0].userId).toBe(USER_ID);
+    expect(notifications.calls[0].emergencyId).toBe(EM);
   });
 });
