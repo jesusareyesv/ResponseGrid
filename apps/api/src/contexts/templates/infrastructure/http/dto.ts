@@ -60,6 +60,7 @@ export class TemplateViewDto {
   @ApiProperty({
     example: 'No se aceptan mascotas.',
     nullable: true,
+    type: String,
   })
   defaultAnnouncement!: string | null;
 

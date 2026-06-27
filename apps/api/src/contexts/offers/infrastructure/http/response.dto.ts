@@ -30,7 +30,7 @@ export class OfferViewDto {
   @ApiProperty({ format: 'uuid' })
   donorUserId!: string;
 
-  @ApiPropertyOptional({ format: 'uuid', nullable: true })
+  @ApiPropertyOptional({ format: 'uuid', nullable: true, type: String })
   donorOrganizationId!: string | null;
 
   @ApiProperty({ enum: NeedCategory, example: NeedCategory.Food })
@@ -42,22 +42,26 @@ export class OfferViewDto {
   @ApiProperty({ example: 50 })
   quantity!: number;
 
-  @ApiPropertyOptional({ example: 'bags', nullable: true })
+  @ApiPropertyOptional({ example: 'bags', nullable: true, type: String })
   unit!: string | null;
 
   @ApiProperty({ type: OfferLocationResponseDto })
   location!: OfferLocationResponseDto;
 
-  @ApiPropertyOptional({ format: 'uuid', nullable: true })
+  @ApiPropertyOptional({ format: 'uuid', nullable: true, type: String })
   targetNeedId!: string | null;
 
-  @ApiPropertyOptional({ format: 'uuid', nullable: true })
+  @ApiPropertyOptional({ format: 'uuid', nullable: true, type: String })
   matchedNeedId!: string | null;
 
   @ApiProperty({ enum: OfferStatus, example: OfferStatus.Open })
   status!: OfferStatus;
 
-  @ApiPropertyOptional({ example: 'Available Mon-Fri', nullable: true })
+  @ApiPropertyOptional({
+    example: 'Available Mon-Fri',
+    nullable: true,
+    type: String,
+  })
   notes!: string | null;
 
   @ApiProperty({ example: '2024-01-01T00:00:00.000Z' })

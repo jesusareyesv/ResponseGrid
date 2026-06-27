@@ -364,7 +364,12 @@ export class TasksController {
       createdByUserId: v.createdByUserId,
       createdAt: v.createdAt,
       updatedAt: v.updatedAt,
-      assignments: v.assignments,
+      assignments: v.assignments.map((a) => ({
+        ...a,
+        volunteerName: a.volunteerName ?? null,
+        checkedInAt: a.checkedInAt ?? null,
+        checkedOutAt: a.checkedOutAt ?? null,
+      })),
     };
   }
 

@@ -1148,7 +1148,7 @@ export interface components {
             /** @example Cruz Roja Madrid */
             name: string;
             /** @example Centro de acopio principal */
-            description?: Record<string, never> | null;
+            description?: string | null;
             location: components["schemas"]["LocationViewDto"];
             /**
              * @example verified
@@ -1161,7 +1161,7 @@ export interface components {
              */
             publicStatus: "hidden" | "active" | "saturated" | "paused" | "closed";
             /** Format: uuid */
-            ownerOrganizationId?: Record<string, never> | null;
+            ownerOrganizationId?: string | null;
         };
         CreateTemplateDto: {
             /** @example Terremoto básico */
@@ -1199,7 +1199,7 @@ export interface components {
              */
             dontBringList: string[];
             /** @example No se aceptan mascotas. */
-            defaultAnnouncement: Record<string, never> | null;
+            defaultAnnouncement: string | null;
             /** @example 2026-06-27T10:00:00.000Z */
             createdAt: string;
         };
@@ -1238,7 +1238,7 @@ export interface components {
              */
             status: "active" | "paused" | "closed";
             /** @example El puente de acceso norte está cortado. */
-            announcement: Record<string, never> | null;
+            announcement: string | null;
             /**
              * @description Items volunteers should NOT bring to the emergency
              * @example [
@@ -1345,7 +1345,7 @@ export interface components {
             /** @example 100 */
             quantity: number;
             /** @example liters */
-            unit?: Record<string, never> | null;
+            unit?: string | null;
             /**
              * @example water
              * @enum {string}
@@ -1366,7 +1366,7 @@ export interface components {
             /** @example Alimentos para 50 familias */
             title: string;
             /** @example Descripción detallada */
-            description?: Record<string, never> | null;
+            description?: string | null;
             location: components["schemas"]["NeedLocationResponseDto"];
             /**
              * @example high
@@ -1374,9 +1374,9 @@ export interface components {
              */
             priority: "low" | "medium" | "high" | "urgent";
             /** Format: uuid */
-            requesterOrganizationId?: Record<string, never> | null;
+            requesterOrganizationId?: string | null;
             /** Format: uuid */
-            managingOrganizationId?: Record<string, never> | null;
+            managingOrganizationId?: string | null;
             items: components["schemas"]["NeedItemResponseDto"][];
             /**
              * @example pending
@@ -1592,7 +1592,7 @@ export interface components {
             /** Format: uuid */
             donorUserId: string;
             /** Format: uuid */
-            donorOrganizationId?: Record<string, never> | null;
+            donorOrganizationId?: string | null;
             /**
              * @example food
              * @enum {string}
@@ -1603,19 +1603,19 @@ export interface components {
             /** @example 50 */
             quantity: number;
             /** @example bags */
-            unit?: Record<string, never> | null;
+            unit?: string | null;
             location: components["schemas"]["OfferLocationResponseDto"];
             /** Format: uuid */
-            targetNeedId?: Record<string, never> | null;
+            targetNeedId?: string | null;
             /** Format: uuid */
-            matchedNeedId?: Record<string, never> | null;
+            matchedNeedId?: string | null;
             /**
              * @example open
              * @enum {string}
              */
             status: "open" | "matched" | "fulfilled" | "cancelled";
             /** @example Available Mon-Fri */
-            notes?: Record<string, never> | null;
+            notes?: string | null;
             /** @example 2024-01-01T00:00:00.000Z */
             createdAt: string;
             /** @example 2024-01-01T00:00:00.000Z */
@@ -1713,11 +1713,13 @@ export interface components {
         TaskAssignmentViewDto: {
             /** Format: uuid */
             volunteerId: string;
-            volunteerName?: Record<string, never>;
+            volunteerName?: string | null;
             /** Format: date-time */
             assignedAt: string;
-            checkedInAt?: Record<string, never>;
-            checkedOutAt?: Record<string, never>;
+            /** Format: date-time */
+            checkedInAt?: string | null;
+            /** Format: date-time */
+            checkedOutAt?: string | null;
             /** @enum {string} */
             status: "assigned" | "checked_in" | "checked_out";
         };
@@ -1728,9 +1730,9 @@ export interface components {
             emergencyId: string;
             title: string;
             description: string;
-            location?: components["schemas"]["TaskLocationDto"];
-            /** @enum {string} */
-            requiredSkill?: "driving" | "medical" | "logistics" | "cooking" | "languages" | "admin" | "general";
+            location?: components["schemas"]["TaskLocationDto"] | null;
+            /** @enum {string|null} */
+            requiredSkill?: "driving" | "medical" | "logistics" | "cooking" | "languages" | "admin" | "general" | null;
             /** @enum {string} */
             status: "open" | "in_progress" | "completed" | "cancelled";
             /** Format: uuid */
@@ -1748,9 +1750,9 @@ export interface components {
             emergencyId: string;
             title: string;
             description: string;
-            location?: components["schemas"]["TaskLocationDto"];
-            /** @enum {string} */
-            requiredSkill?: "driving" | "medical" | "logistics" | "cooking" | "languages" | "admin" | "general";
+            location?: components["schemas"]["TaskLocationDto"] | null;
+            /** @enum {string|null} */
+            requiredSkill?: "driving" | "medical" | "logistics" | "cooking" | "languages" | "admin" | "general" | null;
             /** @enum {string} */
             status: "open" | "in_progress" | "completed" | "cancelled";
             /** Format: uuid */
@@ -1782,11 +1784,11 @@ export interface components {
         };
         AuditEntryDto: {
             id: string;
-            actorUserId?: Record<string, never> | null;
+            actorUserId?: string | null;
             action: string;
-            entityType?: Record<string, never> | null;
-            entityId?: Record<string, never> | null;
-            emergencyId?: Record<string, never> | null;
+            entityType?: string | null;
+            entityId?: string | null;
+            emergencyId?: string | null;
             method: string;
             path: string;
             statusCode: number;

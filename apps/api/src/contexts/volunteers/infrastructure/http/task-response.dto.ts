@@ -6,17 +6,17 @@ export class TaskAssignmentViewDto {
   @ApiProperty({ format: 'uuid' })
   volunteerId!: string;
 
-  @ApiPropertyOptional()
-  volunteerName?: string | undefined;
+  @ApiPropertyOptional({ nullable: true, type: String })
+  volunteerName!: string | null;
 
   @ApiProperty()
   assignedAt!: Date;
 
-  @ApiPropertyOptional()
-  checkedInAt?: Date | null | undefined;
+  @ApiPropertyOptional({ nullable: true, type: String, format: 'date-time' })
+  checkedInAt!: Date | null;
 
-  @ApiPropertyOptional()
-  checkedOutAt?: Date | null | undefined;
+  @ApiPropertyOptional({ nullable: true, type: String, format: 'date-time' })
+  checkedOutAt!: Date | null;
 
   @ApiProperty({ enum: AssignmentStatus })
   status!: AssignmentStatus;
@@ -46,11 +46,11 @@ export class TaskViewDto {
   @ApiProperty()
   description!: string;
 
-  @ApiPropertyOptional({ type: TaskLocationDto })
-  location?: TaskLocationDto | null;
+  @ApiPropertyOptional({ type: TaskLocationDto, nullable: true })
+  location!: TaskLocationDto | null;
 
-  @ApiPropertyOptional({ enum: VolunteerSkill })
-  requiredSkill?: VolunteerSkill | null;
+  @ApiPropertyOptional({ enum: VolunteerSkill, nullable: true })
+  requiredSkill!: VolunteerSkill | null;
 
   @ApiProperty({ enum: TaskStatus })
   status!: TaskStatus;

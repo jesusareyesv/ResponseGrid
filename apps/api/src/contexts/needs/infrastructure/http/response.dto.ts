@@ -27,7 +27,7 @@ export class NeedItemResponseDto {
   @ApiProperty({ example: 100 })
   quantity!: number;
 
-  @ApiPropertyOptional({ example: 'liters', nullable: true })
+  @ApiPropertyOptional({ example: 'liters', nullable: true, type: String })
   unit!: string | null;
 
   @ApiProperty({ enum: NeedCategory, example: NeedCategory.Water })
@@ -50,7 +50,11 @@ export class NeedViewDto {
   @ApiProperty({ example: 'Alimentos para 50 familias' })
   title!: string;
 
-  @ApiPropertyOptional({ example: 'Descripción detallada', nullable: true })
+  @ApiPropertyOptional({
+    example: 'Descripción detallada',
+    nullable: true,
+    type: String,
+  })
   description!: string | null;
 
   @ApiProperty({ type: NeedLocationResponseDto })
@@ -59,10 +63,10 @@ export class NeedViewDto {
   @ApiProperty({ enum: Priority, example: Priority.High })
   priority!: Priority;
 
-  @ApiPropertyOptional({ format: 'uuid', nullable: true })
+  @ApiPropertyOptional({ format: 'uuid', nullable: true, type: String })
   requesterOrganizationId!: string | null;
 
-  @ApiPropertyOptional({ format: 'uuid', nullable: true })
+  @ApiPropertyOptional({ format: 'uuid', nullable: true, type: String })
   managingOrganizationId!: string | null;
 
   @ApiProperty({ type: [NeedItemResponseDto] })

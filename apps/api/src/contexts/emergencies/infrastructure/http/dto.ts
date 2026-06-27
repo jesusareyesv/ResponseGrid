@@ -66,6 +66,7 @@ export class EmergencyViewDto {
   @ApiProperty({
     example: 'El puente de acceso norte está cortado.',
     nullable: true,
+    type: String,
   })
   announcement!: string | null;
 

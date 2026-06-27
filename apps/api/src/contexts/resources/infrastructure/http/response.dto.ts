@@ -44,6 +44,7 @@ export class ResourceViewDto {
   @ApiPropertyOptional({
     example: 'Centro de acopio principal',
     nullable: true,
+    type: String,
   })
   description!: string | null;
 
@@ -56,6 +57,6 @@ export class ResourceViewDto {
   @ApiProperty({ enum: PublicStatus, example: PublicStatus.Active })
   publicStatus!: PublicStatus;
 
-  @ApiPropertyOptional({ format: 'uuid', nullable: true })
+  @ApiPropertyOptional({ format: 'uuid', nullable: true, type: String })
   ownerOrganizationId!: string | null;
 }
