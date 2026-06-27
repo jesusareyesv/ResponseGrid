@@ -998,6 +998,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/audit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List audit log entries (admin only) */
+        get: operations["AuditController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1762,6 +1779,23 @@ export interface components {
             /** @description Resource ID this report refers to */
             resourceId?: string;
             location?: components["schemas"]["LocationDto"];
+        };
+        AuditEntryDto: {
+            id: string;
+            actorUserId?: Record<string, never> | null;
+            action: string;
+            entityType?: Record<string, never> | null;
+            entityId?: Record<string, never> | null;
+            emergencyId?: Record<string, never> | null;
+            method: string;
+            path: string;
+            statusCode: number;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        AuditListResponseDto: {
+            entries: components["schemas"]["AuditEntryDto"][];
+            total: number;
         };
     };
     responses: never;
@@ -4361,6 +4395,50 @@ export interface operations {
         responses: {
             /** @description List of my reports */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AuditController_list: {
+        parameters: {
+            query?: {
+                /** @description Filter by emergency ID */
+                emergencyId?: string;
+                /** @description Filter by actor user ID */
+                actorUserId?: string;
+                /** @description Filter by entity type (e.g. resource, need) */
+                entityType?: string;
+                /** @description Max results to return (default 100, max 500) */
+                limit?: number;
+                /** @description Offset for pagination (default 0) */
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditListResponseDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Admin access required */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -258,7 +258,7 @@ describe('Notifications (e2e)', () => {
 
   // ── Ownership guard ───────────────────────────────────────────────────────────
 
-  it('another user cannot mark someone else\'s notification as read → 403/404', async () => {
+  it("another user cannot mark someone else's notification as read → 403/404", async () => {
     // Owner registers a resource
     const createRes = await request(server)
       .post(`/emergencies/${EM_N}/resources`)
