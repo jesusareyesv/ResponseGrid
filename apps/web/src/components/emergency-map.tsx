@@ -309,7 +309,6 @@ function ClusteredMarkersLayer({ points }: { points: MapPoint[] }) {
       }
     };
     // Only on unmount
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map]);
 
   return null;

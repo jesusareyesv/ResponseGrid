@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import {
   ResourceType,
   ResourceStage,
@@ -41,7 +41,11 @@ export class ResourceViewDto {
   @ApiProperty({ example: 'Cruz Roja Madrid' })
   name!: string;
 
-  @ApiProperty({ example: 'Centro de acopio principal', nullable: true, type: String })
+  @ApiProperty({
+    example: 'Centro de acopio principal',
+    nullable: true,
+    type: String,
+  })
   description!: string | null;
 
   @ApiProperty({ type: LocationViewDto })

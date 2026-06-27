@@ -13,7 +13,8 @@
 
 import { ResourceType, ResourceStage } from '../domain/resource-enums';
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export type MappedResourceInput = {
   externalId: string;
@@ -54,10 +55,15 @@ type AcopioveRecord = {
   updatedAt?: unknown;
 };
 
-function mapTipo(tipo: unknown): { type: ResourceType; stage: ResourceStage } | null {
+function mapTipo(
+  tipo: unknown,
+): { type: ResourceType; stage: ResourceStage } | null {
   switch (tipo) {
     case 'acopio':
-      return { type: ResourceType.CollectionPoint, stage: ResourceStage.Origin };
+      return {
+        type: ResourceType.CollectionPoint,
+        stage: ResourceStage.Origin,
+      };
     case 'refugio':
       return { type: ResourceType.Venue, stage: ResourceStage.Destination };
     default:
@@ -80,12 +86,14 @@ function toFiniteNumber(v: unknown): number | null {
 
 function toStringOrNull(v: unknown): string | null {
   if (v === undefined || v === null || v === '') return null;
-  return String(v);
+  if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean')
+    return String(v);
+  return null;
 }
 
 function toStringArray(v: unknown): string[] {
   if (!Array.isArray(v)) return [];
-  return v.filter((x) => typeof x === 'string') as string[];
+  return v.filter((x) => typeof x === 'string');
 }
 
 function toDateOrNull(v: unknown): Date | null {
@@ -94,7 +102,9 @@ function toDateOrNull(v: unknown): Date | null {
   return isNaN(d.getTime()) ? null : d;
 }
 
-export const acopioveMapper: ResourceMapper = (raw: unknown): MappedResourceInput | null => {
+export const acopioveMapper: ResourceMapper = (
+  raw: unknown,
+): MappedResourceInput | null => {
   const r = raw as AcopioveRecord;
 
   // Guard: id must be a valid UUID

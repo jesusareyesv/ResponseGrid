@@ -20,12 +20,47 @@ import {
 } from '../src/contexts/resources/domain/resource-enums';
 import { Location } from '../src/shared/domain/location';
 
+// ── Response shape types (mirrors response.dto.ts) ───────────────────────────
+
+interface ResourceViewBody {
+  id: string;
+  name: string;
+  type: string;
+  stage: string;
+  verificationLevel: string;
+  publicStatus: string;
+  location: { address: string; latitude: number; longitude: number };
+  accepts: string[];
+  contact: string | null;
+  schedule: string | null;
+  manager: string | null;
+  country: string | null;
+  city: string | null;
+  sourceName: string | null;
+  externalUpdatedAt: string | null;
+  ownerOrganizationId: string | null;
+}
+
+interface PagedResourcesBody {
+  items: ResourceViewBody[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+interface ResourceFacetsBody {
+  byCategory: Record<string, number>;
+  byCountry: Record<string, number>;
+  total: number;
+}
+
 // IDs that don't conflict with other e2e specs
 const EM = 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee';
 const OWNER_ID = 'f1000000-0000-4000-8000-000000000091';
 
 const DB_URL =
-  process.env.DATABASE_URL ?? 'postgres://reliefhub:reliefhub@localhost:5433/reliefhub';
+  process.env.DATABASE_URL ??
+  'postgres://reliefhub:reliefhub@localhost:5433/reliefhub';
 
 const baseLocation = Location.create({
   address: 'Calle Test E2E, Caracas',
@@ -115,19 +150,22 @@ describe('Public resources paged (e2e)', () => {
     await withCleanRepo(async (repo) => {
       await repo.save(makeVisible('R1', { accepts: ['water'], country: 'VE' }));
       await repo.save(makeVisible('R2', { accepts: ['food'], country: 'CO' }));
-      await repo.save(makeVisible('R3', { accepts: ['water', 'food'], country: 'VE' }));
+      await repo.save(
+        makeVisible('R3', { accepts: ['water', 'food'], country: 'VE' }),
+      );
     });
 
     const res = await request(server)
       .get(`/emergencies/${EM}/public/resources`)
       .expect(200);
 
+    const body = res.body as PagedResourcesBody;
     expect(res.body).toHaveProperty('items');
     expect(res.body).toHaveProperty('total', 3);
     expect(res.body).toHaveProperty('page', 1);
     expect(res.body).toHaveProperty('limit', 50);
-    expect(Array.isArray(res.body.items)).toBe(true);
-    expect(res.body.items).toHaveLength(3);
+    expect(Array.isArray(body.items)).toBe(true);
+    expect(body.items).toHaveLength(3);
   });
 
   it('pagination with limit=2 returns 2 items and correct total', async () => {
@@ -141,25 +179,31 @@ describe('Public resources paged (e2e)', () => {
       .get(`/emergencies/${EM}/public/resources?page=1&limit=2`)
       .expect(200);
 
-    expect(res.body.items).toHaveLength(2);
-    expect(res.body.total).toBe(3);
-    expect(res.body.page).toBe(1);
-    expect(res.body.limit).toBe(2);
+    const body = res.body as PagedResourcesBody;
+    expect(body.items).toHaveLength(2);
+    expect(body.total).toBe(3);
+    expect(body.page).toBe(1);
+    expect(body.limit).toBe(2);
   });
 
   it('?category=water filters resources by category', async () => {
     await withCleanRepo(async (repo) => {
-      await repo.save(makeVisible('Water One', { accepts: ['water'], country: 'VE' }));
-      await repo.save(makeVisible('Food Only', { accepts: ['food'], country: 'CO' }));
+      await repo.save(
+        makeVisible('Water One', { accepts: ['water'], country: 'VE' }),
+      );
+      await repo.save(
+        makeVisible('Food Only', { accepts: ['food'], country: 'CO' }),
+      );
     });
 
     const res = await request(server)
       .get(`/emergencies/${EM}/public/resources?category=water`)
       .expect(200);
 
-    expect(res.body.total).toBe(1);
-    expect(res.body.items[0].name).toBe('Water One');
-    expect(res.body.items[0].accepts).toContain('water');
+    const body = res.body as PagedResourcesBody;
+    expect(body.total).toBe(1);
+    expect(body.items[0].name).toBe('Water One');
+    expect(body.items[0].accepts).toContain('water');
   });
 
   it('?country=VE filters resources by country', async () => {
@@ -172,14 +216,17 @@ describe('Public resources paged (e2e)', () => {
       .get(`/emergencies/${EM}/public/resources?country=VE`)
       .expect(200);
 
-    expect(res.body.total).toBe(1);
-    expect(res.body.items[0].name).toBe('VE Resource');
-    expect(res.body.items[0].country).toBe('VE');
+    const body = res.body as PagedResourcesBody;
+    expect(body.total).toBe(1);
+    expect(body.items[0].name).toBe('VE Resource');
+    expect(body.items[0].country).toBe('VE');
   });
 
   it('GET /emergencies/:id/public/resources/facets returns facets', async () => {
     await withCleanRepo(async (repo) => {
-      await repo.save(makeVisible('F1', { accepts: ['water', 'food'], country: 'VE' }));
+      await repo.save(
+        makeVisible('F1', { accepts: ['water', 'food'], country: 'VE' }),
+      );
       await repo.save(makeVisible('F2', { accepts: ['water'], country: 'CO' }));
       // Hidden resource should not appear in facets
       const hidden = Resource.register({
@@ -200,11 +247,12 @@ describe('Public resources paged (e2e)', () => {
       .get(`/emergencies/${EM}/public/resources/facets`)
       .expect(200);
 
-    expect(res.body.total).toBe(2);
-    expect(res.body.byCategory.water).toBe(2);
-    expect(res.body.byCategory.food).toBe(1);
-    expect(res.body.byCountry.VE).toBe(1);
-    expect(res.body.byCountry.CO).toBe(1);
+    const body = res.body as ResourceFacetsBody;
+    expect(body.total).toBe(2);
+    expect(body.byCategory.water).toBe(2);
+    expect(body.byCategory.food).toBe(1);
+    expect(body.byCountry.VE).toBe(1);
+    expect(body.byCountry.CO).toBe(1);
   });
 
   it('ResourceViewDto includes enriched fields (accepts, contact, country, etc.)', async () => {
@@ -236,7 +284,7 @@ describe('Public resources paged (e2e)', () => {
       .get(`/emergencies/${EM}/public/resources`)
       .expect(200);
 
-    const item = res.body.items[0];
+    const item = (res.body as PagedResourcesBody).items[0];
     expect(item.accepts).toEqual(['water']);
     expect(item.contact).toBe('+1-555-0100');
     expect(item.schedule).toBe('Mon-Fri 9-17');
@@ -282,7 +330,7 @@ describe('Public resources paged (e2e)', () => {
       .get(`/emergencies/${EM}/public/resources`)
       .expect(200);
 
-    const item = res.body.items[0];
+    const item = (res.body as PagedResourcesBody).items[0];
     expect(typeof item.sourceName).toBe('string');
     expect(item.sourceName).toBe('acopiove.org');
     expect(typeof item.externalUpdatedAt).toBe('string');

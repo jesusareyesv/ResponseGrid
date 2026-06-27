@@ -25,7 +25,6 @@ import type { Locale } from '@/i18n';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? '';
 if (!API_URL) {
-  // eslint-disable-next-line no-console
   console.error(
     '[ResourceList] NEXT_PUBLIC_API_URL is not set — ' +
       '"Load more" will fail. Set this env var in your deployment.',

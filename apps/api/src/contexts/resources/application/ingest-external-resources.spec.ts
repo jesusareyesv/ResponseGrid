@@ -18,10 +18,14 @@ import { IngestExternalResources } from './ingest-external-resources';
 import { InMemoryResourceRepository } from '../infrastructure/in-memory-resource.repository';
 import { CategoryResolver } from '../../taxonomy/domain/category-resolver';
 import { MappedResourceInput, ResourceMapper } from './acopiove-mapper';
-import { ResourceType, ResourceStage, VerificationLevel, PublicStatus } from '../domain/resource-enums';
+import {
+  ResourceType,
+  ResourceStage,
+  VerificationLevel,
+  PublicStatus,
+} from '../domain/resource-enums';
 import { Resource } from '../domain/resource';
 import { ResourceId } from '../domain/resource-id';
-import { EmergencyId } from '../../../shared/domain/emergency-id';
 import { Location } from '../../../shared/domain/location';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -34,7 +38,9 @@ const EXT_ID_2 = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function makeMappedInput(overrides: Partial<MappedResourceInput> = {}): MappedResourceInput {
+function makeMappedInput(
+  overrides: Partial<MappedResourceInput> = {},
+): MappedResourceInput {
   return {
     externalId: EXT_ID_1,
     type: ResourceType.CollectionPoint,
@@ -84,10 +90,11 @@ describe('IngestExternalResources', () => {
       const useCase = new IngestExternalResources(repo, resolver);
 
       const input1 = makeMappedInput({ externalId: EXT_ID_1 });
-      const input2 = makeMappedInput({ externalId: EXT_ID_2, name: 'Segundo punto' });
+      const input2 = makeMappedInput({
+        externalId: EXT_ID_2,
+        name: 'Segundo punto',
+      });
 
-      const mapper1: ResourceMapper = (_raw) => (_raw === 'rec1' ? input1 : null);
-      const mapper2: ResourceMapper = (_raw) => (_raw === 'rec2' ? input2 : null);
       const combinedMapper: ResourceMapper = (raw) =>
         raw === 'rec1' ? input1 : raw === 'rec2' ? input2 : null;
 
@@ -107,7 +114,9 @@ describe('IngestExternalResources', () => {
       const resolver = makeResolver();
       const useCase = new IngestExternalResources(repo, resolver);
 
-      const input = makeMappedInput({ acceptsRawLabels: ['agua', 'ropa', 'unknownLabel'] });
+      const input = makeMappedInput({
+        acceptsRawLabels: ['agua', 'ropa', 'unknownLabel'],
+      });
       await useCase.execute({
         emergencyId: EMERGENCY_ID,
         sourceName: SOURCE_NAME,
@@ -119,13 +128,18 @@ describe('IngestExternalResources', () => {
       const found = await repo.findByExternal(SOURCE_NAME, EXT_ID_1);
       expect(found).not.toBeNull();
       // 'unknownLabel' has no alias → filtered out; 'agua'→'water', 'ropa'→'clothing'
-      expect(found!.accepts).toEqual(expect.arrayContaining(['water', 'clothing']));
+      expect(found!.accepts).toEqual(
+        expect.arrayContaining(['water', 'clothing']),
+      );
       expect(found!.accepts).not.toContain('unknownLabel');
       expect(found!.accepts).toHaveLength(2);
 
       expect(found!.provenance?.sourceName).toBe(SOURCE_NAME);
       expect(found!.provenance?.externalId).toBe(EXT_ID_1);
-      expect(found!.provenance?.raw).toEqual({ id: EXT_ID_1, name: 'raw-data' });
+      expect(found!.provenance?.raw).toEqual({
+        id: EXT_ID_1,
+        name: 'raw-data',
+      });
     });
 
     it('saves Resource with correct mapped fields (contact, schedule, manager, city, country)', async () => {
@@ -215,11 +229,15 @@ describe('IngestExternalResources', () => {
         stage: ResourceStage.Origin,
         name: 'Punto Original',
         description: null,
-        location: { address: 'Calle Antigua 1', latitude: 39.4699, longitude: -0.3763 },
+        location: {
+          address: 'Calle Antigua 1',
+          latitude: 39.4699,
+          longitude: -0.3763,
+        },
         ownerUserId: 'original-owner-id',
         ownerOrganizationId: null,
-        verificationLevel: VerificationLevel.Verified,   // non-default: Verified
-        publicStatus: PublicStatus.Active,                // non-default: Active
+        verificationLevel: VerificationLevel.Verified, // non-default: Verified
+        publicStatus: PublicStatus.Active, // non-default: Active
         createdAt: new Date('2023-01-01'),
         contact: null,
         schedule: null,
@@ -237,7 +255,9 @@ describe('IngestExternalResources', () => {
       await repo.save(preExisting);
 
       // Now ingest the same externalId with a different name and different ownerUserId
-      const incomingInput = makeMappedInput({ name: 'Nombre Nuevo desde Fuente' });
+      const incomingInput = makeMappedInput({
+        name: 'Nombre Nuevo desde Fuente',
+      });
       const result = await useCase.execute({
         emergencyId: EMERGENCY_ID,
         sourceName: SOURCE_NAME,
@@ -252,10 +272,10 @@ describe('IngestExternalResources', () => {
       expect(found).not.toBeNull();
 
       // Local fields PRESERVED
-      expect(found!.publicStatus).toBe(PublicStatus.Active);          // preserved
+      expect(found!.publicStatus).toBe(PublicStatus.Active); // preserved
       expect(found!.verificationLevel).toBe(VerificationLevel.Verified); // preserved
-      expect(found!.ownerUserId).toBe('original-owner-id');           // preserved
-      expect(found!.id.value).toBe(existingId.value);                 // same aggregate
+      expect(found!.ownerUserId).toBe('original-owner-id'); // preserved
+      expect(found!.id.value).toBe(existingId.value); // same aggregate
 
       // Source-owned fields UPDATED
       expect(found!.name).toBe('Nombre Nuevo desde Fuente');
@@ -285,7 +305,8 @@ describe('IngestExternalResources', () => {
       const useCase = new IngestExternalResources(repo, resolver);
 
       const input1 = makeMappedInput({ externalId: EXT_ID_1 });
-      const mixedMapper: ResourceMapper = (raw) => (raw === 'valid' ? input1 : null);
+      const mixedMapper: ResourceMapper = (raw) =>
+        raw === 'valid' ? input1 : null;
 
       const result = await useCase.execute({
         emergencyId: EMERGENCY_ID,

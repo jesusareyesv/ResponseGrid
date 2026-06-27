@@ -13,6 +13,18 @@ import {
 import { emergenciesTable } from '../src/contexts/emergencies/infrastructure/drizzle/schema';
 import * as bcrypt from 'bcryptjs';
 
+interface PagedResourcesBody {
+  items: Array<{
+    id: string;
+    stage: string;
+    publicStatus: string;
+    location: { address: string };
+  }>;
+  total: number;
+  page: number;
+  limit: number;
+}
+
 const EM = '11111111-1111-4111-8111-111111111111';
 // Use unique IDs separate from auth-flow.e2e-spec.ts to avoid PK conflicts
 const COORD_ID = 'dd000000-0000-4000-8000-000000000004';
@@ -158,8 +170,9 @@ describe('Resource flow (e2e)', () => {
     const publicResources = await request(server)
       .get(`/emergencies/${EM}/public/resources`)
       .expect(200);
-    expect(publicResources.body.items).toHaveLength(1);
-    expect(publicResources.body.items).toEqual(
+    const pubBody = publicResources.body as PagedResourcesBody;
+    expect(pubBody.items).toHaveLength(1);
+    expect(pubBody.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           id,
@@ -171,8 +184,8 @@ describe('Resource flow (e2e)', () => {
         }),
       ]),
     );
-    expect(publicResources.body.total).toBe(1);
-    expect(publicResources.body.page).toBe(1);
+    expect(pubBody.total).toBe(1);
+    expect(pubBody.page).toBe(1);
   });
 
   it('registers with collection_and_delivery type → 201', async () => {

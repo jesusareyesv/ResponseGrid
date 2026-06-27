@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import type { MapPoint, DamageMapFeature } from './emergency-map';
 import type { DamageLevel } from '@/components/atoms/damage-level-badge';
 import { createResponseGridClient } from '@reliefhub/api-client';
@@ -64,7 +64,9 @@ export function EmergencyMapWrapper({ points, emergencyId }: EmergencyMapWrapper
   // Keep a ref always pointing at the current needPoints so the fetch effect
   // can read the latest value without being re-triggered on every render.
   const needPointsRef = useRef<MapPoint[]>(needPoints);
-  needPointsRef.current = needPoints;
+  useLayoutEffect(() => {
+    needPointsRef.current = needPoints;
+  });
 
   const [allMapPoints, setAllMapPoints] = useState<MapPoint[]>(points);
 
@@ -81,7 +83,6 @@ export function EmergencyMapWrapper({ points, emergencyId }: EmergencyMapWrapper
 
       while (accumulated.length < total) {
         try {
-          // eslint-disable-next-line no-await-in-loop
           const { data } = await client.GET(
             '/emergencies/{emergencyId}/public/resources',
             {
@@ -135,7 +136,6 @@ export function EmergencyMapWrapper({ points, emergencyId }: EmergencyMapWrapper
     };
     // needPointsRef is stable; intentionally depend only on emergencyId so we
     // fetch once per emergency, not on every parent re-render.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [emergencyId]);
 
   useEffect(() => {
