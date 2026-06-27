@@ -87,4 +87,13 @@ export class InMemoryResourceRepository implements ResourceRepository {
       .map((s) => Resource.fromSnapshot(s));
     return Promise.resolve(result);
   }
+
+  findByExternal(sourceName: string, externalId: string): Promise<Resource | null> {
+    const snap = [...this.store.values()].find(
+      (s) =>
+        s.provenance?.sourceName === sourceName &&
+        s.provenance?.externalId === externalId,
+    );
+    return Promise.resolve(snap ? Resource.fromSnapshot(snap) : null);
+  }
 }

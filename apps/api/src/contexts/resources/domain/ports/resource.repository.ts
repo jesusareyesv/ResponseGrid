@@ -21,4 +21,6 @@ export interface ResourceRepository {
   ): Promise<Resource[]>;
   /** Visible public resources: Active, Saturated, Paused (excludes Hidden and Closed). */
   findVisibleByEmergency(emergencyId: EmergencyId): Promise<Resource[]>;
+  /** Lookup by external provenance key (sourceName + externalId). Returns null if not found. */
+  findByExternal(sourceName: string, externalId: string): Promise<Resource | null>;
 }

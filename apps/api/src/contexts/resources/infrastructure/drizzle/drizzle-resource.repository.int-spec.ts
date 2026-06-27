@@ -397,6 +397,60 @@ describe('DrizzleResourceRepository (integration)', () => {
     expect(found!.provenance!.externalId).not.toBe('');
   });
 
+  it('findByExternal returns the resource matching sourceName + externalId', async () => {
+    const SOURCE = 'acopiove';
+    const EXT_ID = 'ext-find-by-external-test';
+    const r = Resource.register({
+      id: ResourceId.create(),
+      emergencyId: EmergencyId.fromString(EM),
+      type: ResourceType.CollectionPoint,
+      stage: ResourceStage.Origin,
+      name: 'Acopio Externo',
+      location: baseLocation,
+      ownerUserId: OWNER_ID,
+      provenance: {
+        sourceName: SOURCE,
+        externalId: EXT_ID,
+        externalUpdatedAt: null,
+        raw: { test: true },
+      },
+    });
+    await repo.save(r);
+
+    const found = await repo.findByExternal(SOURCE, EXT_ID);
+    expect(found).not.toBeNull();
+    expect(found!.id.value).toBe(r.id.value);
+    expect(found!.provenance?.sourceName).toBe(SOURCE);
+    expect(found!.provenance?.externalId).toBe(EXT_ID);
+  });
+
+  it('findByExternal returns null when no match', async () => {
+    const result = await repo.findByExternal('nonexistent-source', 'nonexistent-id');
+    expect(result).toBeNull();
+  });
+
+  it('findByExternal does not match wrong sourceName', async () => {
+    const r = Resource.register({
+      id: ResourceId.create(),
+      emergencyId: EmergencyId.fromString(EM),
+      type: ResourceType.CollectionPoint,
+      stage: ResourceStage.Origin,
+      name: 'Scoped Source',
+      location: baseLocation,
+      ownerUserId: OWNER_ID,
+      provenance: {
+        sourceName: 'source-a',
+        externalId: 'shared-ext-id',
+        externalUpdatedAt: null,
+        raw: null,
+      },
+    });
+    await repo.save(r);
+
+    const result = await repo.findByExternal('source-b', 'shared-ext-id');
+    expect(result).toBeNull();
+  });
+
   it('DB constraint rejects source_name without external_id (Fix wave 1)', async () => {
     const id = ResourceId.create().value;
     let threw = false;

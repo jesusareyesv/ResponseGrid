@@ -175,6 +175,20 @@ export class DrizzleResourceRepository implements ResourceRepository {
     return rows.map((r) => Resource.fromSnapshot(rowToSnapshot(r)));
   }
 
+  async findByExternal(sourceName: string, externalId: string): Promise<Resource | null> {
+    const rows = await this.db
+      .select()
+      .from(resourcesTable)
+      .where(
+        and(
+          eq(resourcesTable.sourceName, sourceName),
+          eq(resourcesTable.externalId, externalId),
+        ),
+      )
+      .limit(1);
+    return rows[0] ? Resource.fromSnapshot(rowToSnapshot(rows[0])) : null;
+  }
+
   async countByEmergencyGroupedByPublicStatus(
     emergencyId: EmergencyId,
   ): Promise<Record<PublicStatus, number>> {

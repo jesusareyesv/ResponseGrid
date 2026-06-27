@@ -1,0 +1,135 @@
+/**
+ * AcopioveMapper — pure function that converts a raw acopiove.org record into
+ * a MappedResourceInput understood by IngestExternalResources.
+ *
+ * Contract:
+ *  - Returns null (skip) when the record is structurally invalid:
+ *    · id is absent or not a valid UUID
+ *    · latitude or longitude are non-numeric / NaN
+ *    · tipo cannot be mapped to a known ResourceType
+ *  - acceptsRawLabels is passed through as-is; category resolution happens
+ *    inside IngestExternalResources via CategoryResolver.
+ */
+
+import { ResourceType, ResourceStage } from '../domain/resource-enums';
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export type MappedResourceInput = {
+  externalId: string;
+  type: ResourceType;
+  stage: ResourceStage;
+  name: string;
+  description: string | null;
+  address: string;
+  latitude: number;
+  longitude: number;
+  contact: string | null;
+  schedule: string | null;
+  manager: string | null;
+  acceptsRawLabels: string[];
+  country: string | null;
+  city: string | null;
+  externalUpdatedAt: Date | null;
+  raw: unknown;
+};
+
+export type ResourceMapper = (raw: unknown) => MappedResourceInput | null;
+
+type AcopioveRecord = {
+  id?: unknown;
+  name?: unknown;
+  address?: unknown;
+  latitude?: unknown;
+  longitude?: unknown;
+  recibe?: unknown;
+  necesitaAhora?: unknown;
+  horario?: unknown;
+  contacto?: unknown;
+  responsable?: unknown;
+  fuente?: unknown;
+  pais?: unknown;
+  ciudad?: unknown;
+  tipo?: unknown;
+  updatedAt?: unknown;
+};
+
+function mapTipo(tipo: unknown): { type: ResourceType; stage: ResourceStage } | null {
+  switch (tipo) {
+    case 'acopio':
+      return { type: ResourceType.CollectionPoint, stage: ResourceStage.Origin };
+    case 'refugio':
+      return { type: ResourceType.Venue, stage: ResourceStage.Destination };
+    default:
+      return null;
+  }
+}
+
+function isValidUuid(v: unknown): v is string {
+  return typeof v === 'string' && UUID_RE.test(v);
+}
+
+function isFiniteNumber(v: unknown): v is number {
+  return typeof v === 'number' && isFinite(v);
+}
+
+function toStringOrNull(v: unknown): string | null {
+  if (v === undefined || v === null || v === '') return null;
+  return String(v);
+}
+
+function toStringArray(v: unknown): string[] {
+  if (!Array.isArray(v)) return [];
+  return v.filter((x) => typeof x === 'string') as string[];
+}
+
+function toDateOrNull(v: unknown): Date | null {
+  if (v === undefined || v === null) return null;
+  const d = new Date(v as string | number);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+export const acopioveMapper: ResourceMapper = (raw: unknown): MappedResourceInput | null => {
+  const r = raw as AcopioveRecord;
+
+  // Guard: id must be a valid UUID
+  if (!isValidUuid(r.id)) return null;
+
+  // Guard: coordinates must be finite numbers
+  if (!isFiniteNumber(r.latitude)) return null;
+  if (!isFiniteNumber(r.longitude)) return null;
+
+  // Guard: tipo must map to a known type
+  const typeMapping = mapTipo(r.tipo);
+  if (!typeMapping) return null;
+
+  const name = toStringOrNull(r.name) ?? 'Sin nombre';
+  const address = toStringOrNull(r.address) ?? '';
+  const necesitaAhora = toStringOrNull(r.necesitaAhora);
+  const fuente = toStringOrNull(r.fuente);
+
+  // Compose description from necesitaAhora + fuente
+  const descParts: string[] = [];
+  if (necesitaAhora) descParts.push(necesitaAhora);
+  if (fuente) descParts.push(`Fuente: ${fuente}`);
+  const description = descParts.length > 0 ? descParts.join(' | ') : null;
+
+  return {
+    externalId: r.id,
+    type: typeMapping.type,
+    stage: typeMapping.stage,
+    name,
+    description,
+    address,
+    latitude: r.latitude,
+    longitude: r.longitude,
+    contact: toStringOrNull(r.contacto),
+    schedule: toStringOrNull(r.horario),
+    manager: toStringOrNull(r.responsable),
+    acceptsRawLabels: toStringArray(r.recibe),
+    country: toStringOrNull(r.pais),
+    city: toStringOrNull(r.ciudad),
+    externalUpdatedAt: toDateOrNull(r.updatedAt),
+    raw,
+  };
+};
