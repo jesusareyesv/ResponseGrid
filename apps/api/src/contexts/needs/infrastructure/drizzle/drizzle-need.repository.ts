@@ -22,6 +22,7 @@ import { NeedId } from '../../domain/need-id';
 import { EmergencyId } from '../../../../shared/domain/emergency-id';
 import { Priority, NeedCategory, NeedStatus } from '../../domain/need-enums';
 import { NeedItemSnapshot } from '../../domain/need-item';
+import { LocationSensitivity } from '../../../../shared/domain/location-sensitivity';
 
 type NeedsRow = typeof needsTable.$inferSelect;
 type ItemsRow = typeof needItemsTable.$inferSelect;
@@ -41,6 +42,8 @@ function rowToSnapshot(row: NeedsRow, items: ItemsRow[]): NeedSnapshot {
     requesterUserId: row.requesterUserId,
     requesterOrganizationId: row.requesterOrganizationId ?? null,
     managingOrganizationId: row.managingOrganizationId ?? null,
+    locationSensitivity: (row.locationSensitivity ??
+      LocationSensitivity.Public) as LocationSensitivity,
     items: items.map(
       (i): NeedItemSnapshot => ({
         name: i.name,
@@ -77,6 +80,7 @@ export class DrizzleNeedRepository implements NeedRepository {
           requesterUserId: s.requesterUserId,
           requesterOrganizationId: s.requesterOrganizationId,
           managingOrganizationId: s.managingOrganizationId,
+          locationSensitivity: s.locationSensitivity,
           status: s.status,
           createdAt: s.createdAt,
           expiresAt: s.expiresAt,

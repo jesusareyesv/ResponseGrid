@@ -1,7 +1,7 @@
 import { NeedRepository, NeedFilters } from '../domain/ports/need.repository';
 import { EmergencyId } from '../../../shared/domain/emergency-id';
 import { NeedCategory, Priority } from '../domain/need-enums';
-import { NeedView, toNeedView } from './need-view';
+import { NeedView, toPublicNeedView } from './need-view';
 
 export interface GetPublicNeedsQuery {
   emergencyId: string;
@@ -21,6 +21,6 @@ export class GetPublicNeeds {
       EmergencyId.fromString(q.emergencyId),
       Object.keys(filters).length > 0 ? filters : undefined,
     );
-    return validated.map(toNeedView);
+    return validated.map(toPublicNeedView);
   }
 }

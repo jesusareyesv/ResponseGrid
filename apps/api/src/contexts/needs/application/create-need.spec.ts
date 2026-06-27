@@ -4,6 +4,7 @@ import { FakeEventBus } from '../infrastructure/fake-event-bus';
 import { NeedCategory, Priority, NeedStatus } from '../domain/need-enums';
 import { NeedEmergencyStatusReader } from '../domain/ports/emergency-status-reader';
 import { EmergencyNotAcceptingIntakeError } from '../../emergencies/domain/emergency-not-accepting-intake.error';
+import { LocationSensitivity } from '../../../shared/domain/location-sensitivity';
 
 const EM = '11111111-1111-4111-8111-111111111111';
 const USER_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
@@ -139,6 +140,26 @@ describe('CreateNeed', () => {
     );
     const saved = await repo.findById({ value: result.id } as never);
     expect(saved!.description).toBe('Critical need near hospital');
+  });
+
+  // F09 — Location sensitivity auto-derivation
+  describe('locationSensitivity', () => {
+    it('sets approximate when requesterOrganizationId is null (individual requester)', async () => {
+      const result = await useCase.execute(
+        makeCmd({ requesterOrganizationId: null }),
+      );
+      const saved = await repo.findById({ value: result.id } as never);
+      expect(saved!.locationSensitivity).toBe(LocationSensitivity.Approximate);
+    });
+
+    it('sets public when requesterOrganizationId is provided (organization)', async () => {
+      const orgId = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+      const result = await useCase.execute(
+        makeCmd({ requesterOrganizationId: orgId }),
+      );
+      const saved = await repo.findById({ value: result.id } as never);
+      expect(saved!.locationSensitivity).toBe(LocationSensitivity.Public);
+    });
   });
 
   describe('kill-switch (emergency not accepting intake)', () => {

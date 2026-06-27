@@ -674,4 +674,135 @@ describe('Need flow (e2e)', () => {
   it('/emergencies/:id/needs/expired requires coordinator auth', async () => {
     await request(server).get(`/emergencies/${EM}/needs/expired`).expect(401);
   });
+
+  // F09 — Location privacy
+  describe('F09 — Location privacy', () => {
+    const exactLat = 10.4806;
+    const exactLng = -66.9036;
+    const exactAddress = 'Calle Exacta 42, Valencia';
+
+    it('individual-requester need: public list returns approximate coords and locationSensitivity=approximate', async () => {
+      // Create need without organizationId (individual)
+      const created = await request(server)
+        .post(`/emergencies/${EM}/needs`)
+        .set('Authorization', `Bearer ${coordToken}`)
+        .send({
+          title: 'Individual privacy test',
+          location: { address: exactAddress, latitude: exactLat, longitude: exactLng },
+          priority: 'high',
+          items: [{ name: 'Water', quantity: 10, unit: 'liters', category: 'water' }],
+          // no requesterOrganizationId → individual requester
+        })
+        .expect(201);
+
+      const id: string = bodyId(created);
+
+      // Validate so it appears in public list
+      await request(server)
+        .post(`/needs/${id}/validate`)
+        .set('Authorization', `Bearer ${coordToken}`)
+        .expect(204);
+
+      // Public list: coords must differ from exact (approximate) and sensitivity field present
+      const publicRes = await request(server)
+        .get(`/emergencies/${EM}/public/needs`)
+        .expect(200);
+
+      const need = bodyList(publicRes).find((n) => n.id === id) as
+        | (NeedItem & {
+            location: { latitude: number; longitude: number; address: string };
+            locationSensitivity: string;
+          })
+        | undefined;
+
+      expect(need).toBeDefined();
+      expect(need!.locationSensitivity).toBe('approximate');
+      // Approximate coords must differ from exact (jitter was applied)
+      expect(need!.location.latitude).not.toBe(exactLat);
+      expect(need!.location.longitude).not.toBe(exactLng);
+      // The same request must return the same approximate point (determinism)
+      const publicRes2 = await request(server)
+        .get(`/emergencies/${EM}/public/needs`)
+        .expect(200);
+      const need2 = (
+        bodyList(publicRes2) as Array<NeedItem & { location: { latitude: number; longitude: number } }>
+      ).find((n) => n.id === id);
+      expect(need2!.location.latitude).toBe(need!.location.latitude);
+      expect(need2!.location.longitude).toBe(need!.location.longitude);
+    });
+
+    it('individual-requester need: coordinator queue returns exact coords', async () => {
+      // Create another individual need (still pending — queue shows pending)
+      const created = await request(server)
+        .post(`/emergencies/${EM}/needs`)
+        .set('Authorization', `Bearer ${coordToken}`)
+        .send({
+          title: 'Queue exact coords test',
+          location: { address: exactAddress, latitude: exactLat, longitude: exactLng },
+          priority: 'medium',
+          items: [{ name: 'Food', quantity: 5, unit: 'boxes', category: 'food' }],
+        })
+        .expect(201);
+
+      const id: string = bodyId(created);
+
+      // Coordinator queue: must show exact coords even for individual requester
+      const queueRes = await request(server)
+        .get(`/emergencies/${EM}/needs/queue`)
+        .set('Authorization', `Bearer ${coordToken}`)
+        .expect(200);
+
+      const queuedNeed = bodyList(queueRes).find((n) => n.id === id) as
+        | (NeedItem & {
+            location: { latitude: number; longitude: number };
+            locationSensitivity: string;
+          })
+        | undefined;
+
+      expect(queuedNeed).toBeDefined();
+      expect(queuedNeed!.locationSensitivity).toBe('approximate');
+      // Exact coordinates for coordinator
+      expect(queuedNeed!.location.latitude).toBe(exactLat);
+      expect(queuedNeed!.location.longitude).toBe(exactLng);
+    });
+
+    it('organization-requester need: public list returns exact coords and locationSensitivity=public', async () => {
+      const created = await request(server)
+        .post(`/emergencies/${EM}/needs`)
+        .set('Authorization', `Bearer ${coordToken}`)
+        .send({
+          title: 'Org requester public test',
+          location: { address: exactAddress, latitude: exactLat, longitude: exactLng },
+          priority: 'low',
+          items: [{ name: 'Blankets', quantity: 20, unit: null, category: 'shelter' }],
+          requesterOrganizationId: ORG_ID,
+        })
+        .expect(201);
+
+      const id: string = bodyId(created);
+
+      // Validate to appear in public list
+      await request(server)
+        .post(`/needs/${id}/validate`)
+        .set('Authorization', `Bearer ${coordToken}`)
+        .expect(204);
+
+      const publicRes = await request(server)
+        .get(`/emergencies/${EM}/public/needs`)
+        .expect(200);
+
+      const need = bodyList(publicRes).find((n) => n.id === id) as
+        | (NeedItem & {
+            location: { latitude: number; longitude: number };
+            locationSensitivity: string;
+          })
+        | undefined;
+
+      expect(need).toBeDefined();
+      expect(need!.locationSensitivity).toBe('public');
+      // Organization requester: exact coords in public view
+      expect(need!.location.latitude).toBe(exactLat);
+      expect(need!.location.longitude).toBe(exactLng);
+    });
+  });
 });

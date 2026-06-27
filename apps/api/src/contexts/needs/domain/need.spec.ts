@@ -5,6 +5,7 @@ import { Priority, NeedCategory, NeedStatus } from './need-enums';
 import { NeedNotPendingError } from './need-errors';
 import { Location } from '../../../shared/domain/location';
 import { NeedItem } from './need-item';
+import { LocationSensitivity } from '../../../shared/domain/location-sensitivity';
 
 const EM = '11111111-1111-4111-8111-111111111111';
 const USER_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
@@ -332,5 +333,73 @@ describe('Need aggregate', () => {
     });
     expect(need.description).toBeNull();
     expect(need.requesterOrganizationId).toBeNull();
+  });
+
+  // F09 — Location sensitivity
+  describe('locationSensitivity', () => {
+    it('defaults to public when not specified', () => {
+      const need = makeNeed();
+      expect(need.locationSensitivity).toBe(LocationSensitivity.Public);
+    });
+
+    it('accepts approximate sensitivity when explicitly set', () => {
+      const need = Need.create({
+        id: NeedId.create(),
+        emergencyId: EmergencyId.fromString(EM),
+        title: 'Private need',
+        description: null,
+        location: makeLocation(),
+        priority: Priority.High,
+        requesterUserId: USER_ID,
+        requesterOrganizationId: null,
+        locationSensitivity: LocationSensitivity.Approximate,
+        items: makeItems(),
+      });
+      expect(need.locationSensitivity).toBe(LocationSensitivity.Approximate);
+    });
+
+    it('toSnapshot preserves locationSensitivity', () => {
+      const need = Need.create({
+        id: NeedId.create(),
+        emergencyId: EmergencyId.fromString(EM),
+        title: 'Approx need',
+        description: null,
+        location: makeLocation(),
+        priority: Priority.Medium,
+        requesterUserId: USER_ID,
+        requesterOrganizationId: null,
+        locationSensitivity: LocationSensitivity.Approximate,
+        items: makeItems(),
+      });
+      const snap = need.toSnapshot();
+      expect(snap.locationSensitivity).toBe(LocationSensitivity.Approximate);
+    });
+
+    it('fromSnapshot round-trip preserves locationSensitivity', () => {
+      const need = Need.create({
+        id: NeedId.create(),
+        emergencyId: EmergencyId.fromString(EM),
+        title: 'Round-trip need',
+        description: null,
+        location: makeLocation(),
+        priority: Priority.Low,
+        requesterUserId: USER_ID,
+        requesterOrganizationId: null,
+        locationSensitivity: LocationSensitivity.Approximate,
+        items: makeItems(),
+      });
+      const restored = Need.fromSnapshot(need.toSnapshot());
+      expect(restored.locationSensitivity).toBe(
+        LocationSensitivity.Approximate,
+      );
+    });
+
+    it('fromSnapshot defaults to public for legacy snapshots missing locationSensitivity', () => {
+      const snap = makeNeed().toSnapshot();
+      // Simulate a legacy snapshot that has no locationSensitivity field
+      const legacySnap = { ...snap, locationSensitivity: undefined };
+      const restored = Need.fromSnapshot(legacySnap);
+      expect(restored.locationSensitivity).toBe(LocationSensitivity.Public);
+    });
   });
 });

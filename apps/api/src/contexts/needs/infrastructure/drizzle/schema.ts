@@ -19,6 +19,7 @@ export const needsTable = pgTable('needs', {
   requesterUserId: uuid('requester_user_id').notNull(),
   requesterOrganizationId: uuid('requester_organization_id'),
   managingOrganizationId: uuid('managing_organization_id'),
+  locationSensitivity: text('location_sensitivity').notNull().default('public'),
   status: text('status').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
   expiresAt: timestamp('expires_at', { withTimezone: true }),

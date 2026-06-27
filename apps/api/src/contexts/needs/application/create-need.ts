@@ -8,6 +8,7 @@ import { Priority, NeedCategory } from '../domain/need-enums';
 import { Location } from '../../../shared/domain/location';
 import { NeedItem } from '../domain/need-item';
 import { EmergencyNotAcceptingIntakeError } from '../../emergencies/domain/emergency-not-accepting-intake.error';
+import { LocationSensitivity } from '../../../shared/domain/location-sensitivity';
 
 const ACTIVE_STATUS = 'active';
 
@@ -66,6 +67,14 @@ export class CreateNeed {
       }),
     );
 
+    // Individual requesters (no organization) get approximate coordinates in
+    // public responses to protect their privacy (GDPR minimisation principle).
+    // Organizational requesters get exact coordinates (public logistics).
+    const locationSensitivity: LocationSensitivity =
+      cmd.requesterOrganizationId === null
+        ? LocationSensitivity.Approximate
+        : LocationSensitivity.Public;
+
     const need = Need.create({
       id: NeedId.create(),
       emergencyId: EmergencyId.fromString(cmd.emergencyId),
@@ -75,6 +84,7 @@ export class CreateNeed {
       priority: cmd.priority,
       requesterUserId: cmd.requesterUserId,
       requesterOrganizationId: cmd.requesterOrganizationId,
+      locationSensitivity,
       items,
     });
 

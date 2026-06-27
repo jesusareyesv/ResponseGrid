@@ -8,6 +8,7 @@ import { NeedValidated } from './events/need-validated.event';
 import { NeedRejected } from './events/need-rejected.event';
 import { Location, LocationProps } from '../../../shared/domain/location';
 import { NeedItem, NeedItemSnapshot } from './need-item';
+import { LocationSensitivity } from '../../../shared/domain/location-sensitivity';
 
 /** Hours a validated need stays visible before it expires. */
 export const NEED_VALIDITY_HOURS = 48;
@@ -28,6 +29,8 @@ export interface CreateNeedProps {
   priority: Priority;
   requesterUserId: string;
   requesterOrganizationId: string | null;
+  /** Default: 'public'. Use CreateNeed use case to get the correct auto-derived value. */
+  locationSensitivity?: LocationSensitivity;
   items: NeedItem[];
 }
 
@@ -41,6 +44,8 @@ export interface NeedSnapshot {
   requesterUserId: string;
   requesterOrganizationId: string | null;
   managingOrganizationId: string | null;
+  /** Optional for backwards compatibility with legacy snapshots. Default: 'public'. */
+  locationSensitivity?: LocationSensitivity;
   items: NeedItemSnapshot[];
   status: NeedStatus;
   createdAt: Date;
@@ -61,6 +66,7 @@ export class Need {
     public readonly requesterUserId: string,
     public readonly requesterOrganizationId: string | null,
     private _managingOrganizationId: string | null,
+    public readonly locationSensitivity: LocationSensitivity,
     public readonly items: NeedItem[],
     private _status: NeedStatus,
     public readonly createdAt: Date,
@@ -82,6 +88,7 @@ export class Need {
       props.requesterUserId,
       props.requesterOrganizationId,
       null,
+      props.locationSensitivity ?? LocationSensitivity.Public,
       props.items,
       NeedStatus.Pending,
       new Date(),
@@ -108,6 +115,8 @@ export class Need {
       s.requesterUserId,
       s.requesterOrganizationId,
       s.managingOrganizationId,
+      // Fallback for legacy snapshots that pre-date the locationSensitivity field
+      s.locationSensitivity ?? LocationSensitivity.Public,
       s.items.map((i) => NeedItem.fromSnapshot(i)),
       s.status,
       s.createdAt,
@@ -199,6 +208,7 @@ export class Need {
       requesterUserId: this.requesterUserId,
       requesterOrganizationId: this.requesterOrganizationId,
       managingOrganizationId: this._managingOrganizationId,
+      locationSensitivity: this.locationSensitivity,
       items: this.items.map((i) => i.toSnapshot()),
       status: this._status,
       createdAt: this.createdAt,

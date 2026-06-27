@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Priority, NeedCategory, NeedStatus } from '../../domain/need-enums';
+import { LocationSensitivity } from '../../../../shared/domain/location-sensitivity';
 
 export class CreateNeedResponseDto {
   @ApiProperty({
@@ -59,6 +60,15 @@ export class NeedViewDto {
 
   @ApiProperty({ type: NeedLocationResponseDto })
   location!: NeedLocationResponseDto;
+
+  @ApiProperty({
+    enum: ['public', 'approximate'],
+    example: 'approximate',
+    description:
+      'When "approximate", the coordinates in location are jittered for privacy. ' +
+      'Coordinators always receive exact coordinates regardless of this value.',
+  })
+  locationSensitivity!: LocationSensitivity;
 
   @ApiProperty({ enum: Priority, example: Priority.High })
   priority!: Priority;
