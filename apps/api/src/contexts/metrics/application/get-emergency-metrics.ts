@@ -1,5 +1,4 @@
-import { NeedRepository } from '../../needs/domain/ports/need.repository';
-import { ResourceRepository } from '../../resources/domain/ports/resource.repository';
+import { MetricsReader } from '../domain/ports/metrics-reader';
 import { EmergencyId } from '../../../shared/domain/emergency-id';
 import { NeedStatus } from '../../needs/domain/need-enums';
 import { PublicStatus } from '../../resources/domain/resource-enums';
@@ -31,17 +30,19 @@ export interface EmergencyMetrics {
 }
 
 export class GetEmergencyMetrics {
-  constructor(
-    private readonly needRepo: NeedRepository,
-    private readonly resourceRepo: ResourceRepository,
-  ) {}
+  constructor(private readonly metricsReader: MetricsReader) {}
 
   async execute(query: GetEmergencyMetricsQuery): Promise<EmergencyMetrics> {
-    const emergencyId = EmergencyId.fromString(query.emergencyId);
+    // Validate UUID format; the reader works with the raw string id.
+    EmergencyId.fromString(query.emergencyId);
 
     const [needCounts, resourceCounts] = await Promise.all([
-      this.needRepo.countByEmergencyGroupedByStatus(emergencyId),
-      this.resourceRepo.countByEmergencyGroupedByPublicStatus(emergencyId),
+      this.metricsReader.countNeedsByEmergencyGroupedByStatus(
+        query.emergencyId,
+      ),
+      this.metricsReader.countResourcesByEmergencyGroupedByPublicStatus(
+        query.emergencyId,
+      ),
     ]);
 
     const needTotal =
