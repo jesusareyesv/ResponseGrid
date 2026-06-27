@@ -1,12 +1,11 @@
 'use client';
 
 import { useActionState } from 'react';
-import { validateNeed } from '@/app/e/[slug]/coordinacion/actions';
+import { renewNeed } from '@/app/e/[slug]/coordinacion/actions';
 import type { components } from '@reliefhub/api-client';
 import type { ActionResult } from '@/app/e/[slug]/coordinacion/actions';
 import { Button } from '@/components/atoms/button';
 import { ErrorMessage } from '@/components/atoms/error-message';
-import { FreshnessIndicator } from '@/components/atoms/freshness-indicator';
 
 type NeedView = components['schemas']['NeedViewDto'];
 type ItemCategory = components['schemas']['NeedItemResponseDto']['category'];
@@ -34,18 +33,15 @@ const PRIORITY_LABELS: Record<NeedView['priority'], string> = {
 
 const INITIAL_STATE: ActionResult = { status: 'idle' };
 
-interface CoordinationNeedCardProps {
+interface ExpiredNeedCardProps {
   need: NeedView;
   slug: string;
 }
 
-export function CoordinationNeedCard({
-  need,
-  slug,
-}: CoordinationNeedCardProps) {
+export function ExpiredNeedCard({ need, slug }: ExpiredNeedCardProps) {
   const [state, formAction, pending] = useActionState<ActionResult, FormData>(
     async (_prev, _formData) => {
-      return validateNeed(need.id, slug);
+      return renewNeed(need.id, slug);
     },
     INITIAL_STATE,
   );
@@ -56,19 +52,15 @@ export function CoordinationNeedCard({
 
   return (
     <article
-      aria-label={`Petición: ${need.title}`}
-      className="flex flex-col gap-4 rounded-lg border-2 border-gray-900 bg-white p-5"
+      aria-label={`Petición caducada: ${need.title}`}
+      className="flex flex-col gap-4 rounded-lg border-2 border-gray-300 bg-gray-50 p-5 opacity-75"
     >
       {/* Header */}
       <div className="flex flex-col gap-1">
-        <h2 className="text-xl font-bold text-gray-900 leading-tight break-words">
+        <h2 className="text-xl font-bold text-gray-700 leading-tight break-words">
           {need.title}
         </h2>
-        <FreshnessIndicator
-          expiresAt={need.expiresAt}
-          lastVerifiedAt={need.lastVerifiedAt}
-        />
-        <div className="flex flex-wrap gap-3 text-sm text-gray-600">
+        <div className="flex flex-wrap gap-3 text-sm text-gray-500">
           {need.items[0] !== undefined && (
             <span className="font-medium">
               {CATEGORY_LABELS[need.items[0].category]}
@@ -76,14 +68,14 @@ export function CoordinationNeedCard({
           )}
           <span aria-hidden="true" className="text-gray-300">·</span>
           <span>Prioridad: {PRIORITY_LABELS[need.priority]}</span>
-          {need.items.length > 0 && (
+          {need.expiresAt != null && (
             <>
               <span aria-hidden="true" className="text-gray-300">·</span>
               <span>
-                {String(need.items[0]?.quantity ?? '')}
-                {need.items[0]?.unit != null
-                  ? ` ${String(need.items[0].unit)}`
-                  : ''}
+                Caducó:{' '}
+                <time dateTime={need.expiresAt} suppressHydrationWarning>
+                  {new Date(need.expiresAt).toLocaleString()}
+                </time>
               </span>
             </>
           )}
@@ -95,10 +87,10 @@ export function CoordinationNeedCard({
         <ErrorMessage message={state.message ?? 'Error desconocido'} />
       )}
 
-      {/* Validate form */}
+      {/* Renew form */}
       <form action={formAction}>
         <Button type="submit" disabled={pending} fullWidth>
-          {pending ? 'Procesando…' : 'Validar'}
+          {pending ? 'Renovando…' : 'Renovar'}
         </Button>
       </form>
     </article>

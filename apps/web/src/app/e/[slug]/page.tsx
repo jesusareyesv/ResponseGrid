@@ -15,6 +15,7 @@ import { AnnouncementCard } from '@/components/molecules/announcement-card';
 import { LanguageSwitcher } from '@/components/molecules/language-switcher';
 import type { MapPoint } from '@/components/emergency-map';
 import { getT } from '@/i18n/server';
+import { FreshnessIndicator } from '@/components/atoms/freshness-indicator';
 
 export const dynamic = 'force-dynamic';
 
@@ -322,6 +323,10 @@ export default async function EmergencyPage({ params, searchParams }: Props) {
                     <h3 className="text-base font-bold text-gray-900 leading-tight">
                       {need.title}
                     </h3>
+                    <FreshnessIndicator
+                      expiresAt={need.expiresAt}
+                      lastVerifiedAt={need.lastVerifiedAt}
+                    />
                     <div className="flex flex-wrap gap-2 text-sm text-gray-600">
                       {need.items[0] !== undefined && (
                         <span className="font-medium">

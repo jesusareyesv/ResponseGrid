@@ -20,6 +20,10 @@ const CATEGORY_LABELS: Record<OfferViewDto['category'], string> = {
   shelter: 'Refugio',
   tools: 'Herramientas',
   other: 'Otro',
+  medicines: '💊 Medicamentos',
+  medical_equipment: '🩺 Equipos médicos',
+  medical_supplies: '📦 Insumos médicos',
+  medical_personnel: '🧑‍⚕️ Personal sanitario',
 };
 
 const STATUS_BADGE: Record<

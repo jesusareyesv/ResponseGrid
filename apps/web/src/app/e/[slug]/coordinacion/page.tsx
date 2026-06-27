@@ -7,6 +7,7 @@ import { getEmergencyBySlug } from '@/lib/emergencies';
 import { CoordinationResourceCard } from '@/components/organisms/coordination-resource-card';
 import { CoordinationNeedCard } from '@/components/organisms/coordination-need-card';
 import { CoordinationOfferCard } from '@/components/organisms/coordination-offer-card';
+import { ExpiredNeedCard } from '@/components/organisms/expired-need-card';
 import { EmergencyControls } from '@/components/organisms/emergency-controls';
 import { NeedsFilter } from '@/components/needs-filter';
 import { EmptyState } from '@/components/molecules/empty-state';
@@ -66,7 +67,7 @@ export default async function CoordinacionPage({ params, searchParams }: Props) 
   const priority = VALID_PRIORITIES.includes(rawPriority as Priority) ? rawPriority as Priority : undefined;
 
   // --- Fetch coordination queues ----------------------------------------
-  const [queueResult, needsResult, offersQueueResult, validatedNeedsResult] = await Promise.all([
+  const [queueResult, needsResult, offersQueueResult, validatedNeedsResult, expiredNeedsResult] = await Promise.all([
     api.GET('/emergencies/{emergencyId}/coordination/queue', {
       params: { path: { emergencyId } },
       headers,
@@ -88,13 +89,18 @@ export default async function CoordinacionPage({ params, searchParams }: Props) 
     api.GET('/emergencies/{emergencyId}/public/needs', {
       params: { path: { emergencyId } },
     }),
+    api.GET('/emergencies/{emergencyId}/needs/expired', {
+      params: { path: { emergencyId } },
+      headers,
+    }),
   ]);
 
   // Handle 401 (expired / invalid token) from either authed call
   if (
     queueResult.response.status === 401 ||
     needsResult.response.status === 401 ||
-    offersQueueResult.response.status === 401
+    offersQueueResult.response.status === 401 ||
+    expiredNeedsResult.response.status === 401
   ) {
     await clearToken();
     redirect(`/login?next=/e/${slug}/coordinacion`);
@@ -104,6 +110,7 @@ export default async function CoordinacionPage({ params, searchParams }: Props) 
   const needsQueue = needsResult.data ?? [];
   const offersQueue = offersQueueResult.data ?? [];
   const validatedNeeds = validatedNeedsResult.data ?? [];
+  const expiredNeeds = expiredNeedsResult.data ?? [];
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-start px-4 py-10 bg-white">
@@ -242,6 +249,33 @@ export default async function CoordinacionPage({ params, searchParams }: Props) 
                     validatedNeeds={validatedNeeds}
                     slug={slug}
                   />
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <hr className="border-gray-200" />
+
+        {/* ── PETICIONES CADUCADAS ────────────────────────────────────── */}
+        <section aria-labelledby="expired-heading" className="flex flex-col gap-4">
+          <h2
+            id="expired-heading"
+            className="text-xl font-bold text-gray-900"
+          >
+            Peticiones caducadas
+          </h2>
+
+          {expiredNeeds.length === 0 ? (
+            <EmptyState
+              title="No hay peticiones caducadas."
+              description="Las peticiones cuya fecha de validez haya vencido aparecerán aquí para que puedas renovarlas."
+            />
+          ) : (
+            <ul className="flex flex-col gap-4" aria-label="Peticiones caducadas">
+              {expiredNeeds.map((need) => (
+                <li key={need.id}>
+                  <ExpiredNeedCard need={need} slug={slug} />
                 </li>
               ))}
             </ul>

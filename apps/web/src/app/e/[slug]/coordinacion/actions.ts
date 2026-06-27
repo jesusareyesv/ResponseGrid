@@ -221,6 +221,41 @@ export async function validateNeed(
 }
 
 /**
+ * Renews an expired need (resets expiresAt to now+48h) — coordinator only.
+ */
+export async function renewNeed(
+  needId: string,
+  slug: string,
+): Promise<ActionResult> {
+  const token = await getToken();
+  if (token === null) {
+    redirect(`/login?next=/e/${slug}/coordinacion`);
+  }
+
+  const { error, response } = await api.POST('/needs/{needId}/renew', {
+    params: { path: { needId } },
+    headers: authHeaders(token),
+  });
+
+  if (error !== undefined) {
+    if (response.status === 401) {
+      await clearToken();
+      redirect(`/login?next=/e/${slug}/coordinacion`);
+    }
+    if (response.status === 403) {
+      return { status: 'error', message: 'No tienes permisos para renovar esta petición.' };
+    }
+    if (response.status === 404) {
+      return { status: 'error', message: 'Petición no encontrada.' };
+    }
+    return { status: 'error', message: 'No se pudo renovar la petición. Inténtalo de nuevo.' };
+  }
+
+  revalidatePath(`/e/${slug}/coordinacion`);
+  return { status: 'success' };
+}
+
+/**
  * Clears the auth cookie and redirects to the login page.
  */
 export async function logout(): Promise<never> {
