@@ -3,7 +3,7 @@
 import { redirect } from 'next/navigation';
 import { api } from '@/lib/api';
 import type { components } from '@reliefhub/api-client';
-import { getToken, authHeaders } from '@/lib/auth';
+import { getToken, authHeaders, clearToken } from '@/lib/auth';
 
 type ResourceType = components['schemas']['RegisterResourceDto']['type'];
 type Stage = components['schemas']['RegisterResourceDto']['stage'];
@@ -105,6 +105,7 @@ export async function registerResource(
   );
 
   if (response.status === 401) {
+    await clearToken();
     redirect('/login');
   }
 

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { getToken, authHeaders } from '@/lib/auth';
+import { getToken, authHeaders, clearToken } from '@/lib/auth';
 import { api } from '@/lib/api';
 import type { components } from '@reliefhub/api-client';
 
@@ -38,6 +38,7 @@ export async function fetchMyVolunteerProfile(
   );
 
   if (response.status === 401) {
+    await clearToken();
     redirect(`/login?next=/e/${slug}/mi-voluntariado`);
   }
 
@@ -69,6 +70,7 @@ export async function fetchMyTasks(
   );
 
   if (response.status === 401) {
+    await clearToken();
     redirect(`/login?next=/e/${slug}/mi-voluntariado`);
   }
 
@@ -95,6 +97,7 @@ export async function checkInTask(
   });
 
   if (res.status === 401) {
+    await clearToken();
     redirect(`/login?next=/e/${slug}/mi-voluntariado`);
   }
 
@@ -130,6 +133,7 @@ export async function checkOutTask(
   });
 
   if (res.status === 401) {
+    await clearToken();
     redirect(`/login?next=/e/${slug}/mi-voluntariado`);
   }
 

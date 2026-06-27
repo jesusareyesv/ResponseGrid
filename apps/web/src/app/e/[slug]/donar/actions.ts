@@ -3,7 +3,7 @@
 import { redirect } from 'next/navigation';
 import { api } from '@/lib/api';
 import type { components } from '@reliefhub/api-client';
-import { getToken, authHeaders } from '@/lib/auth';
+import { getToken, authHeaders, clearToken } from '@/lib/auth';
 
 type OfferCategory = components['schemas']['SubmitOfferDto']['category'];
 
@@ -119,6 +119,7 @@ export async function submitOffer(
   );
 
   if (response.status === 401) {
+    await clearToken();
     redirect('/login');
   }
 

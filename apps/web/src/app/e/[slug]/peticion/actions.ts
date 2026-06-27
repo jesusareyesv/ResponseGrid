@@ -3,7 +3,7 @@
 import { redirect } from 'next/navigation';
 import { api } from '@/lib/api';
 import type { components } from '@reliefhub/api-client';
-import { getToken, authHeaders } from '@/lib/auth';
+import { getToken, authHeaders, clearToken } from '@/lib/auth';
 
 type NeedCategory = components['schemas']['NeedItemDto']['category'];
 type NeedPriority = components['schemas']['CreateNeedDto']['priority'];
@@ -160,6 +160,7 @@ export async function submitPeticion(
   );
 
   if (response.status === 401) {
+    await clearToken();
     redirect('/login');
   }
 
