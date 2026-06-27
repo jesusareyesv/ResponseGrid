@@ -1,0 +1,37 @@
+'use client';
+
+import { useTransition } from 'react';
+import { markAllNotificationsReadAction } from './actions';
+import { Button } from '@/components/atoms/button';
+
+interface MarkAllReadButtonProps {
+  hasUnread: boolean;
+}
+
+/**
+ * MarkAllReadButton — client component that calls the markAllNotificationsRead
+ * server action and shows a pending state while the request is in-flight.
+ */
+export function MarkAllReadButton({ hasUnread }: MarkAllReadButtonProps) {
+  const [isPending, startTransition] = useTransition();
+
+  if (!hasUnread) return null;
+
+  const handleClick = () => {
+    startTransition(async () => {
+      await markAllNotificationsReadAction();
+    });
+  };
+
+  return (
+    <Button
+      variant="secondary"
+      size="sm"
+      onClick={handleClick}
+      disabled={isPending}
+      aria-label="Marcar todas las notificaciones como leídas"
+    >
+      {isPending ? 'Marcando…' : 'Marcar todas como leídas'}
+    </Button>
+  );
+}

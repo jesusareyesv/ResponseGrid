@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { api } from '@/lib/api';
+import { getToken, authHeaders } from '@/lib/auth';
 import { Badge } from '@/components/atoms/badge';
 import { EmptyState } from '@/components/molecules/empty-state';
 
@@ -15,6 +16,18 @@ export const metadata: Metadata = {
 
 export default async function HomePage() {
   const { data: emergencies } = await api.GET('/emergencies');
+
+  // Fetch notification unread count when authenticated.
+  const token = await getToken();
+  let notificationUnreadCount = 0;
+  if (token != null) {
+    const { data: notifData } = await api.GET('/notifications/mine', {
+      headers: authHeaders(token),
+    });
+    if (notifData != null) {
+      notificationUnreadCount = notifData.unreadCount;
+    }
+  }
 
   const activeEmergencies = emergencies ?? [];
 
@@ -81,6 +94,16 @@ export default async function HomePage() {
             >
               Mis organizaciones
             </Link>
+            {token != null && (
+              <Link
+                href="/notificaciones"
+                className="text-sm font-medium text-gray-600 hover:text-gray-900 underline underline-offset-2 transition-colors"
+              >
+                {notificationUnreadCount > 0
+                  ? `Notificaciones (${notificationUnreadCount})`
+                  : 'Notificaciones'}
+              </Link>
+            )}
             <Link
               href="/login"
               className="text-sm font-medium text-gray-600 hover:text-gray-900 underline underline-offset-2 transition-colors"
