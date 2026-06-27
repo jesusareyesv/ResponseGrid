@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useState, useEffect } from 'react';
 import Link from 'next/link';
 import type { components } from '@reliefhub/api-client';
 import type { VolunteerActionState } from './actions';
@@ -9,6 +9,8 @@ import { Input } from '@/components/atoms/input';
 import { Select } from '@/components/atoms/select';
 import { ErrorMessage } from '@/components/atoms/error-message';
 import { FormField } from '@/components/molecules/form-field';
+import { DraftRestoredBanner } from '@/components/atoms/draft-restored-banner';
+import { useFormDraft } from '@/lib/use-form-draft';
 
 type VolunteerViewDto = components['schemas']['VolunteerViewDto'];
 type Skill = components['schemas']['RegisterVolunteerDto']['skills'][number];
@@ -61,6 +63,29 @@ export function VoluntarioForm({ action, slug, existingProfile }: VoluntarioForm
     new Set(existingProfile?.skills ?? []),
   );
 
+  // Draft only for the simple string fields (skills set is non-serialisable via the hook)
+  const draftValues = { name, contact, municipality, availability, vehicle };
+  const draftSetters = {
+    name: setName,
+    contact: setContact,
+    municipality: setMunicipality,
+    availability: setAvailability,
+    vehicle: setVehicle,
+  };
+  // Skip draft when profile already exists (user has server data; draft less useful)
+  const { clearDraft, wasRestored } = useFormDraft(
+    `voluntario-${slug}`,
+    draftValues,
+    draftSetters,
+    // Disable when editing existing profile — pre-fill comes from server
+    { debounce: existingProfile !== null ? 999999 : 600 },
+  );
+
+  // Clear draft on successful submit
+  useEffect(() => {
+    if (state.status === 'success') clearDraft();
+  }, [state.status, clearDraft]);
+
   function toggleSkill(skill: Skill) {
     setSelectedSkills((prev) => {
       const next = new Set(prev);
@@ -105,6 +130,8 @@ export function VoluntarioForm({ action, slug, existingProfile }: VoluntarioForm
 
   return (
     <form action={formAction} className="flex flex-col gap-6" noValidate>
+      {wasRestored && existingProfile === null && <DraftRestoredBanner />}
+
       {existingProfile !== null && (
         <div
           className="rounded-lg border-2 border-amber-400 bg-amber-50 px-4 py-3 text-sm text-amber-900"

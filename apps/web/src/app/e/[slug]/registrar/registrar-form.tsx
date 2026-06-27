@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useState, useEffect } from 'react';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import type { ActionState } from './actions';
@@ -10,6 +10,8 @@ import { Input } from '@/components/atoms/input';
 import { Textarea } from '@/components/atoms/textarea';
 import { ErrorMessage } from '@/components/atoms/error-message';
 import { FormField } from '@/components/molecules/form-field';
+import { DraftRestoredBanner } from '@/components/atoms/draft-restored-banner';
+import { useFormDraft } from '@/lib/use-form-draft';
 
 const INITIAL_STATE: ActionState = { status: 'idle' };
 
@@ -53,6 +55,19 @@ export function RegistrarForm({ action, slug, locationPicker, orgSelector }: Reg
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
 
+  const draftValues = { type, stage, name, description };
+  const draftSetters = { type: setType, stage: setStage, name: setName, description: setDescription };
+  const { clearDraft, wasRestored } = useFormDraft(
+    `registrar-${slug}`,
+    draftValues,
+    draftSetters,
+  );
+
+  // Clear draft on successful submit
+  useEffect(() => {
+    if (state.status === 'success') clearDraft();
+  }, [state.status, clearDraft]);
+
   if (state.status === 'success') {
     return (
       <section
@@ -87,6 +102,8 @@ export function RegistrarForm({ action, slug, locationPicker, orgSelector }: Reg
 
   return (
     <form action={formAction} className="flex flex-col gap-6" noValidate>
+      {wasRestored && <DraftRestoredBanner />}
+
       {state.status === 'error' && (
         <ErrorMessage message={state.message ?? 'Error al registrar el recurso'} />
       )}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useState, useEffect } from 'react';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import type { PeticionState } from './actions';
@@ -10,6 +10,8 @@ import { Input } from '@/components/atoms/input';
 import { Textarea } from '@/components/atoms/textarea';
 import { ErrorMessage } from '@/components/atoms/error-message';
 import { FormField } from '@/components/molecules/form-field';
+import { DraftRestoredBanner } from '@/components/atoms/draft-restored-banner';
+import { useFormDraft } from '@/lib/use-form-draft';
 
 const INITIAL_STATE: PeticionState = { status: 'idle' };
 
@@ -50,6 +52,19 @@ export function PeticionForm({
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState('');
 
+  const draftValues = { title, description, priority };
+  const draftSetters = { title: setTitle, description: setDescription, priority: setPriority };
+  const { clearDraft, wasRestored } = useFormDraft(
+    `peticion-${slug}`,
+    draftValues,
+    draftSetters,
+  );
+
+  // Clear draft on successful submit
+  useEffect(() => {
+    if (state.status === 'success') clearDraft();
+  }, [state.status, clearDraft]);
+
   if (state.status === 'success') {
     return (
       <section
@@ -84,6 +99,8 @@ export function PeticionForm({
 
   return (
     <form action={formAction} className="flex flex-col gap-6" noValidate>
+      {wasRestored && <DraftRestoredBanner />}
+
       {state.status === 'error' && (
         <ErrorMessage message={state.message ?? 'Error al enviar la petición'} />
       )}

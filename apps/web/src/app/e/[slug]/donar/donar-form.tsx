@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useState, useEffect } from 'react';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import type { OfferState } from './actions';
@@ -10,6 +10,8 @@ import { Input } from '@/components/atoms/input';
 import { Textarea } from '@/components/atoms/textarea';
 import { ErrorMessage } from '@/components/atoms/error-message';
 import { FormField } from '@/components/molecules/form-field';
+import { DraftRestoredBanner } from '@/components/atoms/draft-restored-banner';
+import { useFormDraft } from '@/lib/use-form-draft';
 
 const INITIAL_STATE: OfferState = { status: 'idle' };
 
@@ -55,6 +57,26 @@ export function DonarForm({
   const [unit, setUnit] = useState('');
   const [notes, setNotes] = useState('');
 
+  // Draft key scoped to offer type: directed offers (by need) get their own key
+  const draftKey = targetNeedId !== undefined
+    ? `donar-${slug}-need-${targetNeedId}`
+    : `donar-${slug}`;
+
+  const draftValues = { category, description, quantity, unit, notes };
+  const draftSetters = {
+    category: setCategory,
+    description: setDescription,
+    quantity: setQuantity,
+    unit: setUnit,
+    notes: setNotes,
+  };
+  const { clearDraft, wasRestored } = useFormDraft(draftKey, draftValues, draftSetters);
+
+  // Clear draft on successful submit
+  useEffect(() => {
+    if (state.status === 'success') clearDraft();
+  }, [state.status, clearDraft]);
+
   if (state.status === 'success') {
     return (
       <section
@@ -89,6 +111,8 @@ export function DonarForm({
 
   return (
     <form action={formAction} className="flex flex-col gap-6" noValidate>
+      {wasRestored && <DraftRestoredBanner />}
+
       {state.status === 'error' && (
         <ErrorMessage message={state.message ?? 'Error al enviar la oferta'} />
       )}

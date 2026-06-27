@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { SwRegister } from '@/components/atoms/sw-register';
 
 export const metadata: Metadata = {
   title: 'ReliefHub',
@@ -15,6 +16,7 @@ export default function RootLayout({
     <html lang="es" className="h-full">
       <body className="min-h-full flex flex-col bg-white text-gray-900 antialiased">
         {children}
+        <SwRegister />
       </body>
     </html>
   );

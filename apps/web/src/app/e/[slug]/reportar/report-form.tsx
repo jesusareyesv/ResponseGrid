@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState, useRef, useCallback } from 'react';
+import { useActionState, useState, useRef, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import type { SubmitReportState } from './actions';
 import { Button } from '@/components/atoms/button';
@@ -9,6 +9,8 @@ import { Textarea } from '@/components/atoms/textarea';
 import { ErrorMessage } from '@/components/atoms/error-message';
 import { FormField } from '@/components/molecules/form-field';
 import { PhotoUploader } from '@/components/molecules/photo-uploader';
+import { DraftRestoredBanner } from '@/components/atoms/draft-restored-banner';
+import { useFormDraft } from '@/lib/use-form-draft';
 
 const INITIAL_STATE: SubmitReportState = { status: 'idle' };
 
@@ -51,6 +53,24 @@ export function ReportForm({
   const [note, setNote] = useState('');
   const [resourceId, setResourceId] = useState(prefilledResourceId ?? '');
   const photoUrlsRef = useRef<string[]>([]);
+
+  const draftValues = { type, priority, note, resourceId };
+  const draftSetters = {
+    type: setType,
+    priority: setPriority,
+    note: setNote,
+    resourceId: setResourceId,
+  };
+  const { clearDraft, wasRestored } = useFormDraft(
+    `reportar-${slug}`,
+    draftValues,
+    draftSetters,
+  );
+
+  // Clear draft on successful submit
+  useEffect(() => {
+    if (state.status === 'success') clearDraft();
+  }, [state.status, clearDraft]);
 
   const handlePhotoUrlsChange = useCallback((urls: string[]) => {
     photoUrlsRef.current = urls;
@@ -96,6 +116,8 @@ export function ReportForm({
       className="flex flex-col gap-6"
       noValidate
     >
+      {wasRestored && <DraftRestoredBanner />}
+
       {state.status === 'error' && (
         <ErrorMessage message={state.message ?? 'Error al enviar el parte'} />
       )}
