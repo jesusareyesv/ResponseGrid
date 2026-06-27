@@ -103,6 +103,10 @@ export const es = {
     map_legend_damage_moderate: 'Daño moderado',
     map_damage_toggle_show: 'Mostrar daños',
     map_damage_toggle_hide: 'Ocultar daños',
+    map_user_location_notice: 'Tu ubicación no se publica ni se comparte.',
+
+    // Privacy (F09)
+    privacy_approximate_location: 'Coordenadas aproximadas — verifica la dirección por teléfono antes de trasladarte.',
 
     // Footer links
     footer_my_points: 'Mis puntos',

@@ -69,6 +69,7 @@ export const en = {
     action_submit_petition: 'Submit a request',
     action_donate: 'Donate supplies',
     action_volunteer: 'Sign up as a volunteer',
+    action_report_damage: '🏚 Report structural damage',
     actions_paused:
       'Resource and request registration is paused. Check the available information and come back later.',
 
@@ -89,9 +90,19 @@ export const en = {
     map_legend_saturated: 'Saturated',
     map_legend_paused: 'Paused',
     map_legend_need: 'Request',
+    map_legend_damage_collapsed: 'Collapsed',
+    map_legend_damage_severe: 'Severe damage',
+    map_legend_damage_moderate: 'Moderate damage',
+    map_damage_toggle_show: 'Show damage',
+    map_damage_toggle_hide: 'Hide damage',
+    map_user_location_notice: 'Your location is not published or shared.',
+
+    // Privacy (F09)
+    privacy_approximate_location: 'Approximate coordinates — verify the address by phone before travelling.',
 
     footer_my_points: 'My points',
     footer_my_volunteer: 'My volunteering',
+    footer_my_search: 'My search',
     footer_report: 'Report',
     footer_coordination: 'Coordination access',
 

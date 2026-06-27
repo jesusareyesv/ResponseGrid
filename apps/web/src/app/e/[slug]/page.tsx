@@ -16,6 +16,7 @@ import { LanguageSwitcher } from '@/components/molecules/language-switcher';
 import type { MapPoint } from '@/components/emergency-map';
 import { getT } from '@/i18n/server';
 import { FreshnessIndicator } from '@/components/atoms/freshness-indicator';
+import { PrivacyLocationNotice } from '@/components/atoms/privacy-location-notice';
 
 export const dynamic = 'force-dynamic';
 
@@ -126,6 +127,7 @@ export default async function EmergencyPage({ params, searchParams }: Props) {
           lng: n.location.longitude,
           label: n.title,
           kind: 'need',
+          approximate: n.locationSensitivity === 'approximate',
         }),
       ),
   ];
@@ -369,6 +371,9 @@ export default async function EmergencyPage({ params, searchParams }: Props) {
                       )}
                     </div>
                   </div>
+                  {need.locationSensitivity === 'approximate' && (
+                    <PrivacyLocationNotice text={te.privacy_approximate_location} />
+                  )}
                   {emergency.status === 'active' && (
                     <Link
                       href={`/e/${slug}/donar?needId=${need.id}`}
@@ -409,6 +414,10 @@ export default async function EmergencyPage({ params, searchParams }: Props) {
               {te.map_legend_need}
             </span>
           </div>
+          <p className="text-xs text-gray-400 flex items-center gap-1">
+            <span aria-hidden="true">🔒</span>
+            {te.map_user_location_notice}
+          </p>
           <EmergencyMapWrapper points={mapPoints} emergencyId={emergencyId} />
         </section>
 

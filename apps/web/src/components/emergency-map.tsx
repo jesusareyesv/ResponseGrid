@@ -46,6 +46,12 @@ export interface MapPoint {
   kind: 'resource' | 'need';
   /** Only meaningful for kind === 'resource'. Controls marker colour. */
   status?: ResourcePublicStatus;
+  /**
+   * F09 — When true the coordinates are approximate (±300 m jitter applied
+   * by the backend). An uncertainty circle is drawn around the marker.
+   * Only meaningful for kind === 'need'. Resources are always 'public'.
+   */
+  approximate?: boolean;
 }
 
 export interface DamageMapFeature {
@@ -176,6 +182,47 @@ function DamageMarkersLayer({ features }: { features: DamageMapFeature[] }) {
   return null;
 }
 
+// ── Inner component that draws uncertainty circles for approximate needs ──────
+const APPROX_RADIUS_METERS = 300;
+const APPROX_CIRCLE_OPTIONS: L.CircleOptions = {
+  radius: APPROX_RADIUS_METERS,
+  color: '#ef4444',       // red-500 — matches the need marker colour
+  fillColor: '#ef4444',
+  fillOpacity: 0.08,
+  weight: 1,
+  opacity: 0.35,
+  interactive: false,
+};
+
+function ApproximateCirclesLayer({ points }: { points: MapPoint[] }) {
+  const map = useMap();
+  const groupRef = useRef<L.LayerGroup | null>(null);
+
+  const approximatePoints = points.filter(
+    (p) => p.kind === 'need' && p.approximate === true,
+  );
+
+  useEffect(() => {
+    if (groupRef.current === null) {
+      groupRef.current = L.layerGroup().addTo(map);
+    }
+    const group = groupRef.current;
+    group.clearLayers();
+
+    for (const p of approximatePoints) {
+      L.circle([p.lat, p.lng], APPROX_CIRCLE_OPTIONS).addTo(group);
+    }
+
+    return () => {
+      group.clearLayers();
+    };
+  // approximatePoints is derived — we depend on points identity instead
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map, points]);
+
+  return null;
+}
+
 // ── Inner component that fits the bounds once the map is ready ────────────────
 function BoundsFitter({ points }: { points: MapPoint[] }) {
   const map = useMap();
@@ -222,6 +269,7 @@ export default function EmergencyMap({
         />
 
         <BoundsFitter points={points} />
+        <ApproximateCirclesLayer points={points} />
 
         {points.map((point) => (
           <Marker
@@ -235,6 +283,14 @@ export default function EmergencyMap({
               <span className="text-xs text-gray-500">
                 {point.kind === 'resource' ? 'Recurso' : 'Petición'}
               </span>
+              {point.kind === 'need' && point.approximate === true && (
+                <>
+                  <br />
+                  <span className="text-xs text-amber-700">
+                    📍 Ubicación aproximada
+                  </span>
+                </>
+              )}
             </Popup>
           </Marker>
         ))}
