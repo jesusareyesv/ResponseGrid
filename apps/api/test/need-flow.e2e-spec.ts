@@ -688,9 +688,15 @@ describe('Need flow (e2e)', () => {
         .set('Authorization', `Bearer ${coordToken}`)
         .send({
           title: 'Individual privacy test',
-          location: { address: exactAddress, latitude: exactLat, longitude: exactLng },
+          location: {
+            address: exactAddress,
+            latitude: exactLat,
+            longitude: exactLng,
+          },
           priority: 'high',
-          items: [{ name: 'Water', quantity: 10, unit: 'liters', category: 'water' }],
+          items: [
+            { name: 'Water', quantity: 10, unit: 'liters', category: 'water' },
+          ],
           // no requesterOrganizationId → individual requester
         })
         .expect(201);
@@ -725,7 +731,9 @@ describe('Need flow (e2e)', () => {
         .get(`/emergencies/${EM}/public/needs`)
         .expect(200);
       const need2 = (
-        bodyList(publicRes2) as Array<NeedItem & { location: { latitude: number; longitude: number } }>
+        bodyList(publicRes2) as Array<
+          NeedItem & { location: { latitude: number; longitude: number } }
+        >
       ).find((n) => n.id === id);
       expect(need2!.location.latitude).toBe(need!.location.latitude);
       expect(need2!.location.longitude).toBe(need!.location.longitude);
@@ -738,9 +746,15 @@ describe('Need flow (e2e)', () => {
         .set('Authorization', `Bearer ${coordToken}`)
         .send({
           title: 'Queue exact coords test',
-          location: { address: exactAddress, latitude: exactLat, longitude: exactLng },
+          location: {
+            address: exactAddress,
+            latitude: exactLat,
+            longitude: exactLng,
+          },
           priority: 'medium',
-          items: [{ name: 'Food', quantity: 5, unit: 'boxes', category: 'food' }],
+          items: [
+            { name: 'Food', quantity: 5, unit: 'boxes', category: 'food' },
+          ],
         })
         .expect(201);
 
@@ -772,9 +786,15 @@ describe('Need flow (e2e)', () => {
         .set('Authorization', `Bearer ${coordToken}`)
         .send({
           title: 'Org requester public test',
-          location: { address: exactAddress, latitude: exactLat, longitude: exactLng },
+          location: {
+            address: exactAddress,
+            latitude: exactLat,
+            longitude: exactLng,
+          },
           priority: 'low',
-          items: [{ name: 'Blankets', quantity: 20, unit: null, category: 'shelter' }],
+          items: [
+            { name: 'Blankets', quantity: 20, unit: null, category: 'shelter' },
+          ],
           requesterOrganizationId: ORG_ID,
         })
         .expect(201);
