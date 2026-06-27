@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import { useState, useEffect } from 'react';
 import type { MapPoint, DamageMapFeature } from './emergency-map';
 import type { DamageLevel } from '@/components/atoms/damage-level-badge';
+import { createResponseGridClient } from '@reliefhub/api-client';
 
 // Leaflet must only run in the browser — dynamic with ssr:false is only
 // valid inside a Client Component (Server Components forbid it in Next 16).
@@ -22,6 +23,8 @@ function isDamageLevel(v: unknown): v is DamageLevel {
 }
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL ?? '').replace(/\/$/, '');
+
+const MAP_FETCH_LIMIT = 100;
 
 interface GeoJsonGeometry {
   type: string;
@@ -51,6 +54,77 @@ interface GeoJsonFeatureCollection {
 export function EmergencyMapWrapper({ points, emergencyId }: EmergencyMapWrapperProps) {
   const [damageFeatures, setDamageFeatures] = useState<DamageMapFeature[]>([]);
   const [damageVisible, setDamageVisible] = useState(false);
+
+  // ── All-resource points for the map (paginated fetch, independent of list) ──
+  // `points` prop contains SSR-fetched needs (all) + page-1 resources (50 max).
+  // We re-fetch ALL resource points here (limit=100 per page, loop until done)
+  // and merge them with the needs already in `points`.
+  // While fetching, the map shows the initial SSR points so it's never blank.
+  const needPoints = points.filter((p) => p.kind === 'need');
+  const [allMapPoints, setAllMapPoints] = useState<MapPoint[]>(points);
+
+  useEffect(() => {
+    if (emergencyId === undefined || emergencyId === '') return;
+
+    let cancelled = false;
+
+    async function fetchAllResourcePoints() {
+      const client = createResponseGridClient(API_BASE);
+      const accumulated: MapPoint[] = [];
+      let page = 1;
+      let total = Infinity;
+
+      while (accumulated.length < total) {
+        // eslint-disable-next-line no-await-in-loop
+        const { data } = await client.GET(
+          '/emergencies/{emergencyId}/public/resources',
+          {
+            params: {
+              path: { emergencyId: emergencyId as string },
+              query: { page, limit: MAP_FETCH_LIMIT },
+            },
+          },
+        );
+
+        if (cancelled) return;
+        if (data == null) break;
+
+        total = data.total;
+
+        for (const r of data.items) {
+          if (r.location.latitude === 0 && r.location.longitude === 0) continue;
+          accumulated.push({
+            id: r.id,
+            lat: r.location.latitude,
+            lng: r.location.longitude,
+            label: r.name,
+            kind: 'resource',
+            status: r.publicStatus,
+            resourceType: r.type,
+            city: r.city,
+            country: r.country,
+            accepts: r.accepts,
+          });
+        }
+
+        if (data.items.length === 0) break;
+        page += 1;
+      }
+
+      if (!cancelled) {
+        // Merge all resource points with the need points from SSR
+        setAllMapPoints([...accumulated, ...needPoints]);
+      }
+    }
+
+    void fetchAllResourcePoints();
+    return () => {
+      cancelled = true;
+    };
+    // needPoints reference changes every render; intentionally depend only on
+    // emergencyId so we fetch once per emergency, not on every parent re-render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [emergencyId]);
 
   useEffect(() => {
     if (emergencyId === undefined || emergencyId === '') return;
@@ -173,7 +247,7 @@ export function EmergencyMapWrapper({ points, emergencyId }: EmergencyMapWrapper
       )}
 
       <EmergencyMap
-        points={points}
+        points={allMapPoints}
         damageFeatures={damageFeatures}
         damageLayerVisible={damageVisible}
       />

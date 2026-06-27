@@ -1,8 +1,11 @@
 'use client';
 
 import 'leaflet/dist/leaflet.css';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import L from 'leaflet';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import 'leaflet.markercluster';
+import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import { useEffect, useRef } from 'react';
 import type { DamageLevel } from '@/components/atoms/damage-level-badge';
 
@@ -52,6 +55,11 @@ export interface MapPoint {
    * Only meaningful for kind === 'need'. Resources are always 'public'.
    */
   approximate?: boolean;
+  /** Rich popup fields — only present for kind === 'resource' (Task 8) */
+  resourceType?: string;
+  city?: string | null;
+  country?: string | null;
+  accepts?: string[];
 }
 
 export interface DamageMapFeature {
@@ -223,6 +231,79 @@ function ApproximateCirclesLayer({ points }: { points: MapPoint[] }) {
   return null;
 }
 
+// ── Inner component that renders clustered resource/need markers ──────────────
+function ClusteredMarkersLayer({ points }: { points: MapPoint[] }) {
+  const map = useMap();
+  const clusterRef = useRef<L.MarkerClusterGroup | null>(null);
+
+  useEffect(() => {
+    // Create the cluster group once and keep it alive.
+    // L.markerClusterGroup is injected by the 'leaflet.markercluster' side-effect import.
+    if (clusterRef.current === null) {
+      clusterRef.current = L.markerClusterGroup({
+        chunkedLoading: true,
+        maxClusterRadius: 60,
+      });
+      clusterRef.current.addTo(map);
+    }
+
+    const group = clusterRef.current;
+    group.clearLayers();
+
+    for (const point of points) {
+      const icon =
+        point.kind === 'resource' ? resourceIcon(point.status) : ICONS.red;
+
+      // Build rich popup HTML
+      const kindLabel = point.kind === 'resource' ? 'Recurso' : 'Petición';
+      const typeLabel =
+        point.resourceType != null && point.resourceType !== ''
+          ? `<br/><span style="font-size:11px;color:#555;">${point.resourceType}</span>`
+          : '';
+      const locationParts: string[] = [];
+      if (point.city != null && point.city !== '') locationParts.push(point.city);
+      if (point.country != null && point.country !== '') locationParts.push(point.country);
+      const locationLabel =
+        locationParts.length > 0
+          ? `<br/><span style="font-size:11px;color:#555;">${locationParts.join(', ')}</span>`
+          : '';
+      const acceptsLabel =
+        point.accepts != null && point.accepts.length > 0
+          ? `<br/><span style="font-size:11px;color:#555;">Acepta: ${point.accepts.join(', ')}</span>`
+          : '';
+      const approximateLabel =
+        point.kind === 'need' && point.approximate === true
+          ? '<br/><span style="font-size:11px;color:#b45309;">📍 Ubicación aproximada</span>'
+          : '';
+
+      const popupHtml = `<strong>${point.label}</strong><br/><span style="font-size:11px;color:#6b7280;">${kindLabel}</span>${typeLabel}${locationLabel}${acceptsLabel}${approximateLabel}`;
+
+      L.marker([point.lat, point.lng], { icon })
+        .bindPopup(popupHtml)
+        .addTo(group);
+    }
+
+    return () => {
+      group.clearLayers();
+    };
+  }, [map, points]);
+
+  // Remove the cluster group when the component unmounts
+  useEffect(() => {
+    const group = clusterRef.current;
+    return () => {
+      if (group !== null) {
+        map.removeLayer(group);
+        clusterRef.current = null;
+      }
+    };
+    // Only on unmount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map]);
+
+  return null;
+}
+
 // ── Inner component that fits the bounds once the map is ready ────────────────
 function BoundsFitter({ points }: { points: MapPoint[] }) {
   const map = useMap();
@@ -270,30 +351,7 @@ export default function EmergencyMap({
 
         <BoundsFitter points={points} />
         <ApproximateCirclesLayer points={points} />
-
-        {points.map((point) => (
-          <Marker
-            key={point.id}
-            position={[point.lat, point.lng]}
-            icon={point.kind === 'resource' ? resourceIcon(point.status) : ICONS.red}
-          >
-            <Popup>
-              <strong>{point.label}</strong>
-              <br />
-              <span className="text-xs text-gray-500">
-                {point.kind === 'resource' ? 'Recurso' : 'Petición'}
-              </span>
-              {point.kind === 'need' && point.approximate === true && (
-                <>
-                  <br />
-                  <span className="text-xs text-amber-700">
-                    📍 Ubicación aproximada
-                  </span>
-                </>
-              )}
-            </Popup>
-          </Marker>
-        ))}
+        <ClusteredMarkersLayer points={points} />
 
         {/* Damage layer — only rendered when toggle is on */}
         {damageLayerVisible && damageFeatures.length > 0 && (
