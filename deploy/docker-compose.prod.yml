@@ -1,0 +1,79 @@
+# ResponseGrid — all-in-one production stack for a single EC2 t3.micro.
+# API + Postgres + Redis + automatic HTTPS (Caddy), with idempotent migrations.
+#
+# Usage (on the EC2, repo cloned):
+#   cp deploy/.env.example deploy/.env   # then edit deploy/.env
+#   docker compose -f deploy/docker-compose.prod.yml up -d --build
+#
+# Files are stored in S3 (FILE_STORAGE=s3), so this stack is stateless except
+# for the Postgres volume.
+
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    command: ['redis-server', '--save', '60', '1']
+    volumes:
+      - redisdata:/data
+
+  # One-shot, idempotent migration runner: applies apps/api/drizzle/*.sql once
+  # each (tracked in a _migrations table), then exits.
+  migrate:
+    image: postgres:16
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ../apps/api/drizzle:/migrations:ro
+      - ./migrate.sh:/migrate.sh:ro
+    entrypoint: ['sh', '/migrate.sh']
+    restart: 'no'
+
+  api:
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_started
+    expose:
+      - '3000'
+
+  # Reverse proxy with automatic Let's Encrypt TLS for $API_DOMAIN.
+  # Requires an A record: API_DOMAIN -> the EC2 public (Elastic) IP.
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      - api
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddydata:/data
+      - caddyconfig:/config
+
+volumes:
+  pgdata:
+  redisdata:
+  caddydata:
+  caddyconfig:

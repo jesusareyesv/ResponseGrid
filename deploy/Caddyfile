@@ -1,0 +1,6 @@
+# Automatic HTTPS reverse proxy in front of the API.
+# Caddy obtains and renews a Let's Encrypt certificate for $API_DOMAIN,
+# so you need an A record:  API_DOMAIN -> the EC2 public (Elastic) IP.
+{$API_DOMAIN} {
+	reverse_proxy api:3000
+}

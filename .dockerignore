@@ -1,0 +1,17 @@
+# Keep the Docker build context small and free of secrets/artifacts.
+**/node_modules
+**/dist
+**/.next
+**/.turbo
+.git
+.github
+**/coverage
+**/uploads
+**/.env
+**/.env.*
+!**/.env.example
+.superpowers
+docs
+*.md
+**/*.spec.ts
+**/*.e2e-spec.ts
