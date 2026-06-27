@@ -25,5 +25,11 @@ export async function loginAction(
   }
 
   await setToken(data.accessToken);
-  redirect(next || '/');
+  // Sanitize the redirect target: only allow internal relative paths to prevent
+  // open redirect attacks (e.g. ?next=https://evil.com or ?next=//evil.com).
+  const safe =
+    typeof next === 'string' && next.startsWith('/') && !next.startsWith('//')
+      ? next
+      : '/';
+  redirect(safe);
 }
