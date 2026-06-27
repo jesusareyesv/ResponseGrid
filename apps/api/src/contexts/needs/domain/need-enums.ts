@@ -1,3 +1,5 @@
+export { Priority } from '../../../shared/domain/priority';
+
 export enum NeedCategory {
   Hygiene = 'hygiene',
   Water = 'water',
@@ -6,13 +8,6 @@ export enum NeedCategory {
   Shelter = 'shelter',
   Tools = 'tools',
   Other = 'other',
-}
-
-export enum Priority {
-  Low = 'low',
-  Medium = 'medium',
-  High = 'high',
-  Urgent = 'urgent',
 }
 
 export enum NeedStatus {
