@@ -14,8 +14,6 @@ export type CheckActionResult =
   | { status: 'success' }
   | { status: 'error'; message: string };
 
-const API_BASE = process.env.API_URL ?? 'http://localhost:3000';
-
 /**
  * Fetch the authenticated user's volunteer profile for the given emergency.
  * Returns null when not registered (404) or on network error.
@@ -90,22 +88,22 @@ export async function checkInTask(
     redirect(`/login?next=/e/${slug}/mi-voluntariado`);
   }
 
-  const res = await fetch(`${API_BASE}/tasks/${taskId}/check-in`, {
-    method: 'POST',
-    headers: { ...authHeaders(token), 'Content-Type': 'application/json' },
-    body: JSON.stringify({ volunteerId }),
+  const { response } = await api.POST('/tasks/{taskId}/check-in', {
+    params: { path: { taskId } },
+    body: { volunteerId },
+    headers: authHeaders(token),
   });
 
-  if (res.status === 401) {
+  if (response.status === 401) {
     await clearToken();
     redirect(`/login?next=/e/${slug}/mi-voluntariado`);
   }
 
-  if (res.status === 403) {
+  if (response.status === 403) {
     return { status: 'error', message: 'No tienes permisos para hacer check-in en esta tarea.' };
   }
 
-  if (!res.ok) {
+  if (!response.ok) {
     return { status: 'error', message: 'No se pudo hacer check-in. Inténtalo de nuevo.' };
   }
 
@@ -126,22 +124,22 @@ export async function checkOutTask(
     redirect(`/login?next=/e/${slug}/mi-voluntariado`);
   }
 
-  const res = await fetch(`${API_BASE}/tasks/${taskId}/check-out`, {
-    method: 'POST',
-    headers: { ...authHeaders(token), 'Content-Type': 'application/json' },
-    body: JSON.stringify({ volunteerId }),
+  const { response } = await api.POST('/tasks/{taskId}/check-out', {
+    params: { path: { taskId } },
+    body: { volunteerId },
+    headers: authHeaders(token),
   });
 
-  if (res.status === 401) {
+  if (response.status === 401) {
     await clearToken();
     redirect(`/login?next=/e/${slug}/mi-voluntariado`);
   }
 
-  if (res.status === 403) {
+  if (response.status === 403) {
     return { status: 'error', message: 'No tienes permisos para hacer check-out en esta tarea.' };
   }
 
-  if (!res.ok) {
+  if (!response.ok) {
     return { status: 'error', message: 'No se pudo hacer check-out. Inténtalo de nuevo.' };
   }
 

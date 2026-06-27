@@ -2,8 +2,8 @@
 
 import { redirect } from 'next/navigation';
 import { getToken, clearToken, authHeaders } from '@/lib/auth';
-
-const API_BASE = process.env.API_URL ?? 'http://localhost:3000';
+import { api } from '@/lib/api';
+import type { components } from '@reliefhub/api-client';
 
 export type ReportType = 'incident' | 'stock' | 'status' | 'other';
 export type ReportPriority = 'low' | 'medium' | 'high' | 'urgent';
@@ -62,7 +62,7 @@ export async function submitReport(
     }
   }
 
-  const body: Record<string, unknown> = {
+  const body: components['schemas']['SubmitReportDto'] = {
     type,
     note: note.trim(),
     priority,
@@ -73,22 +73,22 @@ export async function submitReport(
     body.resourceId = resourceId.trim();
   }
 
-  const res = await fetch(`${API_BASE}/emergencies/${emergencyId}/reports`, {
-    method: 'POST',
-    headers: { ...authHeaders(token), 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+  const { response } = await api.POST('/emergencies/{emergencyId}/reports', {
+    params: { path: { emergencyId } },
+    body,
+    headers: authHeaders(token),
   });
 
-  if (res.status === 401) {
+  if (response.status === 401) {
     await clearToken();
     redirect(`/login`);
   }
 
-  if (res.status === 403) {
+  if (response.status === 403) {
     return { status: 'error', message: 'No tienes permisos para enviar partes en esta emergencia.' };
   }
 
-  if (!res.ok) {
+  if (!response.ok) {
     return { status: 'error', message: 'No se pudo enviar el parte. Inténtalo de nuevo.' };
   }
 
@@ -109,21 +109,21 @@ export async function reviewReport(
     redirect(`/login?next=/e/${slug}/coordinacion/reportes`);
   }
 
-  const res = await fetch(`${API_BASE}/reports/${reportId}/review`, {
-    method: 'POST',
+  const { response } = await api.POST('/reports/{reportId}/review', {
+    params: { path: { reportId } },
     headers: authHeaders(token),
   });
 
-  if (res.status === 401) {
+  if (response.status === 401) {
     await clearToken();
     redirect(`/login?next=/e/${slug}/coordinacion/reportes`);
   }
 
-  if (res.status === 403) {
+  if (response.status === 403) {
     return { status: 'error', message: 'No tienes permisos para revisar este parte.' };
   }
 
-  if (!res.ok) {
+  if (!response.ok) {
     return { status: 'error', message: 'No se pudo marcar como revisado. Inténtalo de nuevo.' };
   }
 

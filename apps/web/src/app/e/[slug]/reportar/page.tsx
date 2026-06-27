@@ -2,11 +2,10 @@ import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { getEmergencyBySlug } from '@/lib/emergencies';
 import { getToken, authHeaders } from '@/lib/auth';
+import { api } from '@/lib/api';
 import { submitReport } from './actions';
 import { ReportForm } from './report-form';
 import { getT } from '@/i18n/server';
-
-const API_BASE = process.env.API_URL ?? 'http://localhost:3000';
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -44,23 +43,20 @@ export default async function ReportarPage({ params, searchParams }: Props) {
   // Fetch my resources for the optional "punto relacionado" selector
   let myResources: Array<{ id: string; name: string }> = [];
   try {
-    const res = await fetch(
-      `${API_BASE}/emergencies/${emergency.id}/resources/mine`,
-      { headers: { ...authHeaders(token), 'Content-Type': 'application/json' } },
+    const { data } = await api.GET(
+      '/emergencies/{emergencyId}/resources/mine',
+      {
+        params: { path: { emergencyId: emergency.id } },
+        headers: authHeaders(token),
+      },
     );
-    if (res.ok) {
-      const data: unknown = await res.json();
-      if (Array.isArray(data)) {
-        myResources = data
-          .filter(
-            (r): r is { id: string; name: string } =>
-              typeof r === 'object' &&
-              r != null &&
-              typeof (r as Record<string, unknown>).id === 'string' &&
-              typeof (r as Record<string, unknown>).name === 'string',
-          )
-          .map((r) => ({ id: r.id, name: r.name }));
-      }
+    if (data != null) {
+      myResources = data
+        .filter(
+          (r): r is typeof r & { id: string; name: string } =>
+            typeof r.id === 'string' && typeof r.name === 'string',
+        )
+        .map((r) => ({ id: r.id, name: r.name }));
     }
   } catch {
     // non-fatal — form still works without point selector

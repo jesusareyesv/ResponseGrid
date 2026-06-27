@@ -3,12 +3,19 @@
 import { revalidatePath } from 'next/cache';
 import { getToken, clearToken, authHeaders } from '@/lib/auth';
 import { redirect } from 'next/navigation';
+import { api } from '@/lib/api';
 
 export type AccreditationActionResult =
   | { status: 'idle' }
   | { status: 'success' }
   | { status: 'error'; message: string };
 
+/**
+ * Local DTO that preserves the discriminated-union shape of `scope`.
+ * The generated AccreditationViewDto has `scope: Record<string, never>` which
+ * loses the union — we keep the original shape here so callers can compare
+ * acc.scope === 'global' without TypeScript errors.
+ */
 export interface AccreditationDto {
   id: string;
   organizationId: string;
@@ -16,8 +23,6 @@ export interface AccreditationDto {
   evidence?: string;
   grantedAt: string;
 }
-
-const API_BASE = process.env.API_URL ?? 'http://localhost:3000';
 
 /** Fetch all accreditations, optionally filtered by org or emergency. */
 export async function fetchAccreditations(
@@ -27,22 +32,17 @@ export async function fetchAccreditations(
   const token = await getToken();
   if (!token) return [];
 
-  const params = new URLSearchParams();
-  if (organizationId) params.set('organizationId', organizationId);
-  if (emergencyId) params.set('emergencyId', emergencyId);
-
-  const qs = params.toString();
-  const url = `${API_BASE}/accreditations${qs ? `?${qs}` : ''}`;
-
-  const res = await fetch(url, {
+  const { data, error } = await api.GET('/accreditations', {
+    params: { query: { organizationId, emergencyId } },
     headers: authHeaders(token),
-    cache: 'no-store',
   });
 
-  if (!res.ok) return [];
+  if (error !== undefined) return [];
 
-  const data: unknown = await res.json();
-  return Array.isArray(data) ? (data as AccreditationDto[]) : [];
+  // Double-cast via unknown: the runtime shape matches AccreditationDto, but
+  // the generated schema uses Record<string, never> for scope, losing the
+  // 'global' | { emergencyId } union that the page relies on.
+  return (data ?? []) as unknown as AccreditationDto[];
 }
 
 /** Grant an accreditation (POST /accreditations). */
@@ -73,21 +73,20 @@ export async function grantAccreditationAction(
     return { status: 'error', message: 'El ID de emergencia es obligatorio para el alcance "Esta emergencia".' };
   }
 
-  const res = await fetch(`${API_BASE}/accreditations`, {
-    method: 'POST',
-    headers: { ...authHeaders(token), 'Content-Type': 'application/json' },
-    body: JSON.stringify({ organizationId, scope, evidence }),
+  const { error, response } = await api.POST('/accreditations', {
+    body: { organizationId, scope, evidence },
+    headers: authHeaders(token),
   });
 
-  if (!res.ok) {
-    if (res.status === 401) {
+  if (error !== undefined) {
+    if (response.status === 401) {
       await clearToken();
       redirect('/login?next=/admin/acreditaciones');
     }
-    if (res.status === 403) {
+    if (response.status === 403) {
       return { status: 'error', message: 'No tienes permisos para conceder acreditaciones.' };
     }
-    if (res.status === 400) {
+    if (response.status === 400) {
       return { status: 'error', message: 'Datos inválidos. Comprueba el ID de organización y el alcance.' };
     }
     return { status: 'error', message: 'Error al conceder la acreditación. Inténtalo de nuevo.' };
@@ -106,17 +105,17 @@ export async function revokeAccreditationAction(
     redirect('/login?next=/admin/acreditaciones');
   }
 
-  const res = await fetch(`${API_BASE}/accreditations/${id}`, {
-    method: 'DELETE',
+  const { error, response } = await api.DELETE('/accreditations/{id}', {
+    params: { path: { id } },
     headers: authHeaders(token),
   });
 
-  if (!res.ok) {
-    if (res.status === 401) {
+  if (error !== undefined) {
+    if (response.status === 401) {
       await clearToken();
       redirect('/login?next=/admin/acreditaciones');
     }
-    if (res.status === 403) {
+    if (response.status === 403) {
       return { status: 'error', message: 'No tienes permisos para revocar esta acreditación.' };
     }
     return { status: 'error', message: 'Error al revocar la acreditación. Inténtalo de nuevo.' };

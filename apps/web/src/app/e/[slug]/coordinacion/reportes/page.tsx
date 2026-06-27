@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { getToken, clearToken, authHeaders } from '@/lib/auth';
+import { api } from '@/lib/api';
 import { getEmergencyBySlug } from '@/lib/emergencies';
 import { EmptyState } from '@/components/molecules/empty-state';
 import { ReportCard } from '@/components/organisms/report-card';
@@ -23,8 +24,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: `Cola de partes de campo de ${emergency.name}.`,
   };
 }
-
-const API_BASE = process.env.API_URL ?? 'http://localhost:3000';
 
 const VALID_STATUSES = ['open', 'reviewed'] as const;
 const VALID_PRIORITIES = ['low', 'medium', 'high', 'urgent'] as const;
@@ -75,33 +74,35 @@ export default async function CoordinacionReportesPage({ params, searchParams }:
     ? (rawPriority as ReportPriority)
     : undefined;
 
-  // --- Build query string ---
-  const queryParts: string[] = [];
-  if (statusFilter !== undefined) queryParts.push(`status=${statusFilter}`);
-  if (priorityFilter !== undefined) queryParts.push(`priority=${priorityFilter}`);
-  if (rawResourceId !== undefined && rawResourceId.trim().length > 0) {
-    queryParts.push(`resourceId=${encodeURIComponent(rawResourceId.trim())}`);
-  }
-  const queryString = queryParts.length > 0 ? `?${queryParts.join('&')}` : '';
+  const resourceIdFilter = rawResourceId !== undefined && rawResourceId.trim().length > 0
+    ? rawResourceId.trim()
+    : undefined;
 
   // --- Fetch reports ---
   let reports: FieldReport[] = [];
-  const res = await fetch(
-    `${API_BASE}/emergencies/${emergencyId}/reports${queryString}`,
-    { headers: { ...headers, 'Content-Type': 'application/json' } },
-  );
+  const { response } = await api.GET('/emergencies/{emergencyId}/reports', {
+    params: {
+      path: { emergencyId },
+      query: {
+        status: statusFilter,
+        priority: priorityFilter,
+        resourceId: resourceIdFilter,
+      },
+    },
+    headers,
+  });
 
-  if (res.status === 401) {
+  if (response.status === 401) {
     await clearToken();
     redirect(`/login?next=/e/${slug}/coordinacion/reportes`);
   }
 
-  if (res.status === 403) {
+  if (response.status === 403) {
     redirect(`/e/${slug}/coordinacion`);
   }
 
-  if (res.ok) {
-    const data: unknown = await res.json();
+  if (response.ok) {
+    const data: unknown = await response.json();
     if (Array.isArray(data)) {
       reports = data.filter(
         (r): r is FieldReport =>

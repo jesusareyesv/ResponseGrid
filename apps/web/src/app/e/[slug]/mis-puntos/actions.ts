@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getToken, clearToken, authHeaders } from '@/lib/auth';
+import { api } from '@/lib/api';
 import type { components } from '@reliefhub/api-client';
 
 export type PublicStatus = components['schemas']['ResourceViewDto']['publicStatus'];
@@ -12,12 +13,8 @@ export type ActionResult =
   | { status: 'success' }
   | { status: 'error'; message: string };
 
-const API_BASE = process.env.API_URL ?? 'http://localhost:3000';
-
 /**
  * Fetch resources owned by the authenticated user for a given emergency.
- * Uses raw fetch because GET /emergencies/{id}/resources/mine is not yet
- * in the generated openapi-fetch schema.
  */
 export async function fetchMyResources(
   emergencyId: string,
@@ -28,21 +25,24 @@ export async function fetchMyResources(
     redirect(`/login?next=/e/${slug}/mis-puntos`);
   }
 
-  const res = await fetch(
-    `${API_BASE}/emergencies/${emergencyId}/resources/mine`,
-    { headers: { ...authHeaders(token), 'Content-Type': 'application/json' } },
+  const { data, response } = await api.GET(
+    '/emergencies/{emergencyId}/resources/mine',
+    {
+      params: { path: { emergencyId } },
+      headers: authHeaders(token),
+    },
   );
 
-  if (res.status === 401) {
+  if (response.status === 401) {
     await clearToken();
     redirect(`/login?next=/e/${slug}/mis-puntos`);
   }
 
-  if (!res.ok) {
+  if (!response.ok || data == null) {
     return [];
   }
 
-  return (await res.json()) as components['schemas']['ResourceViewDto'][];
+  return data;
 }
 
 /**
@@ -59,22 +59,23 @@ export async function updateResourceStatus(
     redirect(`/login?next=/e/${slug}/mis-puntos`);
   }
 
-  const res = await fetch(`${API_BASE}/resources/${resourceId}/status`, {
-    method: 'POST',
-    headers: { ...authHeaders(token), 'Content-Type': 'application/json' },
-    body: JSON.stringify({ status }),
+  const { response } = await api.POST('/resources/{resourceId}/status', {
+    params: { path: { resourceId } },
+    // status is narrowed by the caller: 'hidden' is excluded by UpdateResourcePublicStatusDto.
+    body: { status: status as 'active' | 'saturated' | 'paused' | 'closed' },
+    headers: authHeaders(token),
   });
 
-  if (res.status === 401) {
+  if (response.status === 401) {
     await clearToken();
     redirect(`/login?next=/e/${slug}/mis-puntos`);
   }
 
-  if (res.status === 403) {
+  if (response.status === 403) {
     return { status: 'error', message: 'No tienes permisos para cambiar el estado de este punto.' };
   }
 
-  if (!res.ok) {
+  if (!response.ok) {
     return { status: 'error', message: 'No se pudo actualizar el estado. Inténtalo de nuevo.' };
   }
 

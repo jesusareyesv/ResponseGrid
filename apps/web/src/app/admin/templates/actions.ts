@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { getToken, clearToken, authHeaders } from '@/lib/auth';
 import { redirect } from 'next/navigation';
+import { api } from '@/lib/api';
 import type { components } from '@reliefhub/api-client';
 
 export type TemplateActionResult =
@@ -12,23 +13,19 @@ export type TemplateActionResult =
 
 export type TemplateViewDto = components['schemas']['TemplateViewDto'];
 
-const API_BASE = process.env.API_URL ?? 'http://localhost:3000';
-
 // ── List ────────────────────────────────────────────────────────────────────
 
 export async function fetchTemplates(): Promise<TemplateViewDto[]> {
   const token = await getToken();
   if (!token) return [];
 
-  const res = await fetch(`${API_BASE}/templates`, {
+  const { data, error } = await api.GET('/templates', {
     headers: authHeaders(token),
-    cache: 'no-store',
   });
 
-  if (!res.ok) return [];
+  if (error !== undefined) return [];
 
-  const data: unknown = await res.json();
-  return Array.isArray(data) ? (data as TemplateViewDto[]) : [];
+  return data ?? [];
 }
 
 // ── Create ──────────────────────────────────────────────────────────────────
@@ -67,21 +64,20 @@ export async function createTemplateAction(
     };
   }
 
-  const res = await fetch(`${API_BASE}/templates`, {
-    method: 'POST',
-    headers: { ...authHeaders(token), 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, description, dontBringList, defaultAnnouncement }),
+  const { error, response } = await api.POST('/templates', {
+    body: { name, description, dontBringList, defaultAnnouncement },
+    headers: authHeaders(token),
   });
 
-  if (!res.ok) {
-    if (res.status === 401) {
+  if (error !== undefined) {
+    if (response.status === 401) {
       await clearToken();
       redirect('/login?next=/admin/templates');
     }
-    if (res.status === 403) {
+    if (response.status === 403) {
       return { status: 'error', message: 'No tienes permisos para crear plantillas.' };
     }
-    if (res.status === 400) {
+    if (response.status === 400) {
       return { status: 'error', message: 'Datos inválidos. Revisa los campos.' };
     }
     return { status: 'error', message: 'Error al crear la plantilla. Inténtalo de nuevo.' };
@@ -99,20 +95,20 @@ export async function deleteTemplateAction(id: string): Promise<TemplateActionRe
     redirect('/login?next=/admin/templates');
   }
 
-  const res = await fetch(`${API_BASE}/templates/${id}`, {
-    method: 'DELETE',
+  const { error, response } = await api.DELETE('/templates/{id}', {
+    params: { path: { id } },
     headers: authHeaders(token),
   });
 
-  if (!res.ok) {
-    if (res.status === 401) {
+  if (error !== undefined) {
+    if (response.status === 401) {
       await clearToken();
       redirect('/login?next=/admin/templates');
     }
-    if (res.status === 403) {
+    if (response.status === 403) {
       return { status: 'error', message: 'No tienes permisos para eliminar esta plantilla.' };
     }
-    if (res.status === 404) {
+    if (response.status === 404) {
       return { status: 'error', message: 'Plantilla no encontrada.' };
     }
     return { status: 'error', message: 'Error al eliminar la plantilla. Inténtalo de nuevo.' };
@@ -156,32 +152,29 @@ export async function createFromTemplateAction(
     return { status: 'error', message: 'El código de país es obligatorio.' };
   }
 
-  const res = await fetch(`${API_BASE}/emergencies/from-template`, {
-    method: 'POST',
-    headers: { ...authHeaders(token), 'Content-Type': 'application/json' },
-    body: JSON.stringify({ templateId, name, slug, country }),
+  const { data, error, response } = await api.POST('/emergencies/from-template', {
+    body: { templateId, name, slug, country },
+    headers: authHeaders(token),
   });
 
-  if (!res.ok) {
-    if (res.status === 401) {
+  if (error !== undefined) {
+    if (response.status === 401) {
       await clearToken();
       redirect('/login?next=/admin/templates');
     }
-    if (res.status === 403) {
+    if (response.status === 403) {
       return { status: 'error', message: 'No tienes permisos para crear emergencias.' };
     }
-    if (res.status === 404) {
+    if (response.status === 404) {
       return { status: 'error', message: 'Plantilla no encontrada.' };
     }
-    if (res.status === 400) {
+    if (response.status === 400) {
       return { status: 'error', message: 'Datos inválidos. Verifica el slug y el código de país.' };
     }
     return { status: 'error', message: 'Error al crear la emergencia. Inténtalo de nuevo.' };
   }
 
-  const body: unknown = await res.json();
-  const created = body as { slug?: string };
-  const createdSlug = created.slug ?? slug;
+  const createdSlug = data?.slug ?? slug;
 
   revalidatePath('/admin/templates');
   return { status: 'success', slug: createdSlug };
