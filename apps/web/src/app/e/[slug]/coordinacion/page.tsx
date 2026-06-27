@@ -151,6 +151,15 @@ export default async function CoordinacionPage({ params, searchParams }: Props) 
           <span aria-hidden="true" className="text-lg">→</span>
         </Link>
 
+        {/* ── ENLACE A REPORTES DE CAMPO ──────────────────────────────── */}
+        <Link
+          href={`/e/${slug}/coordinacion/reportes`}
+          className="flex items-center justify-between gap-3 rounded-lg border-2 border-gray-900 bg-white px-5 py-4 font-semibold text-gray-900 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
+        >
+          <span>Reportes de campo</span>
+          <span aria-hidden="true" className="text-lg">→</span>
+        </Link>
+
         <hr className="border-gray-200" />
 
         {/* ── RECURSOS PENDIENTES ─────────────────────────────────────── */}

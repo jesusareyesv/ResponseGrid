@@ -409,6 +409,12 @@ export default async function EmergencyPage({ params, searchParams }: Props) {
               >
                 Mi voluntariado
               </Link>
+              <Link
+                href={`/e/${slug}/reportar`}
+                className="text-sm text-gray-400 underline underline-offset-2 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 rounded"
+              >
+                Reportar
+              </Link>
             </div>
           )}
           <Link

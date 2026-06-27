@@ -112,6 +112,13 @@ export default async function MisPuntosPage({ params }: Props) {
                       currentStatus={resource.publicStatus}
                       slug={slug}
                     />
+
+                    <Link
+                      href={`/e/${slug}/reportar?resourceId=${resource.id}`}
+                      className="inline-flex items-center justify-center rounded-lg border-2 border-gray-900 px-4 py-2 text-sm font-semibold text-gray-900 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 transition-colors w-fit"
+                    >
+                      Reportar incidencia
+                    </Link>
                   </article>
                 </li>
               ))}
