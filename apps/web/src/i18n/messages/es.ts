@@ -211,6 +211,20 @@ export const es = {
     stage_origin: 'Origen',
     stage_intermediate: 'Intermedio',
     stage_destination: 'Destino',
+    // Rich card extras
+    accepts_label: 'Acepta',
+    meta_contact: 'Contacto:',
+    meta_schedule: 'Horario:',
+    meta_manager: 'Responsable:',
+    meta_source: 'Fuente:',
+  },
+
+  // ── ResourceList ──────────────────────────────────────────────────────────
+  resource_list: {
+    aria_label: 'Puntos activos verificados',
+    showing: 'Mostrando {shown} de {total}',
+    load_more: 'Cargar más',
+    loading: 'Cargando…',
   },
 
   // ── VerificationBadge ─────────────────────────────────────────────────────

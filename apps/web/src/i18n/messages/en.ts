@@ -194,6 +194,19 @@ export const en = {
     stage_origin: 'Origin',
     stage_intermediate: 'Intermediate',
     stage_destination: 'Destination',
+    // Rich card extras
+    accepts_label: 'Accepts',
+    meta_contact: 'Contact:',
+    meta_schedule: 'Hours:',
+    meta_manager: 'Manager:',
+    meta_source: 'Source:',
+  },
+
+  resource_list: {
+    aria_label: 'Verified active points',
+    showing: 'Showing {shown} of {total}',
+    load_more: 'Load more',
+    loading: 'Loading…',
   },
 
   verification_badge: {

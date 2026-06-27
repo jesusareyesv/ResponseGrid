@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { api } from '@/lib/api';
 import { getEmergencyBySlug } from '@/lib/emergencies';
 import { getToken } from '@/lib/auth';
-import { PublicResourceCard } from '@/components/organisms/public-resource-card';
+import { ResourceList } from '@/components/organisms/resource-list';
 import { EmergencyMapWrapper } from '@/components/emergency-map-wrapper';
 import { NeedsFilter } from '@/components/needs-filter';
 import { Badge } from '@/components/atoms/badge';
@@ -55,7 +55,7 @@ export default async function EmergencyPage({ params, searchParams }: Props) {
   const { slug } = await params;
   const resolvedSearchParams = await searchParams;
   const emergency = await getEmergencyBySlug(slug);
-  const { t } = await getT();
+  const { t, locale } = await getT();
 
   if (!emergency) {
     notFound();
@@ -71,11 +71,18 @@ export default async function EmergencyPage({ params, searchParams }: Props) {
   const priority = VALID_PRIORITIES.includes(rawPriority as Priority) ? rawPriority as Priority : undefined;
 
   const [
-    { data: resources },
+    { data: resourcesPage },
+    { data: facets },
     { data: needs },
     { data: metrics },
   ] = await Promise.all([
     api.GET('/emergencies/{emergencyId}/public/resources', {
+      params: {
+        path: { emergencyId },
+        query: { page: 1, limit: 50 },
+      },
+    }),
+    api.GET('/emergencies/{emergencyId}/public/resources/facets', {
       params: { path: { emergencyId } },
     }),
     api.GET('/emergencies/{emergencyId}/public/needs', {
@@ -92,7 +99,10 @@ export default async function EmergencyPage({ params, searchParams }: Props) {
     }),
   ]);
 
-  const activeResources = resources ?? [];
+  const activeResources = resourcesPage?.items ?? [];
+  const resourcesTotal = resourcesPage?.total ?? 0;
+  // facets are ready for Task 7 (filter UI); not rendered yet
+  void facets;
   const validatedNeeds = needs ?? [];
 
   // Build map points from resources and needs that have valid coordinates
@@ -298,29 +308,20 @@ export default async function EmergencyPage({ params, searchParams }: Props) {
             {te.points_heading}
           </h2>
 
-          {activeResources.length === 0 ? (
-            <EmptyState
-              title={te.points_empty_title}
-              description={te.points_empty_description}
-            />
-          ) : (
-            <ul
-              className="flex flex-col gap-3"
-              aria-label={te.points_aria_label}
-              role="list"
-            >
-              {activeResources.map((resource) => (
-                <li key={resource.id}>
-                  <PublicResourceCard
-                    resource={resource}
-                    t={t.resource_card}
-                    tVerification={t.verification_badge}
-                    tStatusLight={t.status_light}
-                  />
-                </li>
-              ))}
-            </ul>
-          )}
+          <ResourceList
+            emergencyId={emergencyId}
+            initialItems={activeResources}
+            total={resourcesTotal}
+            t={t.resource_card}
+            tVerification={t.verification_badge}
+            tStatusLight={t.status_light}
+            tList={t.resource_list}
+            tEmpty={{
+              title: te.points_empty_title,
+              description: te.points_empty_description,
+            }}
+            locale={locale}
+          />
         </section>
 
         {/* ── 6. NECESIDADES VALIDADAS ─────────────────────────────────── */}
