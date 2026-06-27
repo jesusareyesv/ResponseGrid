@@ -95,8 +95,10 @@ export default async function CoordinacionReportesPage({ params, searchParams }:
     : undefined;
 
   // --- Fetch reports ---
+  // Use the body openapi-fetch already parsed (`data`); calling response.json()
+  // a second time throws "Body has already been read".
   let reports: FieldReport[] = [];
-  const { response } = await api.GET('/emergencies/{emergencyId}/reports', {
+  const { data, response } = await api.GET('/emergencies/{emergencyId}/reports', {
     params: {
       path: { emergencyId },
       query: {
@@ -118,20 +120,17 @@ export default async function CoordinacionReportesPage({ params, searchParams }:
     redirect(`/e/${slug}/coordinacion`);
   }
 
-  if (response.ok) {
-    const data: unknown = await response.json();
-    if (Array.isArray(data)) {
-      reports = data.filter(
-        (r): r is FieldReport =>
-          typeof r === 'object' &&
-          r != null &&
-          typeof (r as Record<string, unknown>).id === 'string' &&
-          typeof (r as Record<string, unknown>).type === 'string' &&
-          typeof (r as Record<string, unknown>).note === 'string' &&
-          typeof (r as Record<string, unknown>).priority === 'string' &&
-          typeof (r as Record<string, unknown>).status === 'string',
-      );
-    }
+  if (response.ok && Array.isArray(data)) {
+    reports = (data as unknown[]).filter(
+      (r): r is FieldReport =>
+        typeof r === 'object' &&
+        r != null &&
+        typeof (r as Record<string, unknown>).id === 'string' &&
+        typeof (r as Record<string, unknown>).type === 'string' &&
+        typeof (r as Record<string, unknown>).note === 'string' &&
+        typeof (r as Record<string, unknown>).priority === 'string' &&
+        typeof (r as Record<string, unknown>).status === 'string',
+    );
   }
 
   const baseUrl = `/e/${slug}/coordinacion/reportes`;
