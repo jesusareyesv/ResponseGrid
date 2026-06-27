@@ -31,11 +31,7 @@ export class DrizzleMembershipRepository implements MembershipRepository {
         role: s.role,
       })
       .onConflictDoUpdate({
-        target: [
-          membershipsTable.userId,
-          membershipsTable.emergencyId,
-          membershipsTable.role,
-        ],
+        target: [membershipsTable.userId, membershipsTable.emergencyId],
         set: { role: s.role },
       });
   }

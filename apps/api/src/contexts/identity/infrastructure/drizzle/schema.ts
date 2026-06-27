@@ -22,11 +22,9 @@ export const membershipsTable = pgTable(
     role: text('role').notNull(),
   },
   (t) => [
-    unique('memberships_user_emergency_role_unique').on(
-      t.userId,
-      t.emergencyId,
-      t.role,
-    ),
+    // One role per user per emergency — the upsert key is (user_id, emergency_id)
+    // so that updating a role replaces the existing row rather than inserting a new one.
+    unique('memberships_user_emergency_unique').on(t.userId, t.emergencyId),
   ],
 );
 
