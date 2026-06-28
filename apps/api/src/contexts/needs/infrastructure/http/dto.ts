@@ -3,10 +3,12 @@ import {
   IsEnum,
   IsLatitude,
   IsLongitude,
+  IsNotEmpty,
   IsOptional,
   IsString,
   IsUUID,
   MinLength,
+  MaxLength,
   ValidateNested,
   IsInt,
   IsNumber,
@@ -223,6 +225,58 @@ export class AssignNeedManagerDto {
   })
   @IsUUID()
   organizationId!: string;
+}
+
+export class DiscardNeedDto {
+  @ApiProperty({
+    description: 'Motivo del descarte (obligatorio, para trazabilidad)',
+    minLength: 3,
+    maxLength: 1000,
+    example: 'Petición duplicada; ya validada en otra entrada',
+  })
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(3)
+  @MaxLength(1000)
+  reason!: string;
+}
+
+export class EditNeedDto {
+  @ApiProperty({
+    description: 'Motivo de la edición (obligatorio, para trazabilidad)',
+    minLength: 3,
+    maxLength: 1000,
+    example: 'Se corrige la prioridad y se completa la descripción',
+  })
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(3)
+  @MaxLength(1000)
+  reason!: string;
+
+  @ApiPropertyOptional({
+    description: 'Nuevo título (omitir para no cambiarlo)',
+    minLength: 2,
+  })
+  @IsOptional()
+  @IsString()
+  @MinLength(2)
+  title?: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Nueva descripción. Cadena vacía la borra. Omitir para no cambiarla.',
+    nullable: true,
+    type: String,
+  })
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @ApiPropertyOptional({ enum: Priority, description: 'Nueva prioridad' })
+  @IsOptional()
+  @IsEnum(Priority)
+  priority?: Priority;
 }
 
 export class CreateTaskFromNeedDto {
