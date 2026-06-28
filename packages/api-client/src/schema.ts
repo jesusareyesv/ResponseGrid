@@ -322,7 +322,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Publish a resource (coordinator of the resource's emergency only) */
+        /** Publish a resource (verifier or coordinator of the resource's emergency) */
         post: operations["ResourcesController_publishResource"];
         delete?: never;
         options?: never;

@@ -884,7 +884,7 @@
             "bearer": []
           }
         ],
-        "summary": "Publish a resource (coordinator of the resource's emergency only)",
+        "summary": "Publish a resource (verifier or coordinator of the resource's emergency)",
         "tags": [
           "resources"
         ]
