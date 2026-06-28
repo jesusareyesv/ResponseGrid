@@ -26,8 +26,9 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       # Only apps/api has a .prettierrc; check its src + test dirs.
+      # prettier lives in apps/api's deps, so run it from there (root has no prettier bin).
       - name: Prettier — api
-        run: pnpm exec prettier --check "apps/api/src/**/*.ts" "apps/api/test/**/*.ts"
+        run: pnpm --filter api exec prettier --check "src/**/*.ts" "test/**/*.ts"
 
   # ── Lint ────────────────────────────────────────────────────────────────────
   lint:
