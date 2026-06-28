@@ -2077,6 +2077,12 @@ export interface components {
              * @example 3
              */
             requestedCount?: number | null;
+            /**
+             * Format: uuid
+             * @description Link this need to a resource / final recipient (#60). Optional.
+             * @example 3fa85f64-5717-4562-b3fc-2c963f66afa6
+             */
+            resourceId?: string | null;
         };
         CreateNeedResponseDto: {
             /**
@@ -2165,6 +2171,11 @@ export interface components {
              * @example 3
              */
             requestedCount?: number | null;
+            /**
+             * Format: uuid
+             * @description Linked resource / final recipient id (#60), or null if standalone.
+             */
+            resourceId?: string | null;
         };
         AssignNeedManagerDto: {
             /**
@@ -4238,6 +4249,8 @@ export interface operations {
                 category?: "hygiene" | "water" | "food" | "medical" | "shelter" | "tools" | "other" | "medicines" | "medical_equipment" | "medical_supplies" | "medical_personnel";
                 /** @description Filter by need priority */
                 priority?: "low" | "medium" | "high" | "urgent";
+                /** @description Filter to needs linked to this resource / final recipient */
+                resourceId?: string;
             };
             header?: never;
             path: {

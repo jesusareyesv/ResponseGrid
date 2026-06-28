@@ -1812,6 +1812,16 @@
               ],
               "type": "string"
             }
+          },
+          {
+            "name": "resourceId",
+            "required": false,
+            "in": "query",
+            "description": "Filter to needs linked to this resource / final recipient",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -6005,6 +6015,13 @@
             "example": 3,
             "description": "How many personnel are needed (>= 1)",
             "nullable": true
+          },
+          "resourceId": {
+            "type": "string",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+            "description": "Link this need to a resource / final recipient (#60). Optional.",
+            "nullable": true
           }
         },
         "required": [
@@ -6194,6 +6211,12 @@
             "example": 3,
             "nullable": true,
             "description": "Number of personnel needed"
+          },
+          "resourceId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "description": "Linked resource / final recipient id (#60), or null if standalone."
           }
         },
         "required": [

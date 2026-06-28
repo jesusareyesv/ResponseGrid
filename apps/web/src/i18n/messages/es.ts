@@ -309,6 +309,8 @@ export const es = {
     meta_source: 'Fuente:',
     // aria-label for the card article element
     aria_label: 'Punto activo: {name}',
+    // Destinatario final (#60)
+    final_recipient_label: 'Destinatario final',
   },
 
   // ── ResourceList ──────────────────────────────────────────────────────────
