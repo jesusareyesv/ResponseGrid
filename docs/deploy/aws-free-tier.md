@@ -103,6 +103,41 @@ docker compose -f deploy/docker-compose.prod.yml up -d --build
 ```
 (Las migraciones nuevas se aplican solas en el arranque.)
 
+## G. Arranque automático tras stop/start (reconciliación en cada boot)
+
+El daemon de Docker, al arrancar, solo reaplica la política `restart:` de cada
+contenedor; **no** vuelve a ejecutar `docker compose up`. Como `migrate` es
+one-shot (`restart: no`) y `api` depende de él (`service_completed_successfully`),
+tras un **stop/start** de la EC2 vuelven `postgres/redis/caddy/datadog` pero
+`migrate` no, así que `api` se queda caída y Caddy responde **502** hasta que
+alguien lanza `docker compose up -d` a mano.
+
+Para evitarlo, un servicio **systemd oneshot** ([`deploy/responsegrid.service`](../../deploy/responsegrid.service))
+ejecuta `docker compose -f deploy/docker-compose.prod.yml up -d` una vez por
+arranque (tras `docker.service`), reconciliando todo el stack (migra de forma
+idempotente y luego levanta `api`).
+
+- **Instancias nuevas:** lo instala y habilita [`deploy/user-data.sh`](../../deploy/user-data.sh) (unit escrita inline; sobrevive a recreaciones).
+- **Instancia ya creada / cada deploy:** lo (re)instala desde el fichero versionado [`deploy/install-reconcile.sh`](../../deploy/install-reconcile.sh), que invoca el workflow de deploy en cada push a `main`.
+
+Instalación/refresco manual (desde la raíz del repo, p. ej. `/opt/responsegrid`):
+
+```bash
+sudo bash deploy/install-reconcile.sh
+systemctl status responsegrid.service        # 'enabled'; tras un boot, 'active (exited)'
+```
+
+**Verificar** (stop/start real de la instancia):
+
+```bash
+# parar/arrancar la EC2 y esperar a que vuelva
+aws ec2 stop-instances  --instance-ids i-0f5979080ad5da6e5
+aws ec2 start-instances --instance-ids i-0f5979080ad5da6e5
+# sin tocar nada más, comprobar que el stack vuelve solo:
+docker compose -f deploy/docker-compose.prod.yml ps   # api/postgres/redis/caddy/datadog Up
+curl -fsS -o /dev/null -w '%{http_code}\n' https://api.responsegrid.app/docs   # 200
+```
+
 ---
 
 ## Notas / límites del free tier
