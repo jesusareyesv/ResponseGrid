@@ -1703,6 +1703,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List the shared category taxonomy (slug + labels + hierarchy) */
+        get: operations["CategoriesController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1894,6 +1911,33 @@ export interface components {
              */
             longitude: number;
         };
+        SupplyLineDto: {
+            /**
+             * @description Name of the supply
+             * @example Water bottles
+             */
+            name: string;
+            /**
+             * @description Quantity (positive integer)
+             * @example 100
+             */
+            quantity: number;
+            /**
+             * @description Unit of measurement (optional)
+             * @example liters
+             */
+            unit?: string;
+            /**
+             * @example water
+             * @enum {string}
+             */
+            category: "food" | "water" | "hygiene" | "clothing" | "medical" | "shelter" | "tools" | "other" | "medicines" | "medical_equipment" | "medical_supplies" | "medical_personnel";
+            /**
+             * @description Presentation / route of administration: ampolla, EV (intravenoso), inhalador, pastilla, jarabe… Optional, free-form (#61).
+             * @example ampolla
+             */
+            presentation?: string;
+        };
         RegisterResourceDto: {
             /**
              * @example collection_point
@@ -1961,6 +2005,8 @@ export interface components {
              * @example hospital
              */
             recipientType?: string;
+            /** @description Declared inventory: the supply lines this place holds for delivery (optional) */
+            items?: components["schemas"]["SupplyLineDto"][];
         };
         RegisterResourceResponseDto: {
             /**
@@ -2167,6 +2213,85 @@ export interface components {
             /** @example 8 */
             total: number;
         };
+        ResourceDetailViewDto: {
+            /**
+             * Format: uuid
+             * @example 3fa85f64-5717-4562-b3fc-2c963f66afa6
+             */
+            id: string;
+            /**
+             * @example collection_point
+             * @enum {string}
+             */
+            type: "collection_point" | "delivery_point" | "collection_and_delivery" | "warehouse" | "transport" | "supplier" | "venue";
+            /**
+             * @example origin
+             * @enum {string}
+             */
+            stage: "origin" | "intermediate" | "destination";
+            /** @example Cruz Roja Madrid */
+            name: string;
+            /** @example Centro de acopio principal */
+            description: string | null;
+            location: components["schemas"]["LocationViewDto"];
+            /**
+             * @example verified
+             * @enum {string}
+             */
+            verificationLevel: "unverified" | "verified" | "official";
+            /**
+             * @example active
+             * @enum {string}
+             */
+            publicStatus: "hidden" | "active" | "saturated" | "paused" | "closed";
+            /** Format: uuid */
+            ownerOrganizationId: string | null;
+            /**
+             * @example [
+             *       "water",
+             *       "food"
+             *     ]
+             */
+            accepts: string[];
+            /** @example +58 212 555 0000 */
+            contact: string | null;
+            /** @example Lun-Vie 08-18 */
+            schedule: string | null;
+            /** @example Juan Pérez */
+            manager: string | null;
+            /** @example acopiove.org */
+            sourceName: string | null;
+            /**
+             * @description ISO 8601 date string
+             * @example 2026-06-27T00:00:00.000Z
+             */
+            externalUpdatedAt: string | null;
+            /**
+             * @description Country string as stored by the ingestion source (e.g. full Spanish name "Venezuela"). NOT guaranteed to be an ISO 3166-1 alpha-2 code — value depends on the source `pais` field.
+             * @example Venezuela
+             */
+            country: string | null;
+            /** @example Caracas */
+            city: string | null;
+            /**
+             * @description Whether this resource is a final recipient of aid
+             * @example false
+             */
+            isFinalRecipient: boolean;
+            /**
+             * @description Recipient type slug (see the emergency recipient-type taxonomy)
+             * @example hospital
+             */
+            recipientType: string | null;
+            /**
+             * @description Distinct categories of material this place has declared
+             * @example [
+             *       "water",
+             *       "hygiene"
+             *     ]
+             */
+            inventoryCategories: string[];
+        };
         RecipientTypeDto: {
             /** @example hospital */
             slug: string;
@@ -2332,33 +2457,6 @@ export interface components {
              */
             longitude: number;
         };
-        NeedItemDto: {
-            /**
-             * @description Name of the item needed
-             * @example Water bottles
-             */
-            name: string;
-            /**
-             * @description Quantity needed (positive integer)
-             * @example 100
-             */
-            quantity: number;
-            /**
-             * @description Unit of measurement (optional)
-             * @example liters
-             */
-            unit?: string;
-            /**
-             * @example water
-             * @enum {string}
-             */
-            category: "hygiene" | "water" | "food" | "medical" | "shelter" | "tools" | "other" | "medicines" | "medical_equipment" | "medical_supplies" | "medical_personnel";
-            /**
-             * @description Presentation / route of administration: ampolla, EV (intravenoso), inhalador, pastilla, jarabe, oxígeno… Optional, free-form (#61).
-             * @example ampolla
-             */
-            presentation?: string;
-        };
         CreateNeedDto: {
             /** @example Alimentos para 50 familias */
             title: string;
@@ -2377,7 +2475,7 @@ export interface components {
              */
             requesterOrganizationId?: string;
             /** @description List of items needed (minimum 1) */
-            items: components["schemas"]["NeedItemDto"][];
+            items: components["schemas"]["SupplyLineDto"][];
             /**
              * @description Required volunteer skill for personnel needs
              * @example medical
@@ -2416,7 +2514,7 @@ export interface components {
             /** @example -66.9036 */
             longitude: number;
         };
-        NeedItemResponseDto: {
+        SupplyLineResponseDto: {
             /** @example Water bottles */
             name: string;
             /** @example 100 */
@@ -2427,7 +2525,7 @@ export interface components {
              * @example water
              * @enum {string}
              */
-            category: "hygiene" | "water" | "food" | "medical" | "shelter" | "tools" | "other" | "medicines" | "medical_equipment" | "medical_supplies" | "medical_personnel";
+            category: "food" | "water" | "hygiene" | "clothing" | "medical" | "shelter" | "tools" | "other" | "medicines" | "medical_equipment" | "medical_supplies" | "medical_personnel";
             /**
              * @description Presentation / route of administration (ampolla, EV, inhalador…) — #61.
              * @example ampolla
@@ -2465,7 +2563,7 @@ export interface components {
             requesterOrganizationId?: string | null;
             /** Format: uuid */
             managingOrganizationId?: string | null;
-            items: components["schemas"]["NeedItemResponseDto"][];
+            items: components["schemas"]["SupplyLineResponseDto"][];
             /**
              * @example pending
              * @enum {string}
@@ -2530,7 +2628,7 @@ export interface components {
             requesterOrganizationId?: string | null;
             /** Format: uuid */
             managingOrganizationId?: string | null;
-            items: components["schemas"]["NeedItemResponseDto"][];
+            items: components["schemas"]["SupplyLineResponseDto"][];
             /**
              * @example pending
              * @enum {string}
@@ -2784,7 +2882,7 @@ export interface components {
              * @example food
              * @enum {string}
              */
-            category: "hygiene" | "water" | "food" | "medical" | "shelter" | "tools" | "other" | "medicines" | "medical_equipment" | "medical_supplies" | "medical_personnel";
+            category: "food" | "water" | "hygiene" | "clothing" | "medical" | "shelter" | "tools" | "other" | "medicines" | "medical_equipment" | "medical_supplies" | "medical_personnel";
             /**
              * @description Description of the item being offered
              * @example Rice bags 25kg
@@ -2845,7 +2943,7 @@ export interface components {
              * @example food
              * @enum {string}
              */
-            category: "hygiene" | "water" | "food" | "medical" | "shelter" | "tools" | "other" | "medicines" | "medical_equipment" | "medical_supplies" | "medical_personnel";
+            category: "food" | "water" | "hygiene" | "clothing" | "medical" | "shelter" | "tools" | "other" | "medicines" | "medical_equipment" | "medical_supplies" | "medical_personnel";
             /** @example Rice bags 25kg */
             description: string;
             /** @example 50 */
@@ -3075,8 +3173,12 @@ export interface components {
             quantity?: number | null;
             /** @example cajas */
             unit?: string | null;
-            /** @example alimentacion */
-            category?: string | null;
+            /**
+             * @description Shared category taxonomy (optional — cargo may be loose)
+             * @example food
+             * @enum {string}
+             */
+            category?: "food" | "water" | "hygiene" | "clothing" | "medical" | "shelter" | "tools" | "other" | "medicines" | "medical_equipment" | "medical_supplies" | "medical_personnel";
         };
         CreateShipmentDto: {
             /**
@@ -3415,6 +3517,26 @@ export interface components {
              * @description Member to appoint as manager
              */
             userId: string;
+        };
+        CategoryDto: {
+            /** @example medicines */
+            slug: string;
+            /** @example Medicamentos */
+            labelEs: string;
+            /** @example Medicines */
+            labelEn: string;
+            /**
+             * @description Parent category slug, or null for a top-level category
+             * @example medical
+             */
+            parentSlug: string | null;
+            /** @example general */
+            vertical: string;
+            /**
+             * @description Display sort order
+             * @example 41
+             */
+            sort: number;
         };
     };
     responses: never;
@@ -4506,7 +4628,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ResourceViewDto"];
+                    "application/json": components["schemas"]["ResourceDetailViewDto"];
                 };
             };
             /** @description Resource not found or not public */
@@ -5042,7 +5164,7 @@ export interface operations {
         parameters: {
             query?: {
                 /** @description Filter by item category (needs with at least one item of this category) */
-                category?: "hygiene" | "water" | "food" | "medical" | "shelter" | "tools" | "other" | "medicines" | "medical_equipment" | "medical_supplies" | "medical_personnel";
+                category?: "food" | "water" | "hygiene" | "clothing" | "medical" | "shelter" | "tools" | "other" | "medicines" | "medical_equipment" | "medical_supplies" | "medical_personnel";
                 /** @description Filter by need priority */
                 priority?: "low" | "medium" | "high" | "urgent";
                 /** @description Filter to needs linked to this resource / final recipient */
@@ -5142,7 +5264,7 @@ export interface operations {
         parameters: {
             query?: {
                 /** @description Filter by item category (needs with at least one item of this category) */
-                category?: "hygiene" | "water" | "food" | "medical" | "shelter" | "tools" | "other" | "medicines" | "medical_equipment" | "medical_supplies" | "medical_personnel";
+                category?: "food" | "water" | "hygiene" | "clothing" | "medical" | "shelter" | "tools" | "other" | "medicines" | "medical_equipment" | "medical_supplies" | "medical_personnel";
                 /** @description Filter by need priority */
                 priority?: "low" | "medium" | "high" | "urgent";
             };
@@ -7789,6 +7911,26 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    CategoriesController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The category taxonomy */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryDto"][];
+                };
             };
         };
     };

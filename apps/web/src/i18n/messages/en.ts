@@ -205,18 +205,6 @@ export const en = {
     footer_report: 'Report',
     footer_coordination: 'Coordination access',
 
-    category_hygiene: 'Hygiene',
-    category_water: 'Water',
-    category_food: 'Food',
-    category_medical: 'Medical',
-    category_shelter: 'Shelter',
-    category_tools: 'Tools',
-    category_other: 'Other',
-    category_medicines: '💊 Medicines',
-    category_medical_equipment: '🩺 Medical equipment',
-    category_medical_supplies: '📦 Medical supplies',
-    category_medical_personnel: '🧑‍⚕️ Medical personnel',
-
     priority_low: 'Low',
     priority_medium: 'Medium',
     priority_high: 'High',
@@ -320,6 +308,8 @@ export const en = {
     back: 'Back to the emergency',
     needs_heading: 'Needs of this recipient',
     needs_empty: 'This recipient has no published needs.',
+    inventory_heading: 'Available materials',
+    inventory_empty: 'This point has not declared available materials.',
   },
 
   resource_list: {
@@ -423,11 +413,30 @@ export const en = {
     success_register_another: 'Register another resource',
     error_fallback: 'Error registering resource',
 
+    // Inventory / available materials (optional)
+    inventory_heading: 'Available materials',
+    inventory_hint:
+      'Optional · State what materials or products you have to deliver (for the point’s inventory control).',
+    inventory_add: '+ Add material',
+    inventory_empty: 'No materials declared yet.',
+    item_number: 'Material {n}',
+    item_remove: 'Remove material {n}',
+    item_remove_label: 'Remove',
+    item_name_label: 'Material / product',
+    item_name_placeholder: 'e.g. Bottled water',
+    item_quantity_label: 'Quantity',
+    item_unit_label: 'Unit',
+    item_unit_opt: '(opt.)',
+    item_unit_placeholder: 'boxes, liters…',
+    item_category_label: 'Category',
+
     // server-action messages
     err_invalid_type: 'Invalid resource type.',
     err_invalid_stage: 'Invalid stage.',
     err_name_too_short: 'Name must be at least 2 characters.',
     err_location_required: 'Select a location.',
+    err_invalid_items:
+      'Check the materials: each line needs a name, quantity and category.',
     err_register_failed: 'Couldn’t register. Please try again.',
   },
 
@@ -472,18 +481,6 @@ export const en = {
     item_unit_placeholder: 'boxes, litres…',
     item_category_label: 'Category',
 
-    category_hygiene: 'Hygiene',
-    category_water: 'Water',
-    category_food: 'Food',
-    category_medical: 'Medical',
-    category_shelter: 'Shelter',
-    category_tools: 'Tools',
-    category_other: 'Other',
-    category_medicines: '💊 Medicines',
-    category_medical_equipment: '🩺 Medical equipment',
-    category_medical_supplies: '📦 Medical supplies',
-    category_medical_personnel: '🧑‍⚕️ Medical personnel',
-
     // server-action messages
     err_title_too_short: 'Title must be at least 2 characters.',
     err_invalid_priority: 'Invalid priority.',
@@ -512,14 +509,6 @@ export const en = {
     notes_placeholder: 'e.g. Available Monday to Friday in the morning',
 
     select_category_placeholder: 'Select a category…',
-
-    category_food: 'Food',
-    category_water: 'Water',
-    category_hygiene: 'Hygiene',
-    category_medical: 'Medical',
-    category_shelter: 'Shelter',
-    category_tools: 'Tools',
-    category_other: 'Other',
 
     submit: 'Donate supplies',
     submitting: 'Sending…',
@@ -1480,18 +1469,6 @@ export const en = {
     priority_label: 'Priority',
     expired_at_label: 'Expired',
 
-    category_hygiene: 'Hygiene',
-    category_water: 'Water',
-    category_food: 'Food',
-    category_medical: 'Medical',
-    category_shelter: 'Shelter',
-    category_tools: 'Tools',
-    category_other: 'Other',
-    category_medicines: '💊 Medicines',
-    category_medical_equipment: '🩺 Medical equipment',
-    category_medical_supplies: '📦 Medical supplies',
-    category_medical_personnel: '🧑‍⚕️ Medical personnel',
-
     priority_low: 'Low',
     priority_medium: 'Medium',
     priority_high: 'High',
@@ -2041,4 +2018,4 @@ export const en = {
     qa_notifications: 'Notifications',
     qa_explore: 'View emergencies',
   },
-} as Messages;
+} satisfies Messages;

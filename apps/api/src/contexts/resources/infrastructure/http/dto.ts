@@ -15,6 +15,7 @@ import {
 import { Type, Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ResourceType, ResourceStage } from '../../domain/resource-enums';
+import { SupplyLineDto } from '../../../supplies/infrastructure/http/supply-line.dto';
 
 export class LocationDto {
   @ApiProperty({ example: 'Calle Mayor 1, Valencia' })
@@ -142,6 +143,17 @@ export class RegisterResourceDto {
   @IsOptional()
   @IsString()
   recipientType?: string;
+
+  @ApiPropertyOptional({
+    type: [SupplyLineDto],
+    description:
+      'Declared inventory: the supply lines this place holds for delivery (optional)',
+  })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => SupplyLineDto)
+  items?: SupplyLineDto[];
 }
 
 /**

@@ -1390,7 +1390,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ResourceViewDto"
+                  "$ref": "#/components/schemas/ResourceDetailViewDto"
                 }
               }
             }
@@ -1955,9 +1955,10 @@
             "description": "Filter by item category (needs with at least one item of this category)",
             "schema": {
               "enum": [
-                "hygiene",
-                "water",
                 "food",
+                "water",
+                "hygiene",
+                "clothing",
                 "medical",
                 "shelter",
                 "tools",
@@ -2212,9 +2213,10 @@
             "description": "Filter by item category (needs with at least one item of this category)",
             "schema": {
               "enum": [
-                "hygiene",
-                "water",
                 "food",
+                "water",
+                "hygiene",
+                "clothing",
                 "medical",
                 "shelter",
                 "tools",
@@ -5421,6 +5423,31 @@
           "groups"
         ]
       }
+    },
+    "/categories": {
+      "get": {
+        "operationId": "CategoriesController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The category taxonomy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CategoryDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "List the shared category taxonomy (slug + labels + hierarchy)",
+        "tags": [
+          "categories"
+        ]
+      }
     }
   },
   "info": {
@@ -6018,6 +6045,54 @@
           "longitude"
         ]
       },
+      "SupplyLineDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Water bottles",
+            "description": "Name of the supply"
+          },
+          "quantity": {
+            "type": "number",
+            "example": 100,
+            "description": "Quantity (positive integer)"
+          },
+          "unit": {
+            "type": "string",
+            "example": "liters",
+            "description": "Unit of measurement (optional)"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "food",
+              "water",
+              "hygiene",
+              "clothing",
+              "medical",
+              "shelter",
+              "tools",
+              "other",
+              "medicines",
+              "medical_equipment",
+              "medical_supplies",
+              "medical_personnel"
+            ],
+            "example": "water"
+          },
+          "presentation": {
+            "type": "string",
+            "example": "ampolla",
+            "description": "Presentation / route of administration: ampolla, EV (intravenoso), inhalador, pastilla, jarabe… Optional, free-form (#61)."
+          }
+        },
+        "required": [
+          "name",
+          "quantity",
+          "category"
+        ]
+      },
       "RegisterResourceDto": {
         "type": "object",
         "properties": {
@@ -6112,6 +6187,13 @@
             "type": "string",
             "example": "hospital",
             "description": "Recipient type slug (see the emergency recipient-type taxonomy)"
+          },
+          "items": {
+            "description": "Declared inventory: the supply lines this place holds for delivery (optional)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SupplyLineDto"
+            }
           }
         },
         "required": [
@@ -6567,6 +6649,166 @@
           "total"
         ]
       },
+      "ResourceDetailViewDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "collection_point",
+              "delivery_point",
+              "collection_and_delivery",
+              "warehouse",
+              "transport",
+              "supplier",
+              "venue"
+            ],
+            "example": "collection_point"
+          },
+          "stage": {
+            "type": "string",
+            "enum": [
+              "origin",
+              "intermediate",
+              "destination"
+            ],
+            "example": "origin"
+          },
+          "name": {
+            "type": "string",
+            "example": "Cruz Roja Madrid"
+          },
+          "description": {
+            "type": "string",
+            "example": "Centro de acopio principal",
+            "nullable": true
+          },
+          "location": {
+            "$ref": "#/components/schemas/LocationViewDto"
+          },
+          "verificationLevel": {
+            "type": "string",
+            "enum": [
+              "unverified",
+              "verified",
+              "official"
+            ],
+            "example": "verified"
+          },
+          "publicStatus": {
+            "type": "string",
+            "enum": [
+              "hidden",
+              "active",
+              "saturated",
+              "paused",
+              "closed"
+            ],
+            "example": "active"
+          },
+          "ownerOrganizationId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "accepts": {
+            "example": [
+              "water",
+              "food"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "contact": {
+            "type": "string",
+            "example": "+58 212 555 0000",
+            "nullable": true
+          },
+          "schedule": {
+            "type": "string",
+            "example": "Lun-Vie 08-18",
+            "nullable": true
+          },
+          "manager": {
+            "type": "string",
+            "example": "Juan Pérez",
+            "nullable": true
+          },
+          "sourceName": {
+            "type": "string",
+            "example": "acopiove.org",
+            "nullable": true
+          },
+          "externalUpdatedAt": {
+            "type": "string",
+            "example": "2026-06-27T00:00:00.000Z",
+            "description": "ISO 8601 date string",
+            "nullable": true
+          },
+          "country": {
+            "type": "string",
+            "example": "Venezuela",
+            "description": "Country string as stored by the ingestion source (e.g. full Spanish name \"Venezuela\"). NOT guaranteed to be an ISO 3166-1 alpha-2 code — value depends on the source `pais` field.",
+            "nullable": true
+          },
+          "city": {
+            "type": "string",
+            "example": "Caracas",
+            "nullable": true
+          },
+          "isFinalRecipient": {
+            "type": "boolean",
+            "example": false,
+            "description": "Whether this resource is a final recipient of aid"
+          },
+          "recipientType": {
+            "type": "string",
+            "example": "hospital",
+            "nullable": true,
+            "description": "Recipient type slug (see the emergency recipient-type taxonomy)"
+          },
+          "inventoryCategories": {
+            "example": [
+              "water",
+              "hygiene"
+            ],
+            "description": "Distinct categories of material this place has declared",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "stage",
+          "name",
+          "description",
+          "location",
+          "verificationLevel",
+          "publicStatus",
+          "ownerOrganizationId",
+          "accepts",
+          "contact",
+          "schedule",
+          "manager",
+          "sourceName",
+          "externalUpdatedAt",
+          "country",
+          "city",
+          "isFinalRecipient",
+          "recipientType",
+          "inventoryCategories"
+        ]
+      },
       "RecipientTypeDto": {
         "type": "object",
         "properties": {
@@ -6930,53 +7172,6 @@
           "longitude"
         ]
       },
-      "NeedItemDto": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "example": "Water bottles",
-            "description": "Name of the item needed"
-          },
-          "quantity": {
-            "type": "number",
-            "example": 100,
-            "description": "Quantity needed (positive integer)"
-          },
-          "unit": {
-            "type": "string",
-            "example": "liters",
-            "description": "Unit of measurement (optional)"
-          },
-          "category": {
-            "type": "string",
-            "enum": [
-              "hygiene",
-              "water",
-              "food",
-              "medical",
-              "shelter",
-              "tools",
-              "other",
-              "medicines",
-              "medical_equipment",
-              "medical_supplies",
-              "medical_personnel"
-            ],
-            "example": "water"
-          },
-          "presentation": {
-            "type": "string",
-            "example": "ampolla",
-            "description": "Presentation / route of administration: ampolla, EV (intravenoso), inhalador, pastilla, jarabe, oxígeno… Optional, free-form (#61)."
-          }
-        },
-        "required": [
-          "name",
-          "quantity",
-          "category"
-        ]
-      },
       "CreateNeedDto": {
         "type": "object",
         "properties": {
@@ -7013,7 +7208,7 @@
             "minItems": 1,
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/NeedItemDto"
+              "$ref": "#/components/schemas/SupplyLineDto"
             }
           },
           "requiredSkill": {
@@ -7093,7 +7288,7 @@
           "longitude"
         ]
       },
-      "NeedItemResponseDto": {
+      "SupplyLineResponseDto": {
         "type": "object",
         "properties": {
           "name": {
@@ -7112,9 +7307,10 @@
           "category": {
             "type": "string",
             "enum": [
-              "hygiene",
-              "water",
               "food",
+              "water",
+              "hygiene",
+              "clothing",
               "medical",
               "shelter",
               "tools",
@@ -7196,7 +7392,7 @@
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/NeedItemResponseDto"
+              "$ref": "#/components/schemas/SupplyLineResponseDto"
             }
           },
           "status": {
@@ -7321,7 +7517,7 @@
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/NeedItemResponseDto"
+              "$ref": "#/components/schemas/SupplyLineResponseDto"
             }
           },
           "status": {
@@ -7916,9 +8112,10 @@
           "category": {
             "type": "string",
             "enum": [
-              "hygiene",
-              "water",
               "food",
+              "water",
+              "hygiene",
+              "clothing",
               "medical",
               "shelter",
               "tools",
@@ -8029,9 +8226,10 @@
           "category": {
             "type": "string",
             "enum": [
-              "hygiene",
-              "water",
               "food",
+              "water",
+              "hygiene",
+              "clothing",
               "medical",
               "shelter",
               "tools",
@@ -8485,8 +8683,22 @@
           },
           "category": {
             "type": "string",
-            "example": "alimentacion",
-            "nullable": true
+            "enum": [
+              "food",
+              "water",
+              "hygiene",
+              "clothing",
+              "medical",
+              "shelter",
+              "tools",
+              "other",
+              "medicines",
+              "medical_equipment",
+              "medical_supplies",
+              "medical_personnel"
+            ],
+            "example": "food",
+            "description": "Shared category taxonomy (optional — cargo may be loose)"
           }
         },
         "required": [
@@ -9483,6 +9695,46 @@
         },
         "required": [
           "userId"
+        ]
+      },
+      "CategoryDto": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "example": "medicines"
+          },
+          "labelEs": {
+            "type": "string",
+            "example": "Medicamentos"
+          },
+          "labelEn": {
+            "type": "string",
+            "example": "Medicines"
+          },
+          "parentSlug": {
+            "type": "string",
+            "example": "medical",
+            "nullable": true,
+            "description": "Parent category slug, or null for a top-level category"
+          },
+          "vertical": {
+            "type": "string",
+            "example": "general"
+          },
+          "sort": {
+            "type": "number",
+            "example": 41,
+            "description": "Display sort order"
+          }
+        },
+        "required": [
+          "slug",
+          "labelEs",
+          "labelEn",
+          "parentSlug",
+          "vertical",
+          "sort"
         ]
       }
     }

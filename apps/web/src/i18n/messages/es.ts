@@ -213,19 +213,6 @@ export const es = {
     footer_report: 'Reportar',
     footer_coordination: 'Acceso de coordinación',
 
-    // Category labels
-    category_hygiene: 'Higiene',
-    category_water: 'Agua',
-    category_food: 'Alimentos',
-    category_medical: 'Sanitario',
-    category_shelter: 'Refugio',
-    category_tools: 'Herramientas',
-    category_other: 'Otro',
-    category_medicines: '💊 Medicamentos',
-    category_medical_equipment: '🩺 Equipos médicos',
-    category_medical_supplies: '📦 Insumos médicos',
-    category_medical_personnel: '🧑‍⚕️ Personal sanitario',
-
     // Priority labels
     priority_low: 'Baja',
     priority_medium: 'Media',
@@ -336,6 +323,8 @@ export const es = {
     back: 'Volver a la emergencia',
     needs_heading: 'Necesidades de este destinatario',
     needs_empty: 'Este destinatario no tiene necesidades publicadas.',
+    inventory_heading: 'Material disponible',
+    inventory_empty: 'Este punto no ha declarado material disponible.',
   },
 
   // ── ResourceList ──────────────────────────────────────────────────────────
@@ -444,11 +433,30 @@ export const es = {
     success_register_another: 'Registrar otro recurso',
     error_fallback: 'Error al registrar el recurso',
 
+    // Inventario / material disponible (opcional)
+    inventory_heading: 'Material disponible',
+    inventory_hint:
+      'Opcional · Indica qué material o productos tienes para entregar (para el control de inventario del punto).',
+    inventory_add: '+ Añadir material',
+    inventory_empty: 'Sin material declarado todavía.',
+    item_number: 'Material {n}',
+    item_remove: 'Eliminar material {n}',
+    item_remove_label: 'Quitar',
+    item_name_label: 'Material / producto',
+    item_name_placeholder: 'Ej. Agua embotellada',
+    item_quantity_label: 'Cantidad',
+    item_unit_label: 'Unidad',
+    item_unit_opt: '(opt.)',
+    item_unit_placeholder: 'cajas, litros…',
+    item_category_label: 'Categoría',
+
     // server-action messages
     err_invalid_type: 'Tipo de recurso no válido.',
     err_invalid_stage: 'Etapa no válida.',
     err_name_too_short: 'El nombre debe tener al menos 2 caracteres.',
     err_location_required: 'Selecciona una ubicación.',
+    err_invalid_items:
+      'Revisa el material: cada línea necesita nombre, cantidad y categoría.',
     err_register_failed: 'Error al registrar. Inténtalo de nuevo.',
   },
 
@@ -495,18 +503,6 @@ export const es = {
     item_unit_placeholder: 'cajas, litros…',
     item_category_label: 'Categoría',
 
-    category_hygiene: 'Higiene',
-    category_water: 'Agua',
-    category_food: 'Alimentos',
-    category_medical: 'Sanitario',
-    category_shelter: 'Refugio',
-    category_tools: 'Herramientas',
-    category_other: 'Otro',
-    category_medicines: '💊 Medicamentos',
-    category_medical_equipment: '🩺 Equipos médicos',
-    category_medical_supplies: '📦 Insumos médicos',
-    category_medical_personnel: '🧑‍⚕️ Personal sanitario',
-
     // server-action messages
     err_title_too_short: 'El título debe tener al menos 2 caracteres.',
     err_invalid_priority: 'Prioridad no válida.',
@@ -536,14 +532,6 @@ export const es = {
     notes_placeholder: 'Ej. Disponible de lunes a viernes por la mañana',
 
     select_category_placeholder: 'Selecciona una categoría…',
-
-    category_food: 'Alimentos',
-    category_water: 'Agua',
-    category_hygiene: 'Higiene',
-    category_medical: 'Sanitario',
-    category_shelter: 'Refugio',
-    category_tools: 'Herramientas',
-    category_other: 'Otro',
 
     submit: 'Donar material',
     submitting: 'Enviando…',
@@ -1507,18 +1495,6 @@ export const es = {
     optional: '(opcional)',
     priority_label: 'Prioridad',
     expired_at_label: 'Caducó',
-
-    category_hygiene: 'Higiene',
-    category_water: 'Agua',
-    category_food: 'Alimentos',
-    category_medical: 'Sanitario',
-    category_shelter: 'Refugio',
-    category_tools: 'Herramientas',
-    category_other: 'Otro',
-    category_medicines: '💊 Medicamentos',
-    category_medical_equipment: '🩺 Equipos médicos',
-    category_medical_supplies: '📦 Insumos médicos',
-    category_medical_personnel: '🧑‍⚕️ Personal sanitario',
 
     priority_low: 'Baja',
     priority_medium: 'Media',
