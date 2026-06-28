@@ -165,6 +165,7 @@ export default async function DocsPage() {
     ['enums', d.nav_enums],
     ['write', d.nav_write],
     ['practices', d.nav_practices],
+    ['license', d.nav_license],
     ['links', d.nav_links],
   ];
 
@@ -308,6 +309,12 @@ for (const p of items) {
     "accepts": ["water", "food"]
   }'`;
 
+  const attributionText =
+    'ResponseGrid by Global Emergency — CC BY-SA 4.0 — https://responsegrid.app';
+
+  const attributionHtml =
+    '<a href="https://responsegrid.app">ResponseGrid</a> by <a href="https://globalemergency.online">Global Emergency</a>, licensed under <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>';
+
   const resourceFields: [string, string, string][] = [
     ['name', 'string', d.f_name],
     ['type', 'enum', d.f_type],
@@ -402,6 +409,7 @@ for (const p of items) {
                     [d.overview_read_label, d.overview_read_value],
                     [d.overview_write_label, d.overview_write_value],
                     [d.overview_scope_label, d.overview_scope_value],
+                    [d.overview_license_label, d.overview_license_value],
                   ].map(([label, value]) => (
                     <div key={label} className="rounded-card border border-line bg-surface-alt px-4 py-3">
                       <dt className="font-display text-[11px] font-bold uppercase tracking-wide text-muted">
@@ -607,6 +615,26 @@ for (const p of items) {
                   <Card title={d.bp_privacy_t}>{d.bp_privacy_b}</Card>
                   <Card title={d.bp_cors_t}>{d.bp_cors_b}</Card>
                 </div>
+              </Section>
+
+              {/* License & attribution */}
+              <Section id="license" title={d.license_heading}>
+                <Lead>{d.license_intro}</Lead>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Card title={d.license_attribution_t}>{d.license_attribution_b}</Card>
+                  <Card title={d.license_sharealike_t}>{d.license_sharealike_b}</Card>
+                </div>
+                <Lead>{d.license_snippet_intro}</Lead>
+                <CodeBlock copyLabel={d.copy} copiedLabel={d.copied} code={attributionText} lang="TXT" />
+                <CodeBlock copyLabel={d.copy} copiedLabel={d.copied} code={attributionHtml} lang="HTML" />
+                <a
+                  href="https://creativecommons.org/licenses/by-sa/4.0/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[14px] font-semibold text-accent hover:underline"
+                >
+                  {d.license_full_link} →
+                </a>
               </Section>
 
               {/* Reference & links */}

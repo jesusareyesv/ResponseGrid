@@ -686,6 +686,7 @@ export const en = {
     nav_enums: 'States & categories',
     nav_write: 'Contribute data (with a token)',
     nav_practices: 'Best practices',
+    nav_license: 'License & attribution',
     nav_links: 'Reference & links',
 
     // Overview
@@ -705,6 +706,8 @@ export const en = {
     overview_write_value: 'Require a JWT (Bearer) token. See “Contribute data”.',
     overview_scope_label: 'Scope',
     overview_scope_value: 'Everything hangs off an emergency, identified by its UUID or slug.',
+    overview_license_label: 'Data licence',
+    overview_license_value: 'CC BY-SA 4.0 — attribution required + share-alike.',
 
     // Concepts
     concepts_heading: 'Concepts',
@@ -823,9 +826,9 @@ export const en = {
     bp_cache_t: 'Cache and poll sensibly',
     bp_cache_b:
       'Do not hammer the API: paginate, cache responses and refresh every few minutes. Use updatedAt, lastVerifiedAt and externalUpdatedAt to know how fresh a datum is.',
-    bp_attribution_t: 'Cite the source',
+    bp_attribution_t: 'Cite the source (required)',
     bp_attribution_b:
-      'If you reuse this data, attribute ResponseGrid / Global Emergency and link back to the emergency. It helps people reach the canonical information and reduces misinformation.',
+      'Not just courtesy: the data licence (CC BY-SA 4.0) requires you to attribute ResponseGrid / Global Emergency and link back. Ready-to-paste text is in “License & attribution”.',
     bp_canonical_t: 'Respect the trust levels',
     bp_canonical_b:
       'Show your users the verificationLevel and publicStatus. An “official and operational” point is not the same as a “verified and saturated” one: that signal is exactly the value we add.',
@@ -835,6 +838,19 @@ export const en = {
     bp_cors_t: 'Call from your server',
     bp_cors_b:
       'The public GETs are anonymous, but the API restricts browser CORS to allowed origins. Consume server to server, or proxy through your backend.',
+
+    // License & attribution
+    license_heading: 'License & attribution',
+    license_intro:
+      'The data returned by the API is published under Creative Commons Attribution-ShareAlike 4.0 (CC BY-SA 4.0). You may use, redistribute and adapt it —including commercially— as long as you meet two conditions. (This is the licence of the data; the project code has its own licence.)',
+    license_attribution_t: 'Attribution required',
+    license_attribution_b:
+      'Credit ResponseGrid / Global Emergency, state the licence and link back to the source. The credit must be visible wherever you show the data.',
+    license_sharealike_t: 'Share-alike',
+    license_sharealike_b:
+      'If you remix, transform or build a database from this data and distribute it, you must release it under this same licence, CC BY-SA 4.0.',
+    license_snippet_intro: 'Ready-to-paste attribution:',
+    license_full_link: 'Full legal text of the licence',
 
     // Reference & links
     links_heading: 'Reference & links',

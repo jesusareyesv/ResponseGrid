@@ -841,6 +841,7 @@ export const es = {
     nav_enums: 'Estados y categorías',
     nav_write: 'Aportar datos (con token)',
     nav_practices: 'Buenas prácticas',
+    nav_license: 'Licencia y atribución',
     nav_links: 'Referencia y enlaces',
 
     // Visión general
@@ -860,6 +861,8 @@ export const es = {
     overview_write_value: 'Requiere un token JWT (Bearer). Ver «Aportar datos».',
     overview_scope_label: 'Ámbito',
     overview_scope_value: 'Todo cuelga de una emergencia, identificada por su UUID o su slug.',
+    overview_license_label: 'Licencia de datos',
+    overview_license_value: 'CC BY-SA 4.0 — atribución obligatoria + compartir igual.',
 
     // Conceptos
     concepts_heading: 'Conceptos',
@@ -981,9 +984,9 @@ export const es = {
     bp_cache_t: 'Cachea y consulta con cabeza',
     bp_cache_b:
       'No martillees la API: pagina, cachea las respuestas y refresca cada pocos minutos. Usa updatedAt, lastVerifiedAt y externalUpdatedAt para saber qué tan fresco es un dato.',
-    bp_attribution_t: 'Cita la fuente',
+    bp_attribution_t: 'Cita la fuente (obligatorio)',
     bp_attribution_b:
-      'Si reutilizas estos datos, atribuye a ResponseGrid / Global Emergency y enlaza de vuelta a la emergencia. Ayuda a que la gente llegue a la información canónica y reduce la desinformación.',
+      'No es solo cortesía: la licencia de los datos (CC BY-SA 4.0) te obliga a atribuir a ResponseGrid / Global Emergency y a enlazar de vuelta. Tienes el texto listo para pegar en «Licencia y atribución».',
     bp_canonical_t: 'Respeta los niveles de confianza',
     bp_canonical_b:
       'Muestra a tus usuarios el verificationLevel y el publicStatus. Un punto «oficial y operativo» no es lo mismo que uno «verificado y saturado»: esa señal es justo el valor que aportamos.',
@@ -993,6 +996,19 @@ export const es = {
     bp_cors_t: 'Llama desde tu servidor',
     bp_cors_b:
       'Los GET públicos son anónimos, pero la API restringe el CORS de navegador a orígenes permitidos. Consume servidor a servidor o haz de proxy desde tu backend.',
+
+    // Licencia y atribución
+    license_heading: 'Licencia y atribución',
+    license_intro:
+      'Los datos que devuelve la API se publican bajo Creative Commons Reconocimiento-CompartirIgual 4.0 (CC BY-SA 4.0). Puedes usarlos, redistribuirlos y adaptarlos —incluso con fines comerciales— siempre que cumplas dos condiciones. (Es la licencia de los datos; el código del proyecto tiene su propia licencia.)',
+    license_attribution_t: 'Atribución obligatoria',
+    license_attribution_b:
+      'Da crédito a ResponseGrid / Global Emergency, indica la licencia y enlaza de vuelta a la fuente. El crédito debe estar visible allá donde muestres los datos.',
+    license_sharealike_t: 'Compartir igual',
+    license_sharealike_b:
+      'Si mezclas, transformas o construyes una base de datos a partir de estos datos y la distribuyes, debes publicarla bajo esta misma licencia, CC BY-SA 4.0.',
+    license_snippet_intro: 'Texto de atribución listo para pegar:',
+    license_full_link: 'Texto legal completo de la licencia',
 
     // Referencia y enlaces
     links_heading: 'Referencia y enlaces',
