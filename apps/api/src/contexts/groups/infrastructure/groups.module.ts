@@ -29,6 +29,9 @@ import { ApproveMember } from '../application/approve-member';
 import { AddMemberByEmail } from '../application/add-member-by-email';
 import { AssignGroupManager } from '../application/assign-group-manager';
 import { ListGroupMembers } from '../application/list-group-members';
+import { ListGroupsByOwner } from '../application/list-groups-by-owner';
+import { ListMyGroups } from '../application/list-my-groups';
+import { GetGroup } from '../application/get-group';
 import { GroupsController } from './http/groups.controller';
 
 const groupRepositoryProvider = {
@@ -119,6 +122,26 @@ const listGroupMembersProvider = {
   ) => new ListGroupMembers(groups, members, access),
 };
 
+const listGroupsByOwnerProvider = {
+  provide: ListGroupsByOwner,
+  inject: [GROUP_REPOSITORY, ACCESS_CONTROL],
+  useFactory: (groups: GroupRepository, access: AccessControl) =>
+    new ListGroupsByOwner(groups, access),
+};
+
+const listMyGroupsProvider = {
+  provide: ListMyGroups,
+  inject: [GROUP_REPOSITORY, GROUP_MEMBER_REPOSITORY],
+  useFactory: (groups: GroupRepository, members: GroupMemberRepository) =>
+    new ListMyGroups(groups, members),
+};
+
+const getGroupProvider = {
+  provide: GetGroup,
+  inject: [GROUP_REPOSITORY],
+  useFactory: (groups: GroupRepository) => new GetGroup(groups),
+};
+
 @Module({
   imports: [DatabaseModule, IdentityModule],
   controllers: [GroupsController],
@@ -132,6 +155,9 @@ const listGroupMembersProvider = {
     addMemberByEmailProvider,
     assignGroupManagerProvider,
     listGroupMembersProvider,
+    listGroupsByOwnerProvider,
+    listMyGroupsProvider,
+    getGroupProvider,
   ],
 })
 export class GroupsModule {}
