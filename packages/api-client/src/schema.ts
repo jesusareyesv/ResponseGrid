@@ -5198,9 +5198,10 @@ export interface operations {
     GrantsController_listAtScope: {
         parameters: {
             query: {
-                /** @description platform | organization | emergency | group */
+                /** @description platform | organization | emergency | group | entity */
                 scopeType: string;
                 scopeId?: string;
+                scopeEntityType?: string;
             };
             header?: never;
             path?: never;
