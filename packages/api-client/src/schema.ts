@@ -4077,9 +4077,9 @@ export interface components {
             /** @example María López */
             donorName: string;
             /** @example +52 55 1234 5678 */
-            donorPhone?: Record<string, never> | null;
+            donorPhone?: string | null;
             /** @example maria@example.com */
-            donorEmail?: Record<string, never> | null;
+            donorEmail?: string | null;
             items: components["schemas"]["SupplyLineDto"][];
         };
         CreateDonationIntakeResponseDto: {
@@ -4095,9 +4095,9 @@ export interface components {
         };
         LookupDonorByContactDto: {
             /** @example +52 55 1234 5678 */
-            donorPhone?: Record<string, never> | null;
+            donorPhone?: string | null;
             /** @example maria@example.com */
-            donorEmail?: Record<string, never> | null;
+            donorEmail?: string | null;
         };
         PendingIntakeSummaryDto: {
             /** Format: uuid */
@@ -4122,9 +4122,9 @@ export interface components {
             /** @example María López */
             donorName: string;
             /** @example +52 55 1234 5678 */
-            donorPhone?: Record<string, never> | null;
+            donorPhone?: string | null;
             /** @example maria@example.com */
-            donorEmail?: Record<string, never> | null;
+            donorEmail?: string | null;
             items: components["schemas"]["SupplyLineDto"][];
         };
         IntakeLineViewDto: {

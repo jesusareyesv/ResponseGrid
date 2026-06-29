@@ -132,7 +132,8 @@ export const es = {
     metric_tile_queue: 'En cola',
 
     // Subtítulos de "¿Cómo quieres ayudar?"
-    help_offer_subtitle: 'Almacén · transporte · espacio',
+    help_donate_subtitle: 'Ofrécelo o pre-regístralo en un punto',
+    help_offer_subtitle: 'Punto de acopio · almacén · espacio',
     help_volunteer_subtitle: 'Disponibilidad y habilidades',
     help_petition_subtitle: 'Solicitar material validado',
     help_transport_subtitle: 'Carretera · marítimo · aéreo',
@@ -168,7 +169,7 @@ export const es = {
 
     // "¿Cómo quieres colaborar?"
     actions_heading: '¿Cómo quieres colaborar?',
-    action_offer_resource: 'Ofrecer un recurso',
+    action_offer_resource: 'Registrar un punto logístico',
     action_submit_petition: 'Poner una petición',
     action_donate: 'Donar material',
     action_volunteer: 'Apuntarme como voluntario',
@@ -329,6 +330,8 @@ export const es = {
     needs_empty: 'Este destinatario no tiene necesidades publicadas.',
     inventory_heading: 'Material disponible',
     inventory_empty: 'Este punto no ha declarado material disponible.',
+    prereg_cta: 'Pre-registrar lo que llevaré',
+    prereg_cta_hint: 'Declara tu entrega y obtén un código para agilizar el mostrador.',
   },
 
   // ── ResourceList ──────────────────────────────────────────────────────────
@@ -403,10 +406,10 @@ export const es = {
 
   // ── Registrar form ────────────────────────────────────────────────────────
   registrar: {
-    page_title: 'Ofrecer un recurso',
-    page_subtitle: '{emergencyName} · Rellena el formulario. Te validaremos antes de activarte.',
-    meta_title: 'Ofrecer un recurso — {emergencyName} · ResponseGrid',
-    meta_description: 'Regístrate como recurso disponible para {emergencyName}.',
+    page_title: 'Registrar un punto logístico',
+    page_subtitle: '{emergencyName} · Da de alta un punto de acopio, almacén, espacio o hub. Lo validaremos antes de activarlo.',
+    meta_title: 'Registrar un punto logístico — {emergencyName} · ResponseGrid',
+    meta_description: 'Da de alta un punto logístico (acopio, almacén, espacio) para {emergencyName}.',
 
     type_label: 'Tipo de recurso',
     stage_label: 'Etapa',
@@ -524,6 +527,17 @@ export const es = {
     meta_title: 'Donar material — {emergencyName} · ResponseGrid',
     meta_description: 'Ofrece material de ayuda para {emergencyName}.',
 
+    // Selector de donación (#130): llevarlo a un punto vs ofrecer material
+    choose_title: '¿Cómo quieres donar?',
+    choose_subtitle: 'Elige cómo harás llegar tu material.',
+    choose_meta_title: 'Donar material — {emergencyName} · ResponseGrid',
+    choose_deliver_title: 'Voy a llevarlo a un punto',
+    choose_deliver_subtitle:
+      'Elige el punto y pre-registra tu entrega — obtienes un código/QR para el mostrador',
+    choose_offer_title: 'Ofrecer material',
+    choose_offer_subtitle:
+      'Lo describes y el equipo de coordinación lo gestiona',
+
     directed_offer_label: 'Ofreces para:',
     category_label: 'Categoría del material',
     description_label: 'Descripción del material',
@@ -551,6 +565,90 @@ export const es = {
     err_invalid_quantity: 'La cantidad debe ser un número entero positivo.',
     err_location_required: 'Selecciona una ubicación.',
     err_submit_failed: 'Error al enviar la oferta. Inténtalo de nuevo.',
+  },
+
+  // ── Pre-registro de entrega ciudadano (#130) ──────────────────────────────
+  prereg: {
+    page_title: 'Pre-registrar mi entrega',
+    page_subtitle:
+      '{pointName} · Indica qué vas a llevar y obtén tu código para el mostrador.',
+    meta_title: 'Pre-registrar entrega — {emergencyName} · ResponseGrid',
+    meta_description:
+      'Pre-registra el material que llevarás a un punto de acopio de {emergencyName} y obtén tu comprobante.',
+
+    point_label: 'Punto de acopio',
+
+    // Paso 1 — selección del punto de entrega
+    pick_title: '¿A qué punto lo llevarás?',
+    pick_hint:
+      'Busca y elige el punto de acopio donde entregarás tu material.',
+    pick_search_label: 'Buscar punto',
+    pick_search_placeholder: 'Nombre o ciudad…',
+    pick_search_button: 'Buscar',
+    pick_results_empty:
+      'No encontramos puntos de recogida que coincidan. Prueba con otra búsqueda.',
+    pick_all_hint:
+      'Puntos de recogida activos. Usa el buscador para acotar por nombre o ciudad.',
+    pick_select: 'Pre-registrar aquí',
+    back_to_pick: 'Elegir otro punto',
+
+    no_point_title: 'Elige primero un punto de acopio',
+    no_point_body:
+      'Abre la ficha de un punto de recogida y pulsa «Pre-registrar lo que llevaré».',
+    no_point_cta: 'Ver puntos de la emergencia',
+    not_eligible_title: 'Este punto no admite pre-registro',
+    not_eligible_body:
+      'Solo los puntos de recogida activos aceptan pre-registro de entregas. Elige otro punto.',
+
+    donor_name_label: 'Tu nombre',
+    donor_name_placeholder: 'Ej. María López',
+    contact_heading: 'Cómo localizarte',
+    contact_hint:
+      'Indica al menos un dato de contacto. Solo lo verá el punto para localizar tu entrega.',
+    email_label: 'Correo electrónico',
+    email_placeholder: 'maria@example.com',
+    phone_label: 'Teléfono',
+    phone_placeholder: '+52 55 1234 5678',
+
+    // Editor de líneas (reutiliza InventoryField)
+    lines: {
+      inventory_heading: '¿Qué vas a llevar?',
+      inventory_hint:
+        'Añade el material que entregarás. Podrás ajustar las cantidades en el punto.',
+      inventory_add: '+ Añadir material',
+      inventory_empty: 'Añade al menos un material.',
+      item_number: 'Material {n}',
+      item_remove: 'Eliminar material {n}',
+      item_remove_label: 'Quitar',
+      item_name_label: 'Material / producto',
+      item_name_placeholder: 'Ej. Agua embotellada',
+      item_quantity_label: 'Cantidad',
+      item_unit_label: 'Unidad',
+      item_unit_opt: '(opt.)',
+      item_unit_placeholder: 'cajas, litros…',
+      item_category_label: 'Categoría',
+    },
+
+    submit: 'Generar mi código',
+    submitting: 'Generando…',
+
+    // Comprobante
+    success_title: '¡Pre-registro listo!',
+    success_body: 'Muestra este código en {pointName} al entregar tu material.',
+    code_label: 'Tu código de entrega',
+    qr_alt: 'Código QR de tu pre-registro',
+    success_register_another: 'Pre-registrar otra entrega',
+
+    // server-action messages
+    err_name_required: 'Indica tu nombre.',
+    err_contact_required: 'Indica al menos un correo o un teléfono.',
+    err_items_required: 'Añade al menos un material.',
+    err_invalid_items:
+      'Revisa el material: cada línea necesita nombre, cantidad y categoría.',
+    err_submit_failed:
+      'No se pudo completar el pre-registro. Inténtalo de nuevo.',
+    err_not_accepting: 'Este punto no está aceptando pre-registros ahora mismo.',
+    err_too_many: 'Demasiados intentos. Espera un momento y vuelve a probar.',
   },
 
   // ── Ofrecer transporte (#105) ─────────────────────────────────────────────
