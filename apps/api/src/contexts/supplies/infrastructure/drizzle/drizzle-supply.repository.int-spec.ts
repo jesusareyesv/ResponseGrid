@@ -3,7 +3,7 @@ import { suppliesTable, supplyAliasesTable } from './schema';
 import { DrizzleSupplyRepository } from './drizzle-supply.repository';
 import { Supply } from '../../domain/supply';
 import { SupplyAlias } from '../../domain/supply-alias';
-import { AliasConflictError } from '../../domain/supply-errors';
+import { SupplyAliasConflictError } from '../../domain/supply-errors';
 import type { Pool } from 'pg';
 
 const URL =
@@ -110,7 +110,7 @@ describe('DrizzleSupplyRepository (integration)', () => {
 
     await expect(
       repo.addAlias(SupplyAlias.create({ alias: 'aguita', supplyId: B })),
-    ).rejects.toBeInstanceOf(AliasConflictError);
+    ).rejects.toBeInstanceOf(SupplyAliasConflictError);
 
     await repo.removeAlias('AGUITA');
     expect(await repo.listAliases(A)).toHaveLength(0);

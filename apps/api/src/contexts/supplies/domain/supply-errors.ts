@@ -19,23 +19,23 @@ export class SupplyCodeConflictError extends Error {
   }
 }
 
-export class VariantTargetNotFoundError extends Error {
+export class SupplyVariantTargetNotFoundError extends Error {
   constructor(variantOfId: string) {
     super(`Variant target supply not found: ${variantOfId}`);
-    this.name = 'VariantTargetNotFoundError';
+    this.name = 'SupplyVariantTargetNotFoundError';
   }
 }
 
-export class MergeIntoSelfError extends Error {
+export class SupplyMergeIntoSelfError extends Error {
   constructor(id: string) {
     super(`Cannot merge a supply into itself: ${id}`);
-    this.name = 'MergeIntoSelfError';
+    this.name = 'SupplyMergeIntoSelfError';
   }
 }
 
-export class AliasConflictError extends Error {
+export class SupplyAliasConflictError extends Error {
   constructor(alias: string) {
     super(`Alias already mapped to a supply: ${alias}`);
-    this.name = 'AliasConflictError';
+    this.name = 'SupplyAliasConflictError';
   }
 }

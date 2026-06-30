@@ -15,11 +15,11 @@ import {
 import { SupplyLineValidationError } from '../../domain/supply-line';
 import { SupplyValidationError } from '../../domain/supply';
 import {
-  AliasConflictError,
-  MergeIntoSelfError,
+  SupplyAliasConflictError,
+  SupplyMergeIntoSelfError,
   SupplyCodeConflictError,
   SupplyNotFoundError,
-  VariantTargetNotFoundError,
+  SupplyVariantTargetNotFoundError,
 } from '../../domain/supply-errors';
 
 type DomainError =
@@ -32,9 +32,9 @@ type DomainError =
   | SupplyValidationError
   | SupplyNotFoundError
   | SupplyCodeConflictError
-  | VariantTargetNotFoundError
-  | MergeIntoSelfError
-  | AliasConflictError;
+  | SupplyVariantTargetNotFoundError
+  | SupplyMergeIntoSelfError
+  | SupplyAliasConflictError;
 
 /**
  * Maps supplies domain errors to HTTP codes. The supplies context owns the
@@ -58,9 +58,9 @@ type DomainError =
   SupplyValidationError,
   SupplyNotFoundError,
   SupplyCodeConflictError,
-  VariantTargetNotFoundError,
-  MergeIntoSelfError,
-  AliasConflictError,
+  SupplyVariantTargetNotFoundError,
+  SupplyMergeIntoSelfError,
+  SupplyAliasConflictError,
 )
 export class SuppliesDomainExceptionFilter implements ExceptionFilter {
   catch(exception: DomainError, host: ArgumentsHost): void {
@@ -75,21 +75,21 @@ export class SuppliesDomainExceptionFilter implements ExceptionFilter {
     if (
       exception instanceof ContainerNotFoundError ||
       exception instanceof SupplyNotFoundError ||
-      exception instanceof VariantTargetNotFoundError
+      exception instanceof SupplyVariantTargetNotFoundError
     ) {
       return HttpStatus.NOT_FOUND;
     }
     if (
       exception instanceof ContainerSealedError ||
       exception instanceof SupplyCodeConflictError ||
-      exception instanceof AliasConflictError
+      exception instanceof SupplyAliasConflictError
     ) {
       return HttpStatus.CONFLICT;
     }
     if (
       exception instanceof SupplyLineValidationError ||
       exception instanceof SupplyValidationError ||
-      exception instanceof MergeIntoSelfError
+      exception instanceof SupplyMergeIntoSelfError
     ) {
       return HttpStatus.BAD_REQUEST;
     }

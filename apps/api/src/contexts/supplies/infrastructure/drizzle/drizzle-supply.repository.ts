@@ -2,7 +2,7 @@ import { and, asc, eq, ilike, or, sql, type SQL } from 'drizzle-orm';
 import { Db } from '../../../../shared/db';
 import { Supply, SupplyStatus, formatSupplyCode } from '../../domain/supply';
 import { SupplyAlias } from '../../domain/supply-alias';
-import { AliasConflictError } from '../../domain/supply-errors';
+import { SupplyAliasConflictError } from '../../domain/supply-errors';
 import {
   SupplyListFilter,
   SupplyRepository,
@@ -132,7 +132,7 @@ export class DrizzleSupplyRepository implements SupplyRepository {
     if (existing) {
       // Idempotente si ya apunta al mismo insumo; conflicto si apunta a otro.
       if (existing.supplyId === alias.supplyId) return;
-      throw new AliasConflictError(aliasNorm);
+      throw new SupplyAliasConflictError(aliasNorm);
     }
     await this.db
       .insert(supplyAliasesTable)

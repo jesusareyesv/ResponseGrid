@@ -1,7 +1,7 @@
 import { MergeSupplies } from './merge-supplies';
 import { Supply } from '../domain/supply';
 import {
-  MergeIntoSelfError,
+  SupplyMergeIntoSelfError,
   SupplyNotFoundError,
 } from '../domain/supply-errors';
 import { SupplyRepository } from '../domain/ports/supply.repository';
@@ -52,7 +52,7 @@ describe('MergeSupplies', () => {
     const repo = makeRepo({ [A]: supply(A, 'INS-0001') }, merge);
     await expect(
       new MergeSupplies(repo).execute({ sourceId: A, targetId: A }),
-    ).rejects.toBeInstanceOf(MergeIntoSelfError);
+    ).rejects.toBeInstanceOf(SupplyMergeIntoSelfError);
     expect(merge).not.toHaveBeenCalled();
   });
 

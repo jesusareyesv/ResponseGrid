@@ -1,7 +1,7 @@
 import { Supply } from '../domain/supply';
 import {
   SupplyNotFoundError,
-  VariantTargetNotFoundError,
+  SupplyVariantTargetNotFoundError,
 } from '../domain/supply-errors';
 import { SupplyRepository } from '../domain/ports/supply.repository';
 
@@ -41,7 +41,7 @@ export class EditSupply {
     if (cmd.variantOfId !== undefined) {
       if (cmd.variantOfId) {
         const parent = await this.repo.findById(cmd.variantOfId);
-        if (!parent) throw new VariantTargetNotFoundError(cmd.variantOfId);
+        if (!parent) throw new SupplyVariantTargetNotFoundError(cmd.variantOfId);
       }
       next = next.setVariantOf(cmd.variantOfId);
     }

@@ -1,6 +1,6 @@
 import { CreateSupply } from './create-supply';
 import { Supply } from '../domain/supply';
-import { VariantTargetNotFoundError } from '../domain/supply-errors';
+import { SupplyVariantTargetNotFoundError } from '../domain/supply-errors';
 import { SupplyRepository } from '../domain/ports/supply.repository';
 
 function makeRepo(overrides: Partial<SupplyRepository> = {}): SupplyRepository {
@@ -53,7 +53,7 @@ describe('CreateSupply', () => {
         categorySlug: 'water',
         variantOfId: '22222222-2222-4222-8222-222222222222',
       }),
-    ).rejects.toBeInstanceOf(VariantTargetNotFoundError);
+    ).rejects.toBeInstanceOf(SupplyVariantTargetNotFoundError);
     expect(allocateCode).not.toHaveBeenCalled();
     expect(save).not.toHaveBeenCalled();
   });

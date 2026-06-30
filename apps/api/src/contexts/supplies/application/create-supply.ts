@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 import { Supply } from '../domain/supply';
-import { VariantTargetNotFoundError } from '../domain/supply-errors';
+import { SupplyVariantTargetNotFoundError } from '../domain/supply-errors';
 import { SupplyRepository } from '../domain/ports/supply.repository';
 
 export interface CreateSupplyCommand {
@@ -28,7 +28,7 @@ export class CreateSupply {
     if (variantOfId) {
       const parent = await this.repo.findById(variantOfId);
       if (!parent) {
-        throw new VariantTargetNotFoundError(variantOfId);
+        throw new SupplyVariantTargetNotFoundError(variantOfId);
       }
     }
 

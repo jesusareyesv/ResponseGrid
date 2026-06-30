@@ -1,5 +1,5 @@
 import {
-  MergeIntoSelfError,
+  SupplyMergeIntoSelfError,
   SupplyNotFoundError,
 } from '../domain/supply-errors';
 import { SupplyRepository } from '../domain/ports/supply.repository';
@@ -21,7 +21,7 @@ export class MergeSupplies {
 
   async execute(cmd: MergeSuppliesCommand): Promise<void> {
     if (cmd.sourceId === cmd.targetId) {
-      throw new MergeIntoSelfError(cmd.sourceId);
+      throw new SupplyMergeIntoSelfError(cmd.sourceId);
     }
     const source = await this.repo.findById(cmd.sourceId);
     if (!source) throw new SupplyNotFoundError(cmd.sourceId);
