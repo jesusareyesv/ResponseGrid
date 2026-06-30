@@ -70,6 +70,20 @@ describe('Supply', () => {
     ).toThrow(SupplyValidationError);
   });
 
+  it('rechaza que un insumo sea variante de sí mismo', () => {
+    const id = '11111111-1111-4111-8111-111111111111';
+    expect(() =>
+      Supply.create({
+        id,
+        code: 'INS-0007',
+        name: 'Agua',
+        categorySlug: 'water',
+        defaultUnit: null,
+        variantOfId: id,
+      }),
+    ).toThrow(SupplyValidationError);
+  });
+
   describe('mutadores (edición admin, #222)', () => {
     const base = () =>
       Supply.create({

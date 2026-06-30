@@ -87,6 +87,9 @@ export class Supply {
     );
     const defaultUnit = normalizeOptionalText(props.defaultUnit);
     const variantOfId = normalizeOptionalText(props.variantOfId);
+    if (variantOfId !== null && variantOfId === id) {
+      throw new SupplyValidationError('Supply cannot be a variant of itself');
+    }
     const registrationNotes = normalizeOptionalText(props.registrationNotes);
     const status = props.status ?? 'active';
     if (status !== 'active' && status !== 'archived') {
