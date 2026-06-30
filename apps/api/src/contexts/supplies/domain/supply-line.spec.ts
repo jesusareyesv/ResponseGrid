@@ -17,7 +17,7 @@ describe('SupplyLine', () => {
     expect(line.presentation).toBeNull();
   });
 
-  it('defaults unit and presentation to null when not provided', () => {
+  it('defaults unit, presentation and supplyId to null when not provided', () => {
     const line = SupplyLine.create({
       name: 'Mantas',
       quantity: 5,
@@ -27,6 +27,32 @@ describe('SupplyLine', () => {
 
     expect(line.unit).toBeNull();
     expect(line.presentation).toBeNull();
+    expect(line.supplyId).toBeNull();
+  });
+
+  it('keeps the supplyId soft link when provided (#223)', () => {
+    const supplyId = 'cf8da6e3-7b91-52ff-8cf7-bbff50786c35';
+    const line = SupplyLine.create({
+      name: 'Agua potable (botellón 18L)',
+      quantity: 20,
+      unit: 'und',
+      category: Category.Water,
+      supplyId: `  ${supplyId}  `,
+    });
+
+    expect(line.supplyId).toBe(supplyId); // recortado
+  });
+
+  it('treats an empty supplyId as null (la opción "Otro")', () => {
+    const line = SupplyLine.create({
+      name: 'Cosa rara',
+      quantity: 1,
+      unit: null,
+      category: Category.Other,
+      supplyId: '   ',
+    });
+
+    expect(line.supplyId).toBeNull();
   });
 
   it('keeps the presentation when provided (health vertical, #61)', () => {
@@ -102,7 +128,7 @@ describe('SupplyLine', () => {
     },
   );
 
-  it('round-trips through a snapshot (including presentation and expiresAt)', () => {
+  it('round-trips through a snapshot (including presentation, expiresAt and supplyId)', () => {
     const line = SupplyLine.create({
       name: 'Budesonida',
       quantity: 5,
@@ -110,10 +136,23 @@ describe('SupplyLine', () => {
       category: Category.Medicines,
       presentation: 'inhalador',
       expiresAt: '2026-07-01',
+      supplyId: 'cf8da6e3-7b91-52ff-8cf7-bbff50786c35',
     });
 
     const restored = SupplyLine.fromSnapshot(line.toSnapshot());
 
     expect(restored.toSnapshot()).toEqual(line.toSnapshot());
+    expect(restored.supplyId).toBe('cf8da6e3-7b91-52ff-8cf7-bbff50786c35');
+  });
+
+  it('rehydrates a legacy snapshot without supplyId as null (compat)', () => {
+    const restored = SupplyLine.fromSnapshot({
+      name: 'Arroz',
+      quantity: 3,
+      unit: 'kg',
+      category: Category.Food,
+    });
+
+    expect(restored.supplyId).toBeNull();
   });
 });

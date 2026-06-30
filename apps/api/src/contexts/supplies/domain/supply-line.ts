@@ -28,6 +28,7 @@ export interface SupplyLineProps {
   category: Category;
   presentation?: string | null;
   expiresAt?: string | null;
+  supplyId?: string | null;
 }
 
 export interface SupplyLineSnapshot {
@@ -39,6 +40,12 @@ export interface SupplyLineSnapshot {
   presentation?: string | null;
   /** Optional freshness date for the line, kept as an ISO date string. */
   expiresAt?: string | null;
+  /**
+   * Optional soft link to the master catalogue `Supply` by id (#223). Kept
+   * alongside `name` (which stays for legacy rows and the "Otro" escape). Null
+   * when the line is free text / "Otro".
+   */
+  supplyId?: string | null;
 }
 
 function normalizeDateOnly(value?: string | null): string | null {
@@ -66,6 +73,12 @@ export class SupplyLineValidationError extends Error {
   }
 }
 
+function normalizeOptionalId(value?: string | null): string | null {
+  if (value == null) return null;
+  const trimmed = value.trim();
+  return trimmed === '' ? null : trimmed;
+}
+
 export class SupplyLine {
   readonly name: string;
   readonly quantity: number;
@@ -73,6 +86,7 @@ export class SupplyLine {
   readonly category: Category;
   readonly presentation: string | null;
   readonly expiresAt: string | null;
+  readonly supplyId: string | null;
 
   private constructor(props: SupplyLineProps) {
     this.name = props.name;
@@ -81,6 +95,7 @@ export class SupplyLine {
     this.category = props.category;
     this.presentation = props.presentation ?? null;
     this.expiresAt = normalizeDateOnly(props.expiresAt);
+    this.supplyId = normalizeOptionalId(props.supplyId);
   }
 
   static create(props: SupplyLineProps): SupplyLine {
@@ -99,6 +114,7 @@ export class SupplyLine {
       category: props.category,
       presentation: props.presentation ?? null,
       expiresAt: normalizeDateOnly(props.expiresAt),
+      supplyId: normalizeOptionalId(props.supplyId),
     });
   }
 
@@ -114,6 +130,7 @@ export class SupplyLine {
       category: this.category,
       presentation: this.presentation,
       expiresAt: this.expiresAt,
+      supplyId: this.supplyId,
     };
   }
 }

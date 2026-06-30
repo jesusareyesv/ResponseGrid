@@ -1,4 +1,4 @@
-import { integer, text, timestamp } from 'drizzle-orm/pg-core';
+import { integer, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { Category } from '../../domain/category';
 import { SupplyLineSnapshot } from '../../domain/supply-line';
 
@@ -20,6 +20,10 @@ export function supplyLineColumns() {
     category: text('category').notNull(),
     presentation: text('presentation'),
     expiresAt: timestamp('expires_at', { withTimezone: true }),
+    // Soft link to the master catalogue `Supply` (#223). Nullable; the FK to
+    // supplies(id) ON DELETE SET NULL lives in the migration (not here) so the
+    // needs/offers/resources schemas don't import the supplies schema.
+    supplyId: uuid('supply_id'),
   };
 }
 
@@ -31,6 +35,7 @@ export interface SupplyLineRow {
   category: string;
   presentation: string | null;
   expiresAt: Date | null;
+  supplyId: string | null;
 }
 
 function supplyLineDateToDb(value: string | null | undefined): Date | null {
@@ -53,6 +58,7 @@ export function rowToSupplyLineSnapshot(
     category: row.category as Category,
     presentation: row.presentation ?? null,
     expiresAt: supplyLineDateFromDb(row.expiresAt),
+    supplyId: row.supplyId ?? null,
   };
 }
 
@@ -65,5 +71,6 @@ export function supplyLineToColumns(line: SupplyLineSnapshot): SupplyLineRow {
     category: line.category,
     presentation: line.presentation ?? null,
     expiresAt: supplyLineDateToDb(line.expiresAt),
+    supplyId: line.supplyId ?? null,
   };
 }

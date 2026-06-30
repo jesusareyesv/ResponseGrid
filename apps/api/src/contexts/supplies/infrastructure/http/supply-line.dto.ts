@@ -5,6 +5,7 @@ import {
   IsOptional,
   IsPositive,
   IsString,
+  IsUUID,
   Matches,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -58,6 +59,16 @@ export class SupplyLineDto {
   @IsOptional()
   @Matches(/^\d{4}-\d{2}-\d{2}$/)
   expiresAt?: string;
+
+  @ApiPropertyOptional({
+    format: 'uuid',
+    example: 'cf8da6e3-7b91-52ff-8cf7-bbff50786c35',
+    description:
+      'Optional soft link to the master catalogue supply (#223). Omit / null for free text or the "Otro" escape.',
+  })
+  @IsOptional()
+  @IsUUID()
+  supplyId?: string;
 }
 
 /**
@@ -94,4 +105,13 @@ export class SupplyLineResponseDto {
       'Optional freshness date for the line, expressed as an ISO date (YYYY-MM-DD).',
   })
   expiresAt?: string | null;
+
+  @ApiPropertyOptional({
+    format: 'uuid',
+    nullable: true,
+    type: String,
+    example: 'cf8da6e3-7b91-52ff-8cf7-bbff50786c35',
+    description: 'Soft link to the master catalogue supply, or null (#223).',
+  })
+  supplyId!: string | null;
 }
