@@ -14,10 +14,17 @@ export class ListSuppliesAdmin {
 
   async execute(filter: SupplyListFilter): Promise<AdminSupplyView[]> {
     const supplies = await this.repo.list(filter);
-    return Promise.all(
-      supplies.map(async (supply) =>
-        toAdminSupplyView(supply, await this.repo.listAliases(supply.id)),
-      ),
+    // Una sola consulta de alias para todo el lote (evita N+1) y agrupación en
+    // memoria por insumo.
+    const aliases = await this.repo.listAliasesFor(supplies.map((s) => s.id));
+    const aliasesBySupply = new Map<string, typeof aliases>();
+    for (const alias of aliases) {
+      const list = aliasesBySupply.get(alias.supplyId);
+      if (list) list.push(alias);
+      else aliasesBySupply.set(alias.supplyId, [alias]);
+    }
+    return supplies.map((supply) =>
+      toAdminSupplyView(supply, aliasesBySupply.get(supply.id) ?? []),
     );
   }
 }

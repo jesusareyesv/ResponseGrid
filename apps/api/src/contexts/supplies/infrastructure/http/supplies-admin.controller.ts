@@ -159,10 +159,10 @@ export class SuppliesAdminController {
   @ApiOperation({ summary: 'Eliminar un alias del catálogo' })
   @ApiNoContentResponse()
   async removeAlias(
-    @Param('id', ParseUUIDPipe) _id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Param('aliasNorm') aliasNorm: string,
   ): Promise<void> {
-    await this.removeSupplyAlias.execute({ aliasNorm });
+    await this.removeSupplyAlias.execute({ supplyId: id, aliasNorm });
     this.cache.invalidate();
   }
 

@@ -33,6 +33,13 @@ export class SupplyMergeIntoSelfError extends Error {
   }
 }
 
+export class SupplyVariantCycleError extends Error {
+  constructor(id: string) {
+    super(`Variant relationship would create a cycle for supply: ${id}`);
+    this.name = 'SupplyVariantCycleError';
+  }
+}
+
 export class SupplyAliasConflictError extends Error {
   constructor(alias: string) {
     super(`Alias already mapped to a supply: ${alias}`);

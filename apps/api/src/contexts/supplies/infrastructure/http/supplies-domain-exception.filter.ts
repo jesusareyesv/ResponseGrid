@@ -19,6 +19,7 @@ import {
   SupplyMergeIntoSelfError,
   SupplyCodeConflictError,
   SupplyNotFoundError,
+  SupplyVariantCycleError,
   SupplyVariantTargetNotFoundError,
 } from '../../domain/supply-errors';
 import {
@@ -41,6 +42,7 @@ type DomainError =
   | SupplyCodeConflictError
   | SupplyVariantTargetNotFoundError
   | SupplyMergeIntoSelfError
+  | SupplyVariantCycleError
   | SupplyAliasConflictError;
   | CategoryAlreadyExistsError
   | CategoryNotFoundError
@@ -69,6 +71,7 @@ type DomainError =
   SupplyCodeConflictError,
   SupplyVariantTargetNotFoundError,
   SupplyMergeIntoSelfError,
+  SupplyVariantCycleError,
   SupplyAliasConflictError,
   CategoryAlreadyExistsError,
   CategoryNotFoundError,
@@ -105,7 +108,8 @@ export class SuppliesDomainExceptionFilter implements ExceptionFilter {
     if (
       exception instanceof SupplyLineValidationError ||
       exception instanceof SupplyValidationError ||
-      exception instanceof SupplyMergeIntoSelfError
+      exception instanceof SupplyMergeIntoSelfError ||
+      exception instanceof SupplyVariantCycleError
     ) {
       return HttpStatus.BAD_REQUEST;
     }

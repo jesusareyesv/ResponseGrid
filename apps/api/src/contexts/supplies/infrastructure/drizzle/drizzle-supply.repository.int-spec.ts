@@ -112,8 +112,22 @@ describe('DrizzleSupplyRepository (integration)', () => {
       repo.addAlias(SupplyAlias.create({ alias: 'aguita', supplyId: B })),
     ).rejects.toBeInstanceOf(SupplyAliasConflictError);
 
-    await repo.removeAlias('AGUITA');
+    // El borrado respeta el scope: con el insumo equivocado no borra nada.
+    await repo.removeAlias(B, 'AGUITA');
+    expect(await repo.listAliases(A)).toHaveLength(1);
+    await repo.removeAlias(A, 'AGUITA');
     expect(await repo.listAliases(A)).toHaveLength(0);
+  });
+
+  it('listAliasesFor devuelve los alias de varios insumos en un lote', async () => {
+    await repo.save(makeSupply({ id: A, code: 'INS-9001' }));
+    await repo.save(makeSupply({ id: B, code: 'INS-9002' }));
+    await repo.addAlias(SupplyAlias.create({ alias: 'en-a', supplyId: A }));
+    await repo.addAlias(SupplyAlias.create({ alias: 'en-b', supplyId: B }));
+
+    expect(await repo.listAliasesFor([])).toEqual([]);
+    const both = await repo.listAliasesFor([A, B]);
+    expect(both.map((x) => x.alias).sort()).toEqual(['en-a', 'en-b']);
   });
 
   it('merge mueve alias, repunta variantes hijas y archiva el origen', async () => {
@@ -141,6 +155,21 @@ describe('DrizzleSupplyRepository (integration)', () => {
     expect(await repo.listAliases(A)).toHaveLength(0);
     const child = await repo.findById(CHILD);
     expect(child!.variantOfId).toBe(B);
+    const source = await repo.findById(A);
+    expect(source!.status).toBe('archived');
+  });
+
+  it('merge de un padre en su propia variante no crea auto-referencia', async () => {
+    // A es el padre; B es variante de A. Fusionar A -> B no debe dejar a B
+    // apuntándose a sí misma (variantOfId = B).
+    await repo.save(makeSupply({ id: A, code: 'INS-9001' }));
+    await repo.save(makeSupply({ id: B, code: 'INS-9002', variantOfId: A }));
+
+    await repo.merge(A, B);
+
+    const target = await repo.findById(B);
+    expect(target!.variantOfId).toBeNull();
+    expect(target!.status).toBe('active');
     const source = await repo.findById(A);
     expect(source!.status).toBe('archived');
   });

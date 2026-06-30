@@ -62,10 +62,11 @@ describe('SuppliesAdminController', () => {
     });
   });
 
-  it('removeAlias delega el aliasNorm de la ruta', async () => {
+  it('removeAlias delega supplyId y aliasNorm de la ruta', async () => {
     const { controller, useCases } = makeController({});
     await controller.removeAlias('abc', 'agua');
     expect(useCases.removeSupplyAlias.execute).toHaveBeenCalledWith({
+      supplyId: 'abc',
       aliasNorm: 'agua',
     });
   });

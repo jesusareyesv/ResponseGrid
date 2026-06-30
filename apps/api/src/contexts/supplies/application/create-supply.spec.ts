@@ -11,6 +11,7 @@ function makeRepo(overrides: Partial<SupplyRepository> = {}): SupplyRepository {
     allocateCode: jest.fn().mockResolvedValue('INS-0212'),
     list: jest.fn().mockResolvedValue([]),
     listAliases: jest.fn().mockResolvedValue([]),
+    listAliasesFor: jest.fn().mockResolvedValue([]),
     addAlias: jest.fn().mockResolvedValue(undefined),
     removeAlias: jest.fn().mockResolvedValue(undefined),
     merge: jest.fn().mockResolvedValue(undefined),

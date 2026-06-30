@@ -30,6 +30,7 @@ function makeRepo(overrides: Partial<SupplyRepository> = {}): SupplyRepository {
     allocateCode: jest.fn().mockResolvedValue('INS-0212'),
     list: jest.fn().mockResolvedValue([]),
     listAliases: jest.fn().mockResolvedValue([]),
+    listAliasesFor: jest.fn().mockResolvedValue([]),
     addAlias: jest.fn().mockResolvedValue(undefined),
     removeAlias: jest.fn().mockResolvedValue(undefined),
     merge: jest.fn().mockResolvedValue(undefined),
@@ -93,28 +94,35 @@ describe('AddSupplyAlias / RemoveSupplyAlias', () => {
     expect(addAlias).not.toHaveBeenCalled();
   });
 
-  it('remove delega en el repositorio', async () => {
+  it('remove delega en el repositorio con el scope del insumo', async () => {
     const removeAlias = jest.fn().mockResolvedValue(undefined);
     const repo = makeRepo({ removeAlias });
-    await new RemoveSupplyAlias(repo).execute({ aliasNorm: 'aguita' });
-    expect(removeAlias).toHaveBeenCalledWith('aguita');
+    await new RemoveSupplyAlias(repo).execute({
+      supplyId: ID,
+      aliasNorm: 'aguita',
+    });
+    expect(removeAlias).toHaveBeenCalledWith(ID, 'aguita');
   });
 });
 
 describe('ListSuppliesAdmin / GetSupplyAdmin', () => {
-  it('list adjunta los alias y expone campos internos', async () => {
+  it('list adjunta los alias (lote único) y expone campos internos', async () => {
+    const listAliasesFor = jest
+      .fn()
+      .mockResolvedValue([
+        SupplyAlias.fromSnapshot({ alias: 'aguita', supplyId: ID }),
+      ]);
     const repo = makeRepo({
       list: jest.fn().mockResolvedValue([supply('archived')]),
-      listAliases: jest
-        .fn()
-        .mockResolvedValue([
-          SupplyAlias.fromSnapshot({ alias: 'aguita', supplyId: ID }),
-        ]),
+      listAliasesFor,
     });
     const views = await new ListSuppliesAdmin(repo).execute({});
     expect(views).toHaveLength(1);
     expect(views[0].status).toBe('archived');
     expect(views[0].aliases).toEqual(['aguita']);
+    // Un solo round-trip de alias para todo el lote (no N+1).
+    expect(listAliasesFor).toHaveBeenCalledTimes(1);
+    expect(listAliasesFor).toHaveBeenCalledWith([ID]);
   });
 
   it('get lanza SupplyNotFoundError si no existe', async () => {

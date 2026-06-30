@@ -1,8 +1,21 @@
-import { and, asc, eq, ilike, or, sql, type SQL } from 'drizzle-orm';
+import {
+  and,
+  asc,
+  eq,
+  ilike,
+  inArray,
+  ne,
+  or,
+  sql,
+  type SQL,
+} from 'drizzle-orm';
 import { Db } from '../../../../shared/db';
 import { Supply, SupplyStatus, formatSupplyCode } from '../../domain/supply';
 import { SupplyAlias } from '../../domain/supply-alias';
-import { SupplyAliasConflictError } from '../../domain/supply-errors';
+import {
+  SupplyAliasConflictError,
+  SupplyCodeConflictError,
+} from '../../domain/supply-errors';
 import {
   SupplyListFilter,
   SupplyRepository,
@@ -10,6 +23,17 @@ import {
 import { suppliesTable, supplyAliasesTable } from './schema';
 
 type SupplyRow = typeof suppliesTable.$inferSelect;
+
+/** Código de violación de unicidad de Postgres. */
+const UNIQUE_VIOLATION = '23505';
+
+function isUniqueViolation(err: unknown): boolean {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    (err as { code?: string }).code === UNIQUE_VIOLATION
+  );
+}
 
 /**
  * Persistencia del agregado `Supply` (escritura / gestión interna). La cara
@@ -42,24 +66,12 @@ export class DrizzleSupplyRepository implements SupplyRepository {
   async save(supply: Supply): Promise<void> {
     const s = supply.toSnapshot();
     const now = new Date();
-    await this.db
-      .insert(suppliesTable)
-      .values({
-        id: s.id,
-        code: s.code,
-        name: s.name,
-        status: s.status,
-        registrationNotes: s.registrationNotes,
-        categorySlug: s.categorySlug,
-        defaultUnit: s.defaultUnit,
-        attributes: s.attributes,
-        variantOfId: s.variantOfId,
-        createdAt: now,
-        updatedAt: now,
-      })
-      .onConflictDoUpdate({
-        target: suppliesTable.id,
-        set: {
+    try {
+      await this.db
+        .insert(suppliesTable)
+        .values({
+          id: s.id,
+          code: s.code,
           name: s.name,
           status: s.status,
           registrationNotes: s.registrationNotes,
@@ -67,9 +79,30 @@ export class DrizzleSupplyRepository implements SupplyRepository {
           defaultUnit: s.defaultUnit,
           attributes: s.attributes,
           variantOfId: s.variantOfId,
+          createdAt: now,
           updatedAt: now,
-        },
-      });
+        })
+        .onConflictDoUpdate({
+          target: suppliesTable.id,
+          set: {
+            name: s.name,
+            status: s.status,
+            registrationNotes: s.registrationNotes,
+            categorySlug: s.categorySlug,
+            defaultUnit: s.defaultUnit,
+            attributes: s.attributes,
+            variantOfId: s.variantOfId,
+            updatedAt: now,
+          },
+        });
+    } catch (err) {
+      // El upsert resuelve el conflicto por `id`; un 23505 restante sólo puede
+      // venir del índice único de `code` → error de dominio (409) en vez de 500.
+      if (isUniqueViolation(err)) {
+        throw new SupplyCodeConflictError(s.code);
+      }
+      throw err;
+    }
   }
 
   async allocateCode(): Promise<string> {
@@ -112,10 +145,15 @@ export class DrizzleSupplyRepository implements SupplyRepository {
   }
 
   async listAliases(supplyId: string): Promise<SupplyAlias[]> {
+    return this.listAliasesFor([supplyId]);
+  }
+
+  async listAliasesFor(supplyIds: string[]): Promise<SupplyAlias[]> {
+    if (supplyIds.length === 0) return [];
     const rows = await this.db
       .select()
       .from(supplyAliasesTable)
-      .where(eq(supplyAliasesTable.supplyId, supplyId))
+      .where(inArray(supplyAliasesTable.supplyId, supplyIds))
       .orderBy(asc(supplyAliasesTable.aliasNorm));
     return rows.map((r) =>
       SupplyAlias.fromSnapshot({ alias: r.aliasNorm, supplyId: r.supplyId }),
@@ -124,26 +162,33 @@ export class DrizzleSupplyRepository implements SupplyRepository {
 
   async addAlias(alias: SupplyAlias): Promise<void> {
     const aliasNorm = SupplyAlias.normalize(alias.alias);
+    // Inserción atómica: ON CONFLICT DO NOTHING + relectura evita la carrera de
+    // un check-then-insert (dos altas concurrentes del mismo término → 23505).
+    const inserted = await this.db
+      .insert(supplyAliasesTable)
+      .values({ aliasNorm, supplyId: alias.supplyId })
+      .onConflictDoNothing()
+      .returning({ supplyId: supplyAliasesTable.supplyId });
+    if (inserted.length > 0) return;
+    // Hubo conflicto: idempotente si ya apunta al mismo insumo, si no, error.
     const [existing] = await this.db
       .select()
       .from(supplyAliasesTable)
       .where(eq(supplyAliasesTable.aliasNorm, aliasNorm))
       .limit(1);
-    if (existing) {
-      // Idempotente si ya apunta al mismo insumo; conflicto si apunta a otro.
-      if (existing.supplyId === alias.supplyId) return;
-      throw new SupplyAliasConflictError(aliasNorm);
-    }
-    await this.db
-      .insert(supplyAliasesTable)
-      .values({ aliasNorm, supplyId: alias.supplyId });
+    if (existing && existing.supplyId === alias.supplyId) return;
+    throw new SupplyAliasConflictError(aliasNorm);
   }
 
-  async removeAlias(aliasNorm: string): Promise<void> {
+  async removeAlias(supplyId: string, aliasNorm: string): Promise<void> {
+    // Borra sólo si el alias pertenece a ese insumo (respeta el scope de la ruta).
     await this.db
       .delete(supplyAliasesTable)
       .where(
-        eq(supplyAliasesTable.aliasNorm, SupplyAlias.normalize(aliasNorm)),
+        and(
+          eq(supplyAliasesTable.aliasNorm, SupplyAlias.normalize(aliasNorm)),
+          eq(supplyAliasesTable.supplyId, supplyId),
+        ),
       );
   }
 
@@ -155,11 +200,28 @@ export class DrizzleSupplyRepository implements SupplyRepository {
         .update(supplyAliasesTable)
         .set({ supplyId: targetId })
         .where(eq(supplyAliasesTable.supplyId, sourceId));
-      // Repunta las variantes hijas de A a B.
+      // Repunta las variantes hijas de A a B, excluyendo a la propia B (si B
+      // era variante de A, repuntarla la dejaría apuntándose a sí misma).
       await tx
         .update(suppliesTable)
         .set({ variantOfId: targetId, updatedAt: new Date() })
-        .where(eq(suppliesTable.variantOfId, sourceId));
+        .where(
+          and(
+            eq(suppliesTable.variantOfId, sourceId),
+            ne(suppliesTable.id, targetId),
+          ),
+        );
+      // Si B era variante de A (se fusiona el padre en su hija), B queda como
+      // raíz (no como variante del A ya archivado).
+      await tx
+        .update(suppliesTable)
+        .set({ variantOfId: null, updatedAt: new Date() })
+        .where(
+          and(
+            eq(suppliesTable.id, targetId),
+            eq(suppliesTable.variantOfId, sourceId),
+          ),
+        );
       // Archiva A (no se borra: preserva referencias legadas para #223/#226).
       await tx
         .update(suppliesTable)

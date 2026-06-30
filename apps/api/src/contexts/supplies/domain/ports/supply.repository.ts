@@ -32,8 +32,11 @@ export interface SupplyRepository {
   /** Listado de gestión: incluye archivados; filtra por categoría/estado/búsqueda. */
   list(filter: SupplyListFilter): Promise<Supply[]>;
   listAliases(supplyId: string): Promise<SupplyAlias[]>;
+  /** Alias de varios insumos en una sola consulta (evita N+1 en el listado). */
+  listAliasesFor(supplyIds: string[]): Promise<SupplyAlias[]>;
   addAlias(alias: SupplyAlias): Promise<void>;
-  removeAlias(aliasNorm: string): Promise<void>;
+  /** Borra el alias sólo si pertenece al insumo indicado (scope de la ruta). */
+  removeAlias(supplyId: string, aliasNorm: string): Promise<void>;
   /**
    * Fusiona `sourceId` en `targetId`: mueve los alias de A a B, repunta las
    * variantes hijas de A a B y archiva A. No borra A (preserva referencias

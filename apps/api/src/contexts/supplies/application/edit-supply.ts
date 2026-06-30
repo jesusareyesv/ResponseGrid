@@ -1,6 +1,7 @@
 import { Supply } from '../domain/supply';
 import {
   SupplyNotFoundError,
+  SupplyVariantCycleError,
   SupplyVariantTargetNotFoundError,
 } from '../domain/supply-errors';
 import { SupplyRepository } from '../domain/ports/supply.repository';
@@ -41,11 +42,37 @@ export class EditSupply {
     if (cmd.variantOfId !== undefined) {
       if (cmd.variantOfId) {
         const parent = await this.repo.findById(cmd.variantOfId);
-        if (!parent) throw new SupplyVariantTargetNotFoundError(cmd.variantOfId);
+        if (!parent)
+          throw new SupplyVariantTargetNotFoundError(cmd.variantOfId);
+        await this.assertNoVariantCycle(cmd.id, parent);
       }
       next = next.setVariantOf(cmd.variantOfId);
     }
 
     await this.repo.save(next);
+  }
+
+  /**
+   * Recorre la cadena de ancestros desde el padre propuesto: si vuelve a
+   * encontrar el propio insumo, la relación cerraría un ciclo (incl. el
+   * auto-referencia `variantOfId === id`). El `seen` corta cadenas ya cíclicas
+   * en datos para no bucle infinito.
+   */
+  private async assertNoVariantCycle(
+    id: string,
+    parent: Supply,
+  ): Promise<void> {
+    const seen = new Set<string>();
+    let ancestor: Supply | null = parent;
+    while (ancestor) {
+      if (ancestor.id === id) {
+        throw new SupplyVariantCycleError(id);
+      }
+      if (seen.has(ancestor.id)) break;
+      seen.add(ancestor.id);
+      ancestor = ancestor.variantOfId
+        ? await this.repo.findById(ancestor.variantOfId)
+        : null;
+    }
   }
 }
