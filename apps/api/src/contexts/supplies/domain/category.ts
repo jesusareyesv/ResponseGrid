@@ -23,4 +23,15 @@ export enum Category {
   MedicalEquipment = 'medical_equipment',
   MedicalSupplies = 'medical_supplies',
   MedicalPersonnel = 'medical_personnel',
+  // UCAB Subcategories
+  FoodFresh = 'food_fresh',
+  FoodNonPerishable = 'food_non_perishable',
+  HygieneInfantile = 'hygiene_infantile',
+  HygienePersonal = 'hygiene_personal',
+  ToolsExtraction = 'tools_extraction',
+  OtherPets = 'other_pets',
+}
+
+export function isCoreCategory(slug: string): boolean {
+  return Object.values(Category).includes(slug as Category);
 }

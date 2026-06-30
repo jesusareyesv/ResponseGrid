@@ -28,6 +28,8 @@ import { CachingSupplyCatalogReadModel } from './infrastructure/caching-supply-c
 import { DrizzleContainerRepository } from './infrastructure/drizzle/drizzle-container.repository';
 import { DrizzleContainerAuthorizationLookup } from './infrastructure/drizzle/drizzle-container-authorization-lookup';
 import { ListCategories } from './application/list-categories';
+import { CreateCategory } from './application/create-category';
+import { UpdateCategory } from './application/update-category';
 import { ListSupplies } from './application/list-supplies';
 import { GetSupply } from './application/get-supply';
 import { CreateSupply } from './application/create-supply';
@@ -48,6 +50,7 @@ import { MoveContainer } from './application/move-container';
 import { GetContainer } from './application/get-container';
 import { ListContainers } from './application/list-containers';
 import { CategoriesController } from './infrastructure/http/categories.controller';
+import { CategoriesAdminController } from './infrastructure/http/categories-admin.controller';
 import { SuppliesController } from './infrastructure/http/supplies.controller';
 import { SuppliesAdminController } from './infrastructure/http/supplies-admin.controller';
 import { ContainerController } from './infrastructure/http/containers.controller';
@@ -99,6 +102,20 @@ const listCategoriesProvider = {
   inject: [CATEGORY_REPOSITORY],
   useFactory: (repo: CategoryRepository): ListCategories =>
     new ListCategories(repo),
+};
+
+const createCategoryProvider = {
+  provide: CreateCategory,
+  inject: [CATEGORY_REPOSITORY],
+  useFactory: (repo: CategoryRepository): CreateCategory =>
+    new CreateCategory(repo),
+};
+
+const updateCategoryProvider = {
+  provide: UpdateCategory,
+  inject: [CATEGORY_REPOSITORY],
+  useFactory: (repo: CategoryRepository): UpdateCategory =>
+    new UpdateCategory(repo),
 };
 
 const listSuppliesProvider = {
@@ -228,6 +245,8 @@ const listContainersProvider = {
     CategoriesController,
     SuppliesController,
     SuppliesAdminController,
+    CategoriesAdminController,
+    SuppliesController,
     ContainerController,
   ],
   providers: [
@@ -238,6 +257,8 @@ const listContainersProvider = {
     containerRepositoryProvider,
     containerAuthorizationLookupProvider,
     listCategoriesProvider,
+    createCategoryProvider,
+    updateCategoryProvider,
     listSuppliesProvider,
     getSupplyProvider,
     createSupplyProvider,
