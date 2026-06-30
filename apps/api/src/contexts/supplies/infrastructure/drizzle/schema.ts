@@ -24,6 +24,7 @@ export const categoriesTable = pgTable('categories', {
   vertical: text('vertical').notNull().default('general'),
   sort: integer('sort').notNull().default(0),
   codePrefix: text('code_prefix'),
+  archivedAt: timestamp('archived_at', { withTimezone: true }),
 });
 
 export const categoryAliasesTable = pgTable('category_aliases', {

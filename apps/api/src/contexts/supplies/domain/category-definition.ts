@@ -8,6 +8,11 @@
  * solo campos publicables. NO debe crecer con datos de gestión interna (notas,
  * flag de desactivación, etc.); esos quedan para la API interna.
  */
+export interface CategoryTranslation {
+  locale: string;
+  label: string;
+}
+
 export interface CategoryDefinition {
   slug: string;
   labelEs: string;
@@ -16,4 +21,6 @@ export interface CategoryDefinition {
   vertical: string;
   sort: number;
   codePrefix: string | null;
+  archivedAt: Date | null;
+  translations: readonly CategoryTranslation[];
 }

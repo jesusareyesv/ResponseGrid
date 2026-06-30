@@ -4,7 +4,7 @@ describe('Supply', () => {
   it('crea un supply valido y recorta los textos', () => {
     const supply = Supply.create({
       id: ' 11111111-1111-4111-8111-111111111111 ',
-      code: ' INS-0001 ',
+      code: ' WAT-0001 ',
       name: '  Agua potable  ',
       categorySlug: ' water ',
       defaultUnit: ' litros ',
@@ -12,7 +12,7 @@ describe('Supply', () => {
     });
 
     expect(supply.id).toBe('11111111-1111-4111-8111-111111111111');
-    expect(supply.code).toBe('INS-0001');
+    expect(supply.code).toBe('WAT-0001');
     expect(supply.name).toBe('Agua potable');
     expect(supply.categorySlug).toBe('water');
     expect(supply.defaultUnit).toBe('litros');
@@ -24,7 +24,7 @@ describe('Supply', () => {
   it('acepta estado archived y notas de registro', () => {
     const supply = Supply.create({
       id: '11111111-1111-4111-8111-111111111111',
-      code: 'INS-0005',
+      code: 'SHE-0005',
       name: 'Manta',
       categorySlug: 'shelter',
       defaultUnit: 'unidad',
@@ -39,7 +39,7 @@ describe('Supply', () => {
   it('round-trips through snapshot sin perder datos', () => {
     const supply = Supply.create({
       id: '11111111-1111-4111-8111-111111111111',
-      code: 'INS-0004',
+      code: 'SHE-0004',
       name: 'Manta',
       categorySlug: 'shelter',
       defaultUnit: 'unidad',
@@ -61,7 +61,7 @@ describe('Supply', () => {
     expect(() =>
       Supply.create({
         id: '11111111-1111-4111-8111-111111111111',
-        code: 'INS-0003',
+        code: 'CLO-0003',
         name: 'Ropa',
         categorySlug: 'clothing',
         defaultUnit: null,
@@ -118,16 +118,16 @@ describe('Supply', () => {
   });
 
   describe('formatSupplyCode', () => {
-    it('rellena a 4 dígitos en formato INS-NNNN', () => {
-      expect(formatSupplyCode(1)).toBe('INS-0001');
-      expect(formatSupplyCode(212)).toBe('INS-0212');
-      expect(formatSupplyCode(9999)).toBe('INS-9999');
+    it('rellena a 4 dígitos en formato XXX-NNNN', () => {
+      expect(formatSupplyCode('INS', 1)).toBe('INS-0001');
+      expect(formatSupplyCode('WAT', 212)).toBe('WAT-0212');
+      expect(formatSupplyCode('FOD', 9999)).toBe('FOD-9999');
     });
 
     it('produce un código válido para el agregado', () => {
       const supply = Supply.create({
         id: '11111111-1111-4111-8111-111111111111',
-        code: formatSupplyCode(212),
+        code: formatSupplyCode('INS', 212),
         name: 'Nuevo insumo',
         categorySlug: 'other',
         defaultUnit: null,
@@ -136,8 +136,14 @@ describe('Supply', () => {
     });
 
     it('rechaza secuencias no positivas', () => {
-      expect(() => formatSupplyCode(0)).toThrow(SupplyValidationError);
-      expect(() => formatSupplyCode(-3)).toThrow(SupplyValidationError);
+      expect(() => formatSupplyCode('INS', 0)).toThrow(SupplyValidationError);
+      expect(() => formatSupplyCode('INS', -3)).toThrow(SupplyValidationError);
+    });
+
+    it('rechaza prefijos que no son de 3 letras mayúsculas', () => {
+      expect(() => formatSupplyCode('IN', 5)).toThrow(SupplyValidationError);
+      expect(() => formatSupplyCode('INSS', 5)).toThrow(SupplyValidationError);
+      expect(() => formatSupplyCode('ins', 5)).toThrow(SupplyValidationError);
     });
   });
 });

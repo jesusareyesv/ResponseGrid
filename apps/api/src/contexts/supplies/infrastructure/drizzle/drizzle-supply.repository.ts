@@ -74,7 +74,7 @@ export class DrizzleSupplyRepository implements SupplyRepository {
 
   async nextSequenceValue(): Promise<number> {
     // nextval devuelve bigint -> string; la secuencia se siembra por encima del
-    // máximo sembrado en la migración 0040.
+    // máximo sembrado en la migración 0042.
     const result = await this.db.execute<{ value: string }>(
       sql`SELECT nextval('supply_code_seq') AS value`,
     );

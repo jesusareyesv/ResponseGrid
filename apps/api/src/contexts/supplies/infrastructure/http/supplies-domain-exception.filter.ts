@@ -23,6 +23,11 @@ import {
   SupplyNotFoundError,
   VariantTargetNotFoundError,
 } from '../../domain/supply-errors';
+import {
+  CategoryAlreadyExistsError,
+  CategoryParentNotFoundError,
+  CategoryValidationError,
+} from '../../application/category-admin.errors';
 
 type DomainError =
   | ContainerNotFoundError
@@ -38,7 +43,10 @@ type DomainError =
   | VariantTargetNotFoundError
   | CategoryNotFoundError
   | MergeIntoSelfError
-  | AliasConflictError;
+  | AliasConflictError
+  | CategoryAlreadyExistsError
+  | CategoryParentNotFoundError
+  | CategoryValidationError;
 
 /**
  * Maps supplies domain errors to HTTP codes. The supplies context owns the
@@ -46,11 +54,9 @@ type DomainError =
  * rather than in another context's filter.
  *
  * - not-found → 404
- * - sealed (a state conflict: mutating/re-sealing a precintado container) → 409
- * - cycle / cross-emergency nest / other container validation → 422
- *   (matches how the codebase maps "wrong emergency", e.g. offers'
- *   TargetNeedWrongEmergencyError → 422)
- * - SupplyLineValidationError (e.g. a whitespace-only line name) → 400
+ * - sealed / already exists (conflict) → 409
+ * - cycle / validation → 422
+ * - SupplyLineValidationError → 400
  */
 @Catch(
   ContainerNotFoundError,
@@ -67,6 +73,9 @@ type DomainError =
   CategoryNotFoundError,
   MergeIntoSelfError,
   AliasConflictError,
+  CategoryAlreadyExistsError,
+  CategoryParentNotFoundError,
+  CategoryValidationError,
 )
 export class SuppliesDomainExceptionFilter implements ExceptionFilter {
   catch(exception: DomainError, host: ArgumentsHost): void {
@@ -82,14 +91,16 @@ export class SuppliesDomainExceptionFilter implements ExceptionFilter {
       exception instanceof ContainerNotFoundError ||
       exception instanceof SupplyNotFoundError ||
       exception instanceof VariantTargetNotFoundError ||
-      exception instanceof CategoryNotFoundError
+      exception instanceof CategoryNotFoundError ||
+      exception instanceof CategoryParentNotFoundError
     ) {
       return HttpStatus.NOT_FOUND;
     }
     if (
       exception instanceof ContainerSealedError ||
       exception instanceof SupplyCodeConflictError ||
-      exception instanceof AliasConflictError
+      exception instanceof AliasConflictError ||
+      exception instanceof CategoryAlreadyExistsError
     ) {
       return HttpStatus.CONFLICT;
     }
