@@ -9,11 +9,14 @@
 -- limpia con la semilla aplicada, así que MAX = 211 y el próximo nextval = 212.
 CREATE SEQUENCE IF NOT EXISTS "supply_code_seq";
 --> statement-breakpoint
+-- Posiciona la secuencia tras el máximo actual. Con tabla sembrada (MAX=211)
+-- is_called=true → el próximo nextval = 212. Con tabla vacía, is_called=false
+-- y valor 1 → el próximo nextval = 1 (no se salta INS-0001).
 SELECT setval(
   'supply_code_seq',
-  GREATEST(
-    (SELECT COALESCE(MAX(substring("code" FROM 5)::int), 0) FROM "supplies"),
-    1
-  ),
-  true
-);
+  GREATEST(m.maxnum, 1),
+  m.maxnum IS NOT NULL
+)
+FROM (
+  SELECT MAX(substring("code" FROM 5)::int) AS maxnum FROM "supplies"
+) AS m;
